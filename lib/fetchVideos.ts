@@ -1,4 +1,6 @@
 // lib/fetchVideos.ts
+// TODO: typer plus strictement la réponse YouTube API
+// TODO: factoriser la logique de normalisation d’URL thumbnail
 import "server-only";
 
 export type VideoItem = {

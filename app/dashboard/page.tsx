@@ -1,4 +1,7 @@
 // app/dashboard/page.tsx
+// TODO: améliorer le design des cartes vidéos (ajouter avatar chaîne ?)
+// TODO: ajouter pagination ou bouton "Voir plus"
+// TODO: brancher les KPI "Articles WordPress" sur l’API WP
 import Image from "next/image";
 import { headers } from "next/headers";
 import type { VideoItem } from "@/lib/fetchVideos";

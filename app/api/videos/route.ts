@@ -1,4 +1,7 @@
 // app/api/videos/route.ts
+// TODO: gérer le cas où YouTube API renvoie une erreur de quota (429)
+// TODO: améliorer le scraping TikTok (fallback si SIGI_STATE absent)
+// TODO: ajouter un cache Redis pour éviter les appels trop fréquents
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
