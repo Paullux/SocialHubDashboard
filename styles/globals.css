@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities; 
+
+html,body{height:100%;width:100%}
+@layer base {
+    body {
+        @apply bg-neutral-700 text-neutral-100 relative;
+        left: 1%;   /* marge gauche */
+        right: 1%;  /* marge droite */
+        position: relative;
+    }
+
+    body::before {
+        content: "";
+        position: fixed; /* fixé par rapport à la fenêtre */
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 200px; /* hauteur du bandeau */
+        background-image: url('/motif.png');
+        background-repeat: repeat-x;
+        background-position: bottom;
+        background-size: auto 200px;
+        opacity: 0.5;
+        pointer-events: none;
+        z-index: 0; /* s’assure que ça reste derrière */
+    }
+}

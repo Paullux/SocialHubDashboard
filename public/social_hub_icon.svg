@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Social Hub Icon</title>
+  <desc id="desc">A rounded-square badge with a central hub node connected to three orbiting nodes, symbolizing connected social networks.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="128" y1="96" x2="384" y2="416" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Rounded background -->
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#bg)"/>
+
+  <!-- Subtle outer ring -->
+  <circle cx="256" cy="256" r="168" stroke="#1F2937" stroke-opacity="0.9" stroke-width="8"/>
+
+  <!-- Connectors -->
+  <g stroke="url(#accent)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Center to top-right -->
+    <line x1="256" y1="256" x2="372" y2="172"/>
+    <!-- Center to left -->
+    <line x1="256" y1="256" x2="128" y2="256"/>
+    <!-- Center to bottom-right -->
+    <line x1="256" y1="256" x2="356" y2="370"/>
+  </g>
+
+  <!-- Nodes -->
+  <!-- Central hub -->
+  <g filter="url(#glow)">
+    <circle cx="256" cy="256" r="28" fill="url(#accent)"/>
+  </g>
+
+  <!-- Orbiting nodes -->
+  <g>
+    <circle cx="372" cy="172" r="18" fill="#FFFFFF" fill-opacity="0.96" />
+    <circle cx="128" cy="256" r="18" fill="#FFFFFF" fill-opacity="0.96" />
+    <circle cx="356" cy="370" r="18" fill="#FFFFFF" fill-opacity="0.96" />
+    <!-- orbit strokes -->
+    <circle cx="372" cy="172" r="22" fill="none" stroke="url(#accent)" stroke-width="4" stroke-opacity="0.8"/>
+    <circle cx="128" cy="256" r="22" fill="none" stroke="url(#accent)" stroke-width="4" stroke-opacity="0.8"/>
+    <circle cx="356" cy="370" r="22" fill="none" stroke="url(#accent)" stroke-width="4" stroke-opacity="0.8"/>
+  </g>
+
+  <!-- Soft inner ring arcs -->
+  <path d="M128 256a128 128 0 0 1 209.7 -97.3" stroke="#334155" stroke-opacity="0.6" stroke-width="8" fill="none"/>
+  <path d="M356 370a128 128 0 0 1 -228  -60" stroke="#334155" stroke-opacity="0.5" stroke-width="8" fill="none"/>
+
+  <!-- Optional SH monogram (subtle) -->
+  <g opacity="0.9">
+    <path d="M239 220c-14 0-25-8-25-20 0-14 13-21 30-21 9 0 17 2 25 6" stroke="#94A3B8" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M280 292v-72c0-6 5-11 11-11h12c6 0 11 5 11 11v72" stroke="#94A3B8" stroke-width="5" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>
