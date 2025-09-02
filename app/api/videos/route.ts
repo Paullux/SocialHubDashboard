@@ -1,102 +1,68 @@
 // app/api/videos/route.ts
-// TODO: gérer le cas où YouTube API renvoie une erreur de quota (429)
-// TODO: améliorer le scraping TikTok (fallback si SIGI_STATE absent)
-// TODO: ajouter un cache Redis pour éviter les appels trop fréquents
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
-import { fetchYouTubeLatest, type VideoItem } from "@/lib/fetchVideos";
+import type { VideoItem } from "@/lib/types";
+import { fetchYouTubeLatest } from "@/lib/fetchVideos";
+import { fetchTikTokDisplayByUrl } from "@/lib/tiktok/display.server";
+import { fetchTikTokScraped } from "@/lib/tiktok/scraper.server"; // si tu veux un fallback
 
-const ENABLE_TIKTOK = (process.env.ENABLE_TIKTOK ?? "").toString() === "1";
+const ENABLE_TIKTOK_SCRAPER = process.env.ENABLE_TIKTOK_SCRAPER === "1";
+const TIKTOK_USERNAME = process.env.TIKTOK_USERNAME || ""; // pour le fallback scraper
+const TIKTOK_VIDEO_URLS = (process.env.TIKTOK_VIDEO_URLS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+// ↑ Option simple : tu listes 1..N URLs de tes vidéos pour Display API.
+//   Sinon, tu peux d’abord obtenir la liste via Login Kit (user.video.list), puis appeler Display API par item.
 
-/** Fetch TikTok (optionnel) — ne tourne qu’en runtime Node */
-async function fetchTikTokLatest(username?: string, limit = 12): Promise<VideoItem[]> {
-  if (!ENABLE_TIKTOK || !username) return [];
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const debug = url.searchParams.get("debug") === "1";
+  const notes: any = {};
 
-  const profileUrl = `https://www.tiktok.com/@${username}`;
   try {
-    const res = await fetch(profileUrl, {
-      headers: {
-        "user-agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "accept-language": "fr-FR,fr;q=0.9,en;q=0.8",
-        referer: "https://www.tiktok.com/",
-      },
-      cache: "no-store",
-      redirect: "follow",
-    });
+    // YouTube
+    const ytKey = process.env.YT_API_KEY || "";
+    const ytChan = process.env.YT_CHANNEL_ID || "";
+    const yt = ytKey && ytChan ? await fetchYouTubeLatest(ytKey, ytChan, 12) : [];
+    if (!ytKey || !ytChan) notes.youtube = "missing key/channel";
 
-    if (!res.ok) {
-      console.warn("[TT] fetch profile failed:", res.status, res.statusText);
-      return [];
+    // TikTok OFFICIEL (Display API) — à partir d'une liste d'URLs (ex: les plus récentes)
+    const ttOfficial: VideoItem[] = [];
+    for (const videoUrl of TIKTOK_VIDEO_URLS) {
+      const item = await fetchTikTokDisplayByUrl(videoUrl).catch(() => null);
+      if (item) ttOfficial.push(item);
+    }
+    if (!ttOfficial.length) notes.tiktok_display = "empty or failed";
+
+    // TikTok FALLBACK (scraper) si besoin
+    let tt: VideoItem[] = ttOfficial;
+    if (!ttOfficial.length && ENABLE_TIKTOK_SCRAPER && TIKTOK_USERNAME) {
+      try {
+        tt = await fetchTikTokScraped(TIKTOK_USERNAME, 12);
+      } catch (e) {
+        notes.tiktok_scraper_error = String(e);
+      }
     }
 
-    const html = await res.text();
-    // JSON embarqué côté client
-    const m = html.match(/<script id="SIGI_STATE"[^>]*>(.*?)<\/script>/s);
-    if (!m) {
-      console.warn("[TT] SIGI_STATE not found");
-      return [];
-    }
-    const state = JSON.parse(m[1]);
+    // Fusion + dédup + tri
+    const seen = new Set<string>();
+    const videos = [...yt, ...tt]
+      .filter((v) => {
+        const key = `${v.platform}:${v.id}`;
+        if (!v.id || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt));
 
-    const ids: string[] = state?.ItemList?.video?.list ?? [];
-    const itemsObj = state?.ItemModule ?? {};
-    const items: VideoItem[] = [];
-
-    for (const id of ids.slice(0, limit)) {
-      const it = itemsObj[id];
-      if (!it) continue;
-
-      const created = it.createTime
-        ? new Date(Number(it.createTime) * 1000).toISOString()
-        : new Date().toISOString();
-
-      const thumb =
-        it?.video?.originCover ||
-        it?.video?.dynamicCover ||
-        it?.video?.cover ||
-        "";
-
-      items.push({
-        id,
-        platform: "tiktok",
-        title: it?.desc || "Sans titre",
-        thumbnail: thumb,
-        url: `https://www.tiktok.com/@${username}/video/${id}`,
-        publishedAt: created,
-      });
-    }
-
-    return items;
-  } catch (e) {
-    console.warn("[TT] scrape error:", e);
-    return [];
-  }
-}
-
-export async function GET() {
-  const yt = await fetchYouTubeLatest(
-    process.env.YT_API_KEY,
-    process.env.YT_CHANNEL_ID,
-    12
-  );
-  const tt = await fetchTikTokLatest(process.env.TIKTOK_USERNAME, 12);
-
-  // Fusion + dédup + tri par date DESC
-  const seen = new Set<string>();
-  const videos = [...yt, ...tt]
-    .filter((v) => {
-      const key = `${v.platform}:${v.id}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
-    .sort(
-      (a, b) =>
-        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    return NextResponse.json(debug ? { videos, count: videos.length, notes } : { videos });
+  } catch (e: any) {
+    return NextResponse.json(
+      debug ? { videos: [], error: String(e), notes } : { error: "Failed to fetch videos" },
+      { status: 500 }
     );
-
-  return NextResponse.json({ videos });
+  }
 }

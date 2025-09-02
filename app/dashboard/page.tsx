@@ -97,6 +97,18 @@ export default async function Dashboard() {
                   <div className="text-sm text-neutral-400">
                     {v.platform.toUpperCase()} • {formatDate(v.publishedAt)}
                   </div>
+
+                  {/* 👉 Bouton embed */}
+                  {v.embedLink && (
+                    <a
+                      href={v.embedLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-blue-400 opacity-70 hover:opacity-100"
+                    >
+                      Ouvrir l’embed
+                    </a>
+                  )}
                 </div>
               </a>
             ))}
