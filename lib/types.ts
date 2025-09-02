@@ -1,7 +1,4 @@
 // lib/types.ts
-export type Platform = "youtube" | "tiktok";
-
-// lib/types.ts
 export type VideoItem = {
   id: string;
   platform: "youtube" | "tiktok";
@@ -10,14 +7,13 @@ export type VideoItem = {
   thumbnail: string;
   publishedAt: string;
 
-  // KPI optionnels
+  // KPI optionnels TikTok
   viewCount?: number;
   likeCount?: number;
   commentCount?: number;
   shareCount?: number;
 
-  // TikTok Display API optionnels
+  // Display API optionnels
   embedHtml?: string;
   embedLink?: string;
 };
-

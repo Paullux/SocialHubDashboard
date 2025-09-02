@@ -2,17 +2,14 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const scopesEnv = process.env.TIKTOK_SCOPES || "user.info.basic,user.video.list";
-  // normalise: accepte "a b" / "a,b" / "a, b"
-  const scope = scopesEnv.split(/[,\s]+/).filter(Boolean).join(",");
-
+  const base = "https://www.tiktok.com/v2/auth/authorize/";
+  const scopes = (process.env.TIKTOK_SCOPES || "user.info.basic video.list").replace(/\s+/g, " ");
   const p = new URLSearchParams({
-    client_key: process.env.TIKTOK_CLIENT_KEY!,           // SANDBOX si tu testes
+    client_key: process.env.TIKTOK_CLIENT_KEY || "",
     response_type: "code",
-    scope,                                                // ← virgules
-    redirect_uri: process.env.TIKTOK_REDIRECT_URI!,       // https://social-hub.fr/api/auth/callback/tiktok
+    scope: scopes, // espaces → l'URL encodera en %20
+    redirect_uri: process.env.TIKTOK_REDIRECT_URI || "",
     state: "shub_" + Math.random().toString(36).slice(2),
   });
-
-  return NextResponse.redirect(`https://www.tiktok.com/v2/auth/authorize/?${p.toString()}`);
+  return NextResponse.redirect(`${base}?${p.toString()}`);
 }

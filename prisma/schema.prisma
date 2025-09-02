@@ -1,0 +1,23 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model OAuthToken {
+  provider     String   // "tiktok"
+  userId       String   // ton user interne (ex: "me")
+  openId       String
+  accessToken  String
+  refreshToken String
+  scope        String
+  expiresAt    BigInt
+  updatedAt    DateTime @default(now())
+
+  @@id([provider, userId])
+  @@index([expiresAt])
+}
