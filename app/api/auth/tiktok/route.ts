@@ -7,18 +7,14 @@ export async function GET() {
     .split(/[ ,]+/)
     .filter(Boolean)
     .join(",");
-  console.log(
-    "[TikTok][TOKEN] granted_scopes=%s open_id=%s expires_in_s=%d",
-    tokens.scope,
-    tokens.open_id,
-    tokens.expires_in
-  );
+
   const p = new URLSearchParams({
     client_key: process.env.TIKTOK_CLIENT_KEY || "",
     response_type: "code",
-    scope: scopes, // espaces → l'URL encodera en %20
+    scope: scopes, // TikTok attend des virgules entre scopes
     redirect_uri: process.env.TIKTOK_REDIRECT_URI || "",
     state: "shub_" + Math.random().toString(36).slice(2),
   });
+
   return NextResponse.redirect(`${base}?${p.toString()}`);
 }
