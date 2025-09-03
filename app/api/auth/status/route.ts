@@ -1,7 +1,13 @@
+// app/api/auth/status/route.ts
 import { NextResponse } from "next/server";
-import { getTikTokToken } from "@/lib/tiktok/store"; // ta fonction qui lit en BDD
+import { getTikTokToken } from "@/lib/tiktok/store";
+// plus tard : getYouTubeKey(), getInstagramToken(), getFacebookToken()...
 
 export async function GET() {
-  const token = await getTikTokToken();
-  return NextResponse.json({ connected: !!token });
+  return NextResponse.json({
+    youtube: !!process.env.YT_API_KEY && !!process.env.YT_CHANNEL_ID,
+    tiktok: !!(await getTikTokToken()),
+    instagram: false, // placeholder
+    facebook: false,  // placeholder
+  });
 }

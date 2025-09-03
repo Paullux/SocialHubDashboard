@@ -4,15 +4,36 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Button from "./Button";
+import { SocialIcon } from "./SocialIcon";
+import { FaYoutube, FaTiktok, FaInstagram, FaFacebook } from "react-icons/fa";
+
+type Status = {
+  youtube: boolean | null;
+  tiktok: boolean | null;
+  instagram: boolean | null;
+  facebook: boolean | null;
+};
 
 export default function Navbar() {
-  const [connected, setConnected] = useState<boolean | null>(null);
+  const [status, setStatus] = useState<Status>({
+    youtube: false,
+    tiktok: false,
+    instagram: false,
+    facebook: false,
+  });
 
   useEffect(() => {
     fetch("/api/auth/status")
       .then((res) => res.json())
-      .then((data) => setConnected(data.connected))
-      .catch(() => setConnected(false));
+      .then(setStatus)
+      .catch(() =>
+        setStatus({
+          youtube: false,
+          tiktok: false,
+          instagram: false,
+          facebook: false,
+        })
+      );
   }, []);
 
   return (
@@ -37,22 +58,33 @@ export default function Navbar() {
           >
             Dashboard
           </Link>
-
-          <Link
-            href="/api/auth/tiktok"
-            className="text-sm text-neutral-300 hover:text-white"
-          >
-            Connecter / Reconnecter TikTok
-          </Link>
-
-          <Button asChild className="text-sm">
+          <SocialIcon
+            href="/auth/youtube"
+            icon={<FaYoutube size={24} className="text-red-500" />}
+            connected={status.youtube}
+            label="YouTube"
+          />
+          <SocialIcon
+            href="/auth/tiktok"
+            icon={<FaTiktok size={24} className="text-white" />}
+            connected={status.tiktok}
+            label="TikTok"
+          />
+          <SocialIcon
+            href="/auth/instagram"
+            icon={<FaInstagram size={24} className="text-pink-500" />}
+            connected={status.instagram}
+            label="Instagram"
+          />
+          <SocialIcon
+            href="/auth/facebook"
+            icon={<FaFacebook size={24} className="text-blue-500" />}
+            connected={status.facebook}
+            label="Facebook"
+          />
+          <Button className="text-sm">
             <Link href="/auth/login">Connexion / Créer un compte</Link>
           </Button>
-          {connected !== null && (
-            <span title={connected ? "TikTok connecté" : "TikTok déconnecté"}>
-              {connected ? "🟢" : "🔴"}
-            </span>
-          )}
         </nav>
       </div>
     </header>
