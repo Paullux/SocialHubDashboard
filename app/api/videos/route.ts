@@ -56,6 +56,10 @@ export async function GET(req: Request) {
       notes.tiktok_error = String(e);
     }
 
+    if (debug) {
+      console.log("[/api/videos][DEBUG] yt=%d tt=%d", yt.length, tt.length);
+    }
+
     // --- Fusion + dédup + tri ---
     const seen = new Set<string>();
     const videos = [...yt, ...tt]

@@ -7,6 +7,12 @@ export async function GET() {
     .split(/[ ,]+/)
     .filter(Boolean)
     .join(",");
+  console.log(
+    "[TikTok][TOKEN] granted_scopes=%s open_id=%s expires_in_s=%d",
+    tokens.scope,
+    tokens.open_id,
+    tokens.expires_in
+  );
   const p = new URLSearchParams({
     client_key: process.env.TIKTOK_CLIENT_KEY || "",
     response_type: "code",

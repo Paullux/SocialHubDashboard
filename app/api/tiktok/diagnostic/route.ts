@@ -29,24 +29,23 @@ export async function GET() {
 
     const user = await uRes.json().catch(() => ({}));
     const videosJson = await vRes.json().catch(() => ({}));
-
     const videos = videosJson?.data?.videos ?? [];
-    const summary = {
-      user_ok: uRes.ok,
-      user_fields: Object.keys(user?.data ?? {}),
-      video_ok: vRes.ok,
-      video_count: videos.length,
-      sample_ids: videos.slice(0, 3).map((v: any) => v?.id),
-    };
 
-    // LOG SÉCURISÉ (pas de tokens)
-    console.log("[TikTok][DIAG] user_ok=%s video_ok=%s video_count=%d sample_ids=%j",
-      String(uRes.ok), String(vRes.ok), videos.length, summary.sample_ids);
+    console.log(
+      "[TikTok][DIAG] user_ok=%s video_ok=%s video_count=%d sample_ids=%j",
+      String(uRes.ok),
+      String(vRes.ok),
+      videos.length,
+      videos.slice(0, 3).map((v: any) => v?.id)
+    );
 
     return NextResponse.json({
       ok: true,
-      summary,
-      // on retourne un extrait utile mais limité
+      summary: {
+        user_ok: uRes.ok,
+        video_ok: vRes.ok,
+        video_count: videos.length,
+      },
       user: {
         open_id: user?.data?.user?.open_id ?? user?.open_id,
         display_name: user?.data?.user?.display_name ?? user?.display_name,
