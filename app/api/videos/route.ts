@@ -23,33 +23,62 @@ export async function GET(req: Request) {
     let tt: VideoItem[] = [];
     try {
       const access = await ensureFreshToken(getTikTokToken, saveTikTokToken);
-      const r = await fetch("https://open.tiktokapis.com/v2/video/list/?count=12", {
-        headers: { Authorization: `Bearer ${access}` },
-        cache: "no-store",
-      });
+
+      const fields = [
+        "id",
+        "title",
+        "video_description",
+        "duration",
+        "cover_image_url",
+        "share_url",
+        "embed_link",
+        "create_time",
+        "like_count",
+        "comment_count",
+        "share_count",
+        "view_count",
+      ].join(",");
+
+      const r = await fetch(
+        `https://open.tiktokapis.com/v2/video/list/?fields=${encodeURIComponent(fields)}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${access}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "User-Agent": "social-hub/1.0",
+          },
+          body: JSON.stringify({ max_count: 20 }), // ajuste si besoin
+          cache: "no-store",
+        }
+      );
 
       if (!r.ok) {
         notes.tiktok_status = r.status;
+        if (debug) { try { notes.tiktok_error_body = await r.json(); } catch {} }
       } else {
         const data = await r.json();
-        notes.tiktok_raw = debug ? data : undefined;
+        if (debug) {
+          notes.tiktok_has_more = data?.data?.has_more ?? false;
+          notes.tiktok_cursor = data?.data?.cursor ?? null;
+          notes.tiktok_count = Array.isArray(data?.data?.videos) ? data.data.videos.length : 0;
+        }
 
-        const items = data?.data?.videos ?? [];
-        tt = items.map((v: any) => ({
+        const items = (data?.data?.videos ?? []) as any[];
+        tt = items.map((v) => ({
           id: String(v.id),
           platform: "tiktok",
           title: v.title || v.video_description || "",
-          url: v.share_url,
-          thumbnail: v.cover_image_url,
-          publishedAt: v.create_time
-            ? new Date(v.create_time * 1000).toISOString()
-            : new Date().toISOString(),
+          url: v.share_url || "",
+          thumbnail: v.cover_image_url || "", // TTL ~6h côté TikTok
+          publishedAt: v.create_time ? new Date(v.create_time * 1000).toISOString() : new Date().toISOString(),
+          // Champs optionnels si ton type les prévoit :
           viewCount: v.view_count,
           likeCount: v.like_count,
           commentCount: v.comment_count,
           shareCount: v.share_count,
           embedLink: v.embed_link,
-          embedHtml: v.embed_html,
         }));
       }
     } catch (e: any) {
