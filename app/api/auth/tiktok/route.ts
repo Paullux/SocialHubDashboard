@@ -3,7 +3,10 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const base = "https://www.tiktok.com/v2/auth/authorize/";
-  const scopes = (process.env.TIKTOK_SCOPES || "user.info.basic video.list").replace(/\s+/g, " ");
+  const scopes = (process.env.TIKTOK_SCOPES || "user.info.basic,video.list")
+    .split(/[ ,]+/)
+    .filter(Boolean)
+    .join(",");
   const p = new URLSearchParams({
     client_key: process.env.TIKTOK_CLIENT_KEY || "",
     response_type: "code",
