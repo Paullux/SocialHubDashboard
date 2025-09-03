@@ -6,6 +6,17 @@ import Navbar from "@/components/Navbar";
 export const metadata: Metadata = {
   title: "Social Hub",
   description: "Vous et vos réseaux",
+  themeColor: "#111111", // correspond au theme_color du manifest
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/social_hub_icon.svg", type: "image/svg+xml" },
+      { url: "/social_hub_icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/social_hub_icon.png",
+  },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({
@@ -14,10 +25,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className="dark" suppressHydrationWarning>
-      <body className="overflow-x-hidden" suppressHydrationWarning>
+    <html lang="fr" className="dark">
+      <head>
+        {/* Couleur de la barre d’adresse mobile */}
+        <meta name="theme-color" content="#111111" />
+      </head>
+      <body className="overflow-x-hidden">
         <Navbar />
-        <main className="mx-auto max-w-7xl px-4 py-10">{children}</main>
+        <main className="container py-10">{children}</main>
       </body>
     </html>
   );

@@ -1,0 +1,25 @@
+{
+  "name": "Social Hub",
+  "short_name": "SocialHub",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#111111",
+  "icons": [
+    {
+      "src": "/social_hub_icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/social_hub_icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/social_hub_icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
