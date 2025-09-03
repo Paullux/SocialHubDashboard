@@ -59,25 +59,25 @@ export default function Navbar() {
             Dashboard
           </Link>
           <SocialIcon
-            href="/auth/youtube"
+            href="/api/auth/youtube"
             icon={<FaYoutube size={24} className="text-red-500" />}
             connected={status.youtube}
             label="YouTube"
           />
           <SocialIcon
-            href="/auth/tiktok"
+            href="/api/auth/tiktok"
             icon={<FaTiktok size={24} className="text-white" />}
             connected={status.tiktok}
             label="TikTok"
           />
           <SocialIcon
-            href="/auth/instagram"
+            href="/api/auth/instagram"
             icon={<FaInstagram size={24} className="text-pink-500" />}
             connected={status.instagram}
             label="Instagram"
           />
           <SocialIcon
-            href="/auth/facebook"
+            href="/api/auth/facebook"
             icon={<FaFacebook size={24} className="text-blue-500" />}
             connected={status.facebook}
             label="Facebook"
