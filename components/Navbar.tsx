@@ -38,7 +38,7 @@ export default function Navbar() {
 
   return (
     <header
-      className="sticky top-0 left-0 w-full z-50
+      className="fixed top-0 left-0 w-full z-50
         border-b border-white/10
         bg-neutral-900/60          /* couche translucide */
         backdrop-blur-md           /* flou de l’arrière-plan */
