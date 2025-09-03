@@ -1,4 +1,3 @@
-// app/api/videos/route.ts
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -20,7 +19,7 @@ export async function GET(req: Request) {
     const yt = ytKey && ytChan ? await fetchYouTubeLatest(ytKey, ytChan, 12) : [];
     if (!ytKey || !ytChan) notes.youtube = "missing key/channel";
 
-    // --- TikTok OFFICIEL (video.list) avec refresh auto ---
+    // --- TikTok via OAuth (video.list) ---
     let tt: VideoItem[] = [];
     try {
       const access = await ensureFreshToken(getTikTokToken, saveTikTokToken);
@@ -28,15 +27,18 @@ export async function GET(req: Request) {
         headers: { Authorization: `Bearer ${access}` },
         cache: "no-store",
       });
+
       if (!r.ok) {
         notes.tiktok_status = r.status;
       } else {
         const data = await r.json();
+        notes.tiktok_raw = debug ? data : undefined;
+
         const items = data?.data?.videos ?? [];
         tt = items.map((v: any) => ({
           id: String(v.id),
           platform: "tiktok",
-          title: v.title || v.description || "",
+          title: v.title || v.video_description || "",
           url: v.share_url,
           thumbnail: v.cover_image_url,
           publishedAt: v.create_time
