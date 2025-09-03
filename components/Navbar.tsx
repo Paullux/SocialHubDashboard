@@ -29,6 +29,10 @@ export default function Navbar() {
             Dashboard
           </Link>
 
+          <Link href="/api/auth/tiktok" className="text-sm text-neutral-300 hover:text-white">
+            Connecter / Reconnecter TikTok
+          </Link>
+
           <Button asChild className="text-sm">
             <Link href="/auth/login">Connexion / Créer un compte</Link>
           </Button>
