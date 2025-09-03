@@ -6,20 +6,19 @@ const require = createRequire(import.meta.url);
 const nextConfig = {
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "**.ytimg.com" },     // covers i.ytimg.com
+      { protocol: "https", hostname: "**.ytimg.com" },
       { protocol: "https", hostname: "yt3.ggpht.com" },
       { protocol: "https", hostname: "**.tiktokcdn.com" },
       { protocol: "https", hostname: "p16-sign-va.tiktokcdn.com" },
     ],
   },
 
-  // ⬇️ new key name in Next 15
   serverExternalPackages: ["@napi-rs/canvas"],
 
   webpack: (config, { isServer, nextRuntime }) => {
-    // Client & Edge: stub native canvas and ignore .node files
+    // Client & Edge : stub le module natif et ignore *.node
     if (!isServer || nextRuntime === "edge") {
-      config.resolve = config.resolve || {};
+      config.resolve ??= {};
       config.resolve.alias = {
         ...(config.resolve.alias || {}),
         "@napi-rs/canvas": false,
@@ -30,13 +29,17 @@ const nextConfig = {
       });
     }
 
-    // Node.js runtime: allow requiring native .node, keep it external
-    const isNodeRuntime = isServer && (nextRuntime === "nodejs" || !nextRuntime);
+    // Node.js runtime : externalise le module natif
+    const isNodeRuntime =
+      isServer && (nextRuntime === "nodejs" || !nextRuntime);
     if (isNodeRuntime) {
       config.externals = [
         ...(config.externals || []),
-        function (_ctx, req, cb) {
-          if (req?.startsWith("@napi-rs/canvas")) return cb(null, "commonjs " + req);
+        // ✅ nouvelle signature ({ context, request }, cb)
+        ({ request }, cb) => {
+          if (request?.startsWith("@napi-rs/canvas")) {
+            return cb(null, "commonjs " + request);
+          }
           cb();
         },
       ];
