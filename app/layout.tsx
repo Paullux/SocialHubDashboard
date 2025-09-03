@@ -30,7 +30,7 @@ export default function RootLayout({
         {/* Couleur de la barre d’adresse mobile */}
         <meta name="theme-color" content="#111111" />
       </head>
-      <body className="overflow-x-hidden">
+      <body className="overflow-x-hidden pt-16">
         <Navbar />
         <main className="container py-10">{children}</main>
       </body>
