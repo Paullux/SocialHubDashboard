@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { VideoItem } from "@/lib/types";
+import clsx from "clsx";
 
 /* ================== Types réponse API ================== */
 interface ApiResponseOk {
@@ -121,88 +122,98 @@ export default function DashboardPage(): JSX.Element {
   };
 
   return (
-    <main className="p-6 max-w-7xl mx-auto">
-      {/* Barre sticky de tri */}
-      <div
-        className="sticky top-0 z-20 -mx-6 mb-6 
-        backdrop-blur bg-neutral-800/90 border-b border-neutral-700"
-      >
-        <div className="px-6 py-3 flex flex-wrap items-center gap-2">
-          <h1 className="text-lg font-semibold mr-3">DASHBOARD — Vidéos</h1>
+    <>
+      {/* BARRE FIXED FULL-WIDTH */}
+      <div className="fixed top-20 left-0 right-0 z-20 w-screen">
+        {/* Bandeau plein écran (fond + blur) */}
+        <div className="w-full bg-neutral-800/90 backdrop-blur border-b border-neutral-700">
+          {/* Wrapper aligné sur ton contenu (mêmes marges que <main>) */}
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="flex flex-wrap items-center gap-2 py-3">
+              <h1 className="ml-[40px] text-lg font-semibold mr-3 text-white">
+                DASHBOARD — Vidéos
+              </h1>
 
-          <SortButton
-            label="Date"
-            active={sortKey === "date"}
-            dir={sortKey === "date" ? sortDir : undefined}
-            onClick={() => toggleSort("date")}
-          />
-          <Divider />
-          <SortButton
-            label="Vues"
-            active={sortKey === "views"}
-            dir={sortKey === "views" ? sortDir : undefined}
-            onClick={() => toggleSort("views")}
-          />
-          <SortButton
-            label="Likes"
-            active={sortKey === "likes"}
-            dir={sortKey === "likes" ? sortDir : undefined}
-            onClick={() => toggleSort("likes")}
-          />
-          <SortButton
-            label="Commentaires"
-            active={sortKey === "comments"}
-            dir={sortKey === "comments" ? sortDir : undefined}
-            onClick={() => toggleSort("comments")}
-          />
-          <SortButton
-            label="Partages (TikTok)"
-            active={sortKey === "shares"}
-            dir={sortKey === "shares" ? sortDir : undefined}
-            onClick={() => toggleSort("shares")}
-            disabled={!hasTikTok}
-            title={!hasTikTok ? "Aucune vidéo TikTok pour ce lot" : undefined}
-          />
+              {/* Tes boutons de tri existants */}
+              <SortButton
+                label="Date"
+                active={sortKey === "date"}
+                dir={sortKey === "date" ? sortDir : undefined}
+                onClick={() => toggleSort("date")}
+              />
+              <SortButton
+                label="Vues"
+                active={sortKey === "views"}
+                dir={sortKey === "views" ? sortDir : undefined}
+                onClick={() => toggleSort("views")}
+              />
+              <SortButton
+                label="Likes"
+                active={sortKey === "likes"}
+                dir={sortKey === "likes" ? sortDir : undefined}
+                onClick={() => toggleSort("likes")}
+              />
+              <SortButton
+                label="Commentaires"
+                active={sortKey === "comments"}
+                dir={sortKey === "comments" ? sortDir : undefined}
+                onClick={() => toggleSort("comments")}
+              />
+              <SortButton
+                label="Partages (TikTok)"
+                active={sortKey === "shares"}
+                dir={sortKey === "shares" ? sortDir : undefined}
+                onClick={() => toggleSort("shares")}
+                disabled={!hasTikTok}
+                title={
+                  !hasTikTok ? "Aucune vidéo TikTok pour ce lot" : undefined
+                }
+              />
 
-          <div className="ml-auto flex items-center gap-2">
-            <button
-              disabled={loading}
-              onClick={() => setLimit((l) => l + STEP)}
-              className="rounded-xl px-3 py-1.5 bg-neutral-900 text-white hover:bg-neutral-800 disabled:opacity-50"
-            >
-              {loading ? "Chargement..." : `Charger +${STEP}`}
-            </button>
+              {/* Bouton "+60" de retour, aligné à droite */}
+              <div className="ml-auto">
+                <button
+                  disabled={loading}
+                  onClick={() => setLimit((l) => l + STEP)}
+                  className="border border-neutral-200 rounded-xl px-4 py-2 bg-neutral-900 text-white hover:bg-neutral-800 disabled:opacity-50"
+                >
+                  {loading ? "Chargement..." : `Charger +${STEP}`}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {err && <ErrorBox message={err} />}
+      <main className="pt-20 px-6 max-w-7xl mx-auto">
+        {err && <ErrorBox message={err} />}
 
-      {!sorted && !err && (
-        <div className="text-sm text-neutral-500">Chargement…</div>
-      )}
+        {!sorted && !err && (
+          <div className="text-sm text-neutral-500">Chargement…</div>
+        )}
 
-      {sorted && sorted.length === 0 && (
-        <div className="text-sm text-neutral-500">
-          Aucune vidéo trouvée. Vérifie tes clés/permissions.
-        </div>
-      )}
-
-      {sorted && sorted.length > 0 && (
-        <>
-          <VideoGrid videos={sorted} />
-          <div className="flex justify-center">
-            <button
-              disabled={loading}
-              onClick={() => setLimit((l) => l + STEP)}
-              className="border border-neutral-200 bg-neutral-800/40 backdrop-blur mt-8 rounded-xl px-5 py-2.5 bg-neutral-900 text-white hover:bg-neutral-800 disabled:opacity-50"
-            >
-              {loading ? "Chargement..." : `Charger +${STEP}`}
-            </button>
+        {sorted && sorted.length === 0 && (
+          <div className="text-sm text-neutral-500">
+            Aucune vidéo trouvée. Vérifie tes clés/permissions.
           </div>
-        </>
-      )}
-    </main>
+        )}
+
+        {sorted && sorted.length > 0 && (
+          <>
+            <VideoGrid videos={sorted} />
+            <div className="flex justify-center">
+              <button
+                disabled={loading}
+                onClick={() => setLimit((l) => l + STEP)}
+                className="border border-neutral-200 bg-neutral-800/40 backdrop-blur mt-8 rounded-xl px-5 py-2.5 bg-neutral-900 text-white hover:bg-neutral-800 disabled:opacity-50"
+              >
+                {loading ? "Chargement..." : `Charger +${STEP}`}
+              </button>
+            </div>
+          </>
+        )}
+      </main>
+    </>
   );
 }
 
@@ -229,13 +240,13 @@ function SortButton({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={[
+      className={clsx(
         "px-3 py-1.5 rounded-lg border text-sm transition",
         active
-          ? "bg-neutral-900 text-white border-neutral-900"
-          : "bg-neutral-700 text-white hover:bg-neutral-600 border-neutral-600",
-        disabled ? "opacity-50 cursor-not-allowed" : "",
-      ].join(" ")}
+          ? "shadow-sm border-neutral-200 bg-neutral-900 text-white  hover:bg-neutral-800"
+          : "border-neutral-600 bg-neutral-700 text-white hover:bg-neutral-600",
+        disabled && "opacity-50 cursor-not-allowed"
+      )}
     >
       <span className="inline-flex items-center gap-1">
         {label}
