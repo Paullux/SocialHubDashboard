@@ -1,118 +1,355 @@
 // app/dashboard/page.tsx
-// TODO: améliorer le design des cartes vidéos (ajouter avatar chaîne ?)
-// TODO: ajouter pagination ou bouton "Voir plus"
-// TODO: brancher les KPI "Articles WordPress" sur l’API WP
-import Image from "next/image";
-import { headers } from "next/headers";
-import type { VideoItem } from "@/lib/fetchVideos";
+"use client";
 
-const normalizeThumb = (u: string) =>
-  u?.startsWith("//") ? `https:${u}` : u || "";
+import { useEffect, useMemo, useState } from "react";
+import type { VideoItem } from "@/lib/types";
 
-async function getBaseUrl() {
-  const h = await headers(); // ← TS content
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
-  const proto =
-    h.get("x-forwarded-proto") ??
-    (process.env.NODE_ENV === "production" ? "https" : "http");
-  return `${proto}://${host}`;
+/* ================== Types réponse API ================== */
+interface ApiResponseOk {
+  videos: VideoItem[];
+}
+interface ApiResponseErr {
+  error: string;
+}
+type ApiResponse = ApiResponseOk | ApiResponseErr;
+
+type SortKey = "date" | "views" | "likes" | "comments" | "shares";
+type SortDir = "desc" | "asc";
+
+/* ================== Constantes ================== */
+const STEP = 60;
+
+/* ================== Helpers ================== */
+function metricOf(v: VideoItem, key: SortKey): number {
+  switch (key) {
+    case "date":
+      return v.publishedAt ? Date.parse(v.publishedAt) : Number.NaN;
+    case "views":
+      return v.viewCount ?? Number.NaN;
+    case "likes":
+      return v.likeCount ?? Number.NaN;
+    case "comments":
+      return v.commentCount ?? Number.NaN;
+    case "shares":
+      return v.shareCount ?? Number.NaN; // TikTok only
+  }
 }
 
-async function getVideos(): Promise<VideoItem[]> {
-  const base = await getBaseUrl();
-  const res = await fetch(`${base}/api/videos`, { cache: "no-store" });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return (data?.videos ?? []) as VideoItem[];
+function sortVideos(
+  videos: VideoItem[],
+  key: SortKey,
+  dir: SortDir
+): VideoItem[] {
+  // On clone pour garder l’état original
+  const arr = [...videos];
+
+  // NaN en bas pour l'ordre desc, en haut pour asc (plus logique pour "shares" quand YouTube n'en a pas)
+  const sign = dir === "desc" ? -1 : 1;
+
+  arr.sort((a, b) => {
+    const A = metricOf(a, key);
+    const B = metricOf(b, key);
+
+    const aNaN = Number.isNaN(A);
+    const bNaN = Number.isNaN(B);
+    if (aNaN && bNaN) return 0;
+    if (aNaN) return 1; // A sans valeur -> va en bas
+    if (bNaN) return -1;
+
+    if (A === B) return 0;
+    return A > B ? sign : -sign;
+  });
+
+  return arr;
 }
 
-const KPI = ({ label, value }: { label: string; value: string }) => (
-  <div className="rounded-2xl bg-neutral-800/70 backdrop-blur-md border border-white/10 p-6 text-center shadow-lg">
-    <div className="text-sm text-neutral-300">{label}</div>
-    <div className="text-2xl font-semibold">{value}</div>
-  </div>
-);
+/* ================== Page ================== */
+export default function DashboardPage(): JSX.Element {
+  const [limit, setLimit] = useState<number>(STEP);
+  const [videos, setVideos] = useState<VideoItem[] | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [err, setErr] = useState<string | null>(null);
 
-const formatDate = (iso: string) =>
-  new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium" }).format(
-    new Date(iso)
+  // Tri
+  const [sortKey, setSortKey] = useState<SortKey>("date");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  async function load(newLimit: number): Promise<void> {
+    try {
+      setLoading(true);
+      setErr(null);
+
+      const r = await fetch(`/api/videos?limit=${newLimit}`, {
+        cache: "no-store",
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+
+      const data: ApiResponse = await r.json();
+      if ("error" in data) throw new Error(data.error);
+
+      setVideos(data.videos ?? []);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setErr(msg);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void load(limit);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [limit]);
+
+  const hasTikTok = useMemo(
+    () => (videos ?? []).some((v) => v.platform === "tiktok"),
+    [videos]
   );
 
-export default async function Dashboard() {
-  const videos = await getVideos().catch(() => []);
-  const ytCount = videos.filter((v) => v.platform === "youtube").length;
-  const ttCount = videos.filter((v) => v.platform === "tiktok").length;
+  const sorted = useMemo(() => {
+    if (!videos) return null;
+    return sortVideos(videos, sortKey, sortDir);
+  }, [videos, sortKey, sortDir]);
 
-  const kpis = [
-    { label: "Total vidéos", value: String(videos.length || "—") },
-    { label: "YT récents", value: String(ytCount || "—") },
-    { label: "TT récents", value: String(ttCount || "—") },
-    { label: "Articles WordPress", value: "—" },
-  ];
-
-  const loading = videos.length === 0;
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    } else {
+      setSortKey(key);
+      setSortDir("desc"); // par défaut, desc
+    }
+  };
 
   return (
-    <section className="mx-auto max-w-6xl space-y-8">
-      <h2 className="text-3xl font-semibold text-center">Dashboard</h2>
+    <main className="p-6 max-w-7xl mx-auto">
+      {/* Barre sticky de tri */}
+      <div
+        className="sticky top-0 z-20 -mx-6 mb-6 
+        backdrop-blur bg-neutral-800/90 border-b border-neutral-700"
+      >
+        <div className="px-6 py-3 flex flex-wrap items-center gap-2">
+          <h1 className="text-lg font-semibold mr-3">DASHBOARD — Vidéos</h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 justify-center">
-        {kpis.map((k) => (
-          <KPI key={k.label} {...k} />
-        ))}
+          <SortButton
+            label="Date"
+            active={sortKey === "date"}
+            dir={sortKey === "date" ? sortDir : undefined}
+            onClick={() => toggleSort("date")}
+          />
+          <Divider />
+          <SortButton
+            label="Vues"
+            active={sortKey === "views"}
+            dir={sortKey === "views" ? sortDir : undefined}
+            onClick={() => toggleSort("views")}
+          />
+          <SortButton
+            label="Likes"
+            active={sortKey === "likes"}
+            dir={sortKey === "likes" ? sortDir : undefined}
+            onClick={() => toggleSort("likes")}
+          />
+          <SortButton
+            label="Commentaires"
+            active={sortKey === "comments"}
+            dir={sortKey === "comments" ? sortDir : undefined}
+            onClick={() => toggleSort("comments")}
+          />
+          <SortButton
+            label="Partages (TikTok)"
+            active={sortKey === "shares"}
+            dir={sortKey === "shares" ? sortDir : undefined}
+            onClick={() => toggleSort("shares")}
+            disabled={!hasTikTok}
+            title={!hasTikTok ? "Aucune vidéo TikTok pour ce lot" : undefined}
+          />
+
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              disabled={loading}
+              onClick={() => setLimit((l) => l + STEP)}
+              className="rounded-xl px-3 py-1.5 bg-neutral-900 text-white hover:bg-neutral-800 disabled:opacity-50"
+            >
+              {loading ? "Chargement..." : `Charger +${STEP}`}
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {loading
-          ? Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-56 rounded-2xl bg-neutral-800/50 border border-white/10 animate-pulse"
-              />
-            ))
-          : videos.slice(0, 9).map((v) => (
-              <a
-                key={`${v.platform}:${v.id}`}
-                href={v.url}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-2xl overflow-hidden bg-neutral-800/70 backdrop-blur-md border border-white/10 shadow-lg"
-              >
-                <div className="relative w-full aspect-[16/9]">
-                  {v.thumbnail ? (
-                    <Image
-                      src={normalizeThumb(v.thumbnail)}
-                      alt={v.title}
-                      fill
-                      sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                      className="object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-neutral-900" />
-                  )}
-                </div>
-                <div className="p-4">
-                  <div className="font-medium line-clamp-2">{v.title}</div>
-                  <div className="text-sm text-neutral-400">
-                    {v.platform.toUpperCase()} • {formatDate(v.publishedAt)}
-                  </div>
+      {err && <ErrorBox message={err} />}
 
-                  {/* 👉 Bouton embed */}
-                  {v.embedLink && (
-                    <a
-                      href={v.embedLink}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs text-blue-400 opacity-70 hover:opacity-100"
-                    >
-                      Ouvrir l’embed
-                    </a>
-                  )}
-                </div>
-              </a>
-            ))}
+      {!sorted && !err && (
+        <div className="text-sm text-neutral-500">Chargement…</div>
+      )}
+
+      {sorted && sorted.length === 0 && (
+        <div className="text-sm text-neutral-500">
+          Aucune vidéo trouvée. Vérifie tes clés/permissions.
+        </div>
+      )}
+
+      {sorted && sorted.length > 0 && (
+        <>
+          <VideoGrid videos={sorted} />
+          <div className="flex justify-center">
+            <button
+              disabled={loading}
+              onClick={() => setLimit((l) => l + STEP)}
+              className="border border-neutral-200 bg-neutral-800/40 backdrop-blur mt-8 rounded-xl px-5 py-2.5 bg-neutral-900 text-white hover:bg-neutral-800 disabled:opacity-50"
+            >
+              {loading ? "Chargement..." : `Charger +${STEP}`}
+            </button>
+          </div>
+        </>
+      )}
+    </main>
+  );
+}
+
+/* ================== UI components ================== */
+
+function SortButton({
+  label,
+  active,
+  dir,
+  onClick,
+  disabled,
+  title,
+}: {
+  label: string;
+  active: boolean;
+  dir?: SortDir;
+  onClick: () => void;
+  disabled?: boolean;
+  title?: string;
+}): JSX.Element {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className={[
+        "px-3 py-1.5 rounded-lg border text-sm transition",
+        active
+          ? "bg-neutral-900 text-white border-neutral-900"
+          : "bg-neutral-700 text-white hover:bg-neutral-600 border-neutral-600",
+        disabled ? "opacity-50 cursor-not-allowed" : "",
+      ].join(" ")}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        {active && <span aria-hidden="true">{dir === "desc" ? "▼" : "▲"}</span>}
+      </span>
+    </button>
+  );
+}
+
+function Divider(): JSX.Element {
+  return <span className="h-5 w-px bg-neutral-200 mx-1" />;
+}
+
+function ErrorBox({ message }: { message: string }): JSX.Element {
+  return (
+    <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+      Erreur&nbsp;: {message}
+    </div>
+  );
+}
+
+function VideoGrid({ videos }: { videos: VideoItem[] }): JSX.Element {
+  return (
+    <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {videos.map((v) => (
+        <VideoCard key={`${v.platform}:${v.id}`} video={v} />
+      ))}
+    </ul>
+  );
+}
+
+function VideoCard({ video: v }: { video: VideoItem }): JSX.Element {
+  return (
+    <li className="bg-neutral-800/70 backdrop-blur rounded-2xl overflow-hidden border border-neutral-200 bg-neutral-800 shadow-sm hover:shadow transition flex flex-col">
+      {/* Preview */}
+      <a
+        href={v.url || "#"}
+        target="_blank"
+        rel="noreferrer"
+        className="block"
+        title={v.title}
+      >
+        <div className="aspect-video bg-neutral-100 overflow-hidden">
+          {v.thumbnail ? (
+            <img
+              src={v.thumbnail}
+              alt={v.title}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-neutral-400">
+              (Pas d’aperçu)
+            </div>
+          )}
+        </div>
+      </a>
+
+      {/* Zone infos */}
+      <div className="flex flex-col flex-1">
+        {/* Header (badge + date) */}
+        <div className="p-3 flex items-center gap-2 text-neutral-300 text-xs">
+          <span className="uppercase tracking-wide rounded-full border border-neutral-500 px-2 py-0.5">
+            {v.platform}
+          </span>
+          {v.publishedAt && (
+            <time
+              dateTime={v.publishedAt}
+              title={new Date(v.publishedAt).toLocaleString()}
+            >
+              {new Date(v.publishedAt).toLocaleDateString()}
+            </time>
+          )}
+        </div>
+
+        {/* Titre prend l’espace dispo */}
+        <div className="px-3 pb-2 flex-1">
+          <h3 className="font-medium line-clamp-2 text-neutral-100">
+            {v.title}
+          </h3>
+        </div>
+
+        {/* KPI toujours collés en bas */}
+        <div className="bg-neutral-800/70 backdrop-blur mt-auto p-3 bg-neutral-700 text-neutral-100">
+          <KpiLine v={v} />
+        </div>
       </div>
-    </section>
+    </li>
+  );
+}
+
+function KpiLine({ v }: { v: VideoItem }): JSX.Element {
+  const nf = new Intl.NumberFormat("fr-FR");
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px]">
+      <span>
+        Vue{(v.viewCount ?? 0) > 1 ? "s" : ""} :{" "}
+        <strong>{v.viewCount != null ? nf.format(v.viewCount) : "—"}</strong>
+      </span>
+      <span>
+        Like{(v.likeCount ?? 0) > 1 ? "s" : ""} :{" "}
+        <strong>{v.likeCount != null ? nf.format(v.likeCount) : "—"}</strong>
+      </span>
+      <span>
+        Comm. :{" "}
+        <strong>
+          {v.commentCount != null ? nf.format(v.commentCount) : "—"}
+        </strong>
+      </span>
+      {v.platform === "tiktok" && v.shareCount != null && (
+        <span>
+          Partages : <strong>{nf.format(v.shareCount)}</strong>
+        </span>
+      )}
+    </div>
   );
 }
