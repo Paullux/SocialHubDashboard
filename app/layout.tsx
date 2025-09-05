@@ -1,22 +1,21 @@
 // app/layout.tsx
-import type { Metadata } from "next";
-import "./../styles/globals.css";
-import Navbar from "@/components/Navbar";
+import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
   title: "Social Hub",
-  description: "Vous et vos réseaux",
-  themeColor: "#111111", // correspond au theme_color du manifest
-  icons: {
-    icon: [
-      { url: "/favicon.ico" },
-      { url: "/social_hub_icon.svg", type: "image/svg+xml" },
-      { url: "/social_hub_icon.png", type: "image/png", sizes: "512x512" },
-    ],
-    shortcut: "/favicon.ico",
-    apple: "/social_hub_icon.png",
-  },
-  manifest: "/site.webmanifest",
+  description: "Dashboard YouTube & TikTok",
+  // ❌ ne pas mettre themeColor ici
+};
+
+export const viewport: Viewport = {
+  // Une valeur simple :
+  // themeColor: "#111111",
+
+  // Ou bien réactif au scheme :
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#111111" },
+  ],
 };
 
 export default function RootLayout({
@@ -26,14 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className="dark" suppressHydrationWarning>
-      <head>
-        {/* Couleur de la barre d’adresse mobile */}
-        <meta name="theme-color" content="#111111" />
-      </head>
-      <body className="overflow-x-hidden pt-16" suppressHydrationWarning>
-        <Navbar />
-        <main className="container py-10">{children}</main>
-      </body>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }
