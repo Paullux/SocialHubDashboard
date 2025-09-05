@@ -187,7 +187,7 @@ export default function DashboardPage(): JSX.Element {
         </div>
       </div>
 
-      <main className="pt-20 px-6 max-w-7xl mx-auto">
+      <main className="pt-40 px-6 max-w-7xl mx-auto">
         {err && <ErrorBox message={err} />}
 
         {!sorted && !err && (

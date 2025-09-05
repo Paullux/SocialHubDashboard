@@ -1,13 +1,11 @@
 @tailwind base;
 @tailwind components;
-@tailwind utilities; 
+@tailwind utilities;
 
 html,body{height:100%;width:100%}
 @layer base {
     body {
         @apply bg-neutral-700 text-neutral-100 relative;
-        left: 1%;   /* marge gauche */
-        right: 1%;  /* marge droite */
         position: relative;
     }
 

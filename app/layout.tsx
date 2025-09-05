@@ -1,5 +1,7 @@
 // app/layout.tsx
+import "@/styles/globals.css";
 import type { Metadata, Viewport } from "next";
+import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
   title: "Social Hub",
@@ -25,7 +27,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className="dark" suppressHydrationWarning>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        <Navbar />
+        {children}
+      </body>
     </html>
   );
 }

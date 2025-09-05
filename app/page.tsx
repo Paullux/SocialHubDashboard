@@ -3,7 +3,7 @@ import Link from "next/link";
 import Button from "@/components/Button";
 export default function Page() {
   return (
-    <section className="mx-auto max-w-2xl space-y-8 w-full">
+    <section className="pt-20 mx-auto max-w-2xl space-y-8 w-full">
       <div className="text-center space-y-8 max-w-2xl">
         <Image
           src="/social_hub_icon.svg"
