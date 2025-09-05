@@ -1,0 +1,21 @@
+name: Hourly Snapshot
+
+on:
+  schedule:
+    - cron: "0 * * * *"   # toutes les heures (UTC)
+  workflow_dispatch: {}    # permet de lancer manuellement aussi
+
+jobs:
+  call-snapshot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Hit snapshot endpoint
+        env:
+          BASE_URL: ${{ secrets.PROD_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          echo "Calling $BASE_URL/api/cron/snapshot"
+          curl -sS "${BASE_URL}/api/cron/snapshot?key=${CRON_SECRET}" \
+            --max-time 30 \
+            -H "User-Agent: github-actions-cron"
