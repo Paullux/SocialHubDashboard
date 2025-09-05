@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useIsXs } from "@/utils/useIsXs";
 import {
+  ResponsiveContainer,
   LineChart,
   Line,
   XAxis,
   YAxis,
   Tooltip,
-  CartesianGrid,
-  ResponsiveContainer,
   Legend,
+  CartesianGrid,
 } from "recharts";
 
 type Platform = "youtube" | "tiktok";
@@ -49,7 +50,7 @@ function formatHourLabel(iso: string) {
   return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 }
 function formatNumber(n: number | null) {
-  if (n == null) return "—";
+  if (n == null || Number.isNaN(n)) return "—";
   return new Intl.NumberFormat("fr-FR").format(n);
 }
 
@@ -64,6 +65,22 @@ export default function VideoAnalytics({
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [videoTitle, setVideoTitle] = useState<string>("");
+
+  const isXs = useIsXs(); // <= 425px ?
+
+  // Marges des graphes (colle à gauche en xs)
+  const chartMargin = isXs
+    ? ({ top: 8, right: 8, bottom: 20, left: 0 } as const)
+    : ({ top: 12, right: 16, bottom: 24, left: 12 } as const);
+
+  // Légende à gauche en xs
+  const legendProps = isXs
+    ? {
+        align: "left" as const,
+        verticalAlign: "bottom" as const,
+        wrapperStyle: { paddingLeft: 4 },
+      }
+    : { align: "center" as const, verticalAlign: "bottom" as const };
 
   // 1) Charger analytics
   useEffect(() => {
@@ -105,9 +122,7 @@ export default function VideoAnalytics({
         const found = list.find(
           (v: any) => v.id === videoId && v.platform === platform
         ) as VideoMeta | undefined;
-        if (mounted) {
-          setVideoTitle(found?.title || "");
-        }
+        if (mounted) setVideoTitle(found?.title || "");
       } catch {
         /* ignore */
       }
@@ -128,7 +143,7 @@ export default function VideoAnalytics({
   const COLOR_VIEWS = "#16a34a"; // vert
   const COLOR_LIKES = "#dc2626"; // rouge
   const COLOR_COMMS = "#2563eb"; // bleu
-  const COLOR_SHARES = "#f97316"; // orange (tailwind orange-500)
+  const COLOR_SHARES = "#f97316"; // orange
 
   return (
     <div className="space-y-6">
@@ -137,15 +152,15 @@ export default function VideoAnalytics({
         {loading && (
           <span className="text-sm text-neutral-500">Chargement…</span>
         )}
-        {err && <span className="text-sm text-red-600">Erreur: {err}</span>}
+        {err && <span className="text-sm text-red-500">Erreur : {err}</span>}
       </header>
 
       {/* === DAILY === */}
-      <section className="rounded-2xl border border-neutral-200 bg-white/60 backdrop-blur p-4">
-        <h3 className="font-medium mb-2">Vues / jour</h3>
+      <section className="rounded-2xl border border-neutral-700 bg-neutral-800/60 backdrop-blur p-4 xs:p-2">
+        <h3 className="font-medium mb-2 text-neutral-200">Vues / jour</h3>
         <div className="w-full h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={daily}>
+            <LineChart data={daily} margin={chartMargin}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" tickFormatter={formatDayLabel} />
               <YAxis
@@ -163,7 +178,7 @@ export default function VideoAnalytics({
                   })
                 }
               />
-              <Legend />
+              <Legend {...legendProps} />
               <Line
                 type="monotone"
                 dataKey="views"
@@ -187,13 +202,13 @@ export default function VideoAnalytics({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-neutral-200 bg-white/60 backdrop-blur p-4">
-        <h3 className="font-medium mb-2">
+      <section className="rounded-2xl border border-neutral-700 bg-neutral-800/60 backdrop-blur p-4 xs:p-2">
+        <h3 className="font-medium mb-2 text-neutral-200">
           Engagement / jour (Likes, Commentaires)
         </h3>
         <div className="w-full h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={daily}>
+            <LineChart data={daily} margin={chartMargin}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" tickFormatter={formatDayLabel} />
               <YAxis
@@ -211,7 +226,7 @@ export default function VideoAnalytics({
                   })
                 }
               />
-              <Legend />
+              <Legend {...legendProps} />
               <Line
                 type="monotone"
                 dataKey="likes"
@@ -234,11 +249,11 @@ export default function VideoAnalytics({
       </section>
 
       {/* === HOURLY === */}
-      <section className="rounded-2xl border border-neutral-200 bg-white/60 backdrop-blur p-4">
-        <h3 className="font-medium mb-2">Vues / heure</h3>
+      <section className="rounded-2xl border border-neutral-700 bg-neutral-800/60 backdrop-blur p-4 xs:p-2">
+        <h3 className="font-medium mb-2 text-neutral-200">Vues / heure</h3>
         <div className="w-full h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={hourly}>
+            <LineChart data={hourly} margin={chartMargin}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="at" tickFormatter={formatHourLabel} />
               <YAxis
@@ -258,7 +273,7 @@ export default function VideoAnalytics({
                   })
                 }
               />
-              <Legend />
+              <Legend {...legendProps} />
               <Line
                 type="monotone"
                 dataKey="views"
@@ -282,13 +297,13 @@ export default function VideoAnalytics({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-neutral-200 bg-white/60 backdrop-blur p-4">
-        <h3 className="font-medium mb-2">
+      <section className="rounded-2xl border border-neutral-700 bg-neutral-800/60 backdrop-blur p-4 xs:p-2">
+        <h3 className="font-medium mb-2 text-neutral-200">
           Engagement / heure (Likes, Commentaires)
         </h3>
         <div className="w-full h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={hourly}>
+            <LineChart data={hourly} margin={chartMargin}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="at" tickFormatter={formatHourLabel} />
               <YAxis
@@ -308,7 +323,7 @@ export default function VideoAnalytics({
                   })
                 }
               />
-              <Legend />
+              <Legend {...legendProps} />
               <Line
                 type="monotone"
                 dataKey="likes"

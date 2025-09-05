@@ -3,7 +3,6 @@ import Link from "next/link";
 import VideoAnalytics from "@/components/VideoAnalytics";
 
 type Params = { videoId: string };
-// Next 15 canary: searchParams est un Promise<Record<string, ...>>
 type Search = Record<string, string | string[] | undefined>;
 
 export default async function AnalyticsPage({
@@ -27,13 +26,16 @@ export default async function AnalyticsPage({
       : "youtube";
 
   return (
-    <main className="p-6 max-w-7xl mx-auto space-y-4">
-      <div>
+    <main className="pt-24 px-4 sm:px-6 max-w-7xl mx-auto space-y-4">
+      <div className="sticky top-16 z-10">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border border-neutral-700 bg-neutral-800 text-white hover:bg-neutral-700"
+          className="inline-flex items-center gap-2 rounded-lg border border-neutral-700 bg-neutral-800/90 backdrop-blur px-3 py-1.5 text-sm text-white hover:bg-neutral-700"
+          aria-label="Retour au dashboard"
         >
-          <span aria-hidden>←</span> Dashboard
+          <span aria-hidden>←</span>
+          <span className="hidden xs:inline">Dashboard</span>
+          <span className="xs:hidden">Retour</span>
         </Link>
       </div>
 

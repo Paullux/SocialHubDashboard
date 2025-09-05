@@ -1,1 +1,54 @@
-"use client";import { useState } from 'react';import Button from '@/components/Button';import Link from 'next/link';export default function LoginPage(){const [email,setEmail]=useState('');const [password,setPassword]=useState('');const [otp,setOtp]=useState('');async function onSubmit(e:React.FormEvent){e.preventDefault();alert('Placeholder: intégrez Auth.js ici. Email: '+email);}return(<div className='mx-auto max-w-md space-y-6'><h2 className='text-2xl font-semibold'>Connexion</h2><form onSubmit={onSubmit} className='space-y-4'><input className='w-full rounded-xl bg-neutral-900 border border-white/10 px-4 py-2' placeholder='Email' type='email' value={email} onChange={e=>setEmail(e.target.value)} required/><input className='w-full rounded-xl bg-neutral-900 border border-white/10 px-4 py-2' placeholder='Mot de passe' type='password' value={password} onChange={e=>setPassword(e.target.value)} required/><input className='w-full rounded-xl bg-neutral-900 border border-white/10 px-4 py-2' placeholder='OTP (2FA si activé)' value={otp} onChange={e=>setOtp(e.target.value)}/><Button type='submit' className='w-full'>Se connecter</Button></form><p className='text-sm text-neutral-400'>Pas de compte ? <Link className='underline' href='/auth/register'>Créer un compte</Link></p></div>)}
+"use client";
+import { useState } from "react";
+import Button from "@/components/Button";
+import Link from "next/link";
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    alert("Placeholder: intégrez Auth.js ici. Email: " + email);
+  }
+  return (
+    <div className="pt-20 xs:pt-[100px] mx-auto max-w-md space-y-6">
+      <h2 className="text-2xl font-semibold">Connexion</h2>
+      <form onSubmit={onSubmit} className="space-y-4">
+        <input
+          className="w-full rounded-xl bg-neutral-900 border border-white/10 px-4 py-2"
+          placeholder="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          className="w-full rounded-xl bg-neutral-900 border border-white/10 px-4 py-2"
+          placeholder="Mot de passe"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <input
+          className="w-full rounded-xl bg-neutral-900 border border-white/10 px-4 py-2"
+          placeholder="OTP (2FA si activé)"
+          value={otp}
+          onChange={(e) => setOtp(e.target.value)}
+        />
+        <Button
+          type="submit"
+          className="w-full flex items-center justify-center text-center"
+        >
+          Se connecter
+        </Button>
+      </form>
+      <p className="text-sm text-neutral-400">
+        Pas de compte ?{" "}
+        <Link className="underline" href="/auth/register">
+          Créer un compte
+        </Link>
+      </p>
+    </div>
+  );
+}
