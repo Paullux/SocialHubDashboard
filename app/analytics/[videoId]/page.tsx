@@ -1,5 +1,5 @@
 // app/analytics/[videoId]/page.tsx
-import VideoAnalytics from "@/components/VideoAnalytics";
+import VideoAnalytics from "@/components/VideoAnalyticsClient";
 
 export default function AnalyticsPage({ params }: { params: { videoId: string } }) {
   return (
