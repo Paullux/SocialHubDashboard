@@ -8,6 +8,8 @@ generator client {
   provider = "prisma-client-js"
 }
 
+/* ========= EXISTANT ========= */
+
 model OAuthToken {
   provider     String   // "tiktok"
   userId       String   // ton user interne (ex: "me")
@@ -21,3 +23,19 @@ model OAuthToken {
   @@id([provider, userId])
   @@index([expiresAt])
 }
+
+/* ========= NOUVEAU ========= */
+
+model VideoMetric {
+  platform    String
+  videoId     String
+  snapshotAt  DateTime
+  views       BigInt   @default(0)
+  likes       BigInt   @default(0)
+  comments    BigInt   @default(0)
+  shares      BigInt?
+
+  @@id([platform, videoId, snapshotAt])
+  @@index([platform, videoId, snapshotAt])
+}
+

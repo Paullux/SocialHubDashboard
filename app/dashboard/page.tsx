@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { VideoItem } from "@/lib/types";
 import clsx from "clsx";
+import Link from "next/link";
 
 /* ================== Types réponse API ================== */
 interface ApiResponseOk {
@@ -280,7 +281,7 @@ function VideoGrid({ videos }: { videos: VideoItem[] }): JSX.Element {
 
 function VideoCard({ video: v }: { video: VideoItem }): JSX.Element {
   return (
-    <li className="bg-neutral-800/70 backdrop-blur rounded-2xl overflow-hidden border border-neutral-200 bg-neutral-800 shadow-sm hover:shadow transition flex flex-col">
+    <li className="bg-neutral-800/70 backdrop-blur rounded-2xl overflow-hidden border border-neutral-200 shadow-sm hover:shadow transition flex flex-col">
       {/* Preview */}
       <a
         href={v.url || "#"}
@@ -322,16 +323,22 @@ function VideoCard({ video: v }: { video: VideoItem }): JSX.Element {
           )}
         </div>
 
-        {/* Titre prend l’espace dispo */}
+        {/* Titre */}
         <div className="px-3 pb-2 flex-1">
           <h3 className="font-medium line-clamp-2 text-neutral-100">
             {v.title}
           </h3>
         </div>
 
-        {/* KPI toujours collés en bas */}
-        <div className="bg-neutral-800/70 backdrop-blur mt-auto p-3 bg-neutral-700 text-neutral-100">
+        {/* KPI + lien stats */}
+        <div className="bg-neutral-800/70 backdrop-blur mt-auto p-3 flex items-center justify-between text-neutral-100">
           <KpiLine v={v} />
+          <Link
+            href={`/analytics/${v.id}?platform=${v.platform}`}
+            className="ml-3 text-xs px-2 py-1 rounded bg-neutral-700 hover:bg-neutral-600"
+          >
+            📈 Stats
+          </Link>
         </div>
       </div>
     </li>

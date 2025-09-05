@@ -1,5 +1,6 @@
 {
   "crons": [
-    { "path": "/api/cron/tiktok-refresh", "schedule": "0 0 * * *" }
+    { "path": "/api/cron/tiktok-refresh", "schedule": "0 0 * * *" },
+    { "path": "/api/cron/snapshot", "schedule": "0 * * * *" }
   ]
 }
