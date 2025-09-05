@@ -1,10 +1,19 @@
 // app/analytics/[videoId]/page.tsx
-import VideoAnalytics from "@/components/VideoAnalyticsClient";
+import VideoAnalytics from "@/components/VideoAnalytics";
 
-export default function AnalyticsPage({ params }: { params: { videoId: string } }) {
+type P = { videoId: string };
+
+export default async function AnalyticsPage({
+  params,
+}: {
+  params: P | Promise<P>;
+}) {
+  const { videoId } = await Promise.resolve(params);
+
   return (
     <main className="p-6 max-w-7xl mx-auto">
-      <VideoAnalytics videoId={params.videoId} platform="youtube" />
+      <VideoAnalytics videoId={videoId} platform="youtube" />
     </main>
   );
 }
+
