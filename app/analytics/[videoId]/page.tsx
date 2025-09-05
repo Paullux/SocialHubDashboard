@@ -3,24 +3,31 @@ import Link from "next/link";
 import VideoAnalytics from "@/components/VideoAnalytics";
 
 type Params = { videoId: string };
-type Search = { platform?: "youtube" | "tiktok" };
+// Next 15 canary: searchParams est un Promise<Record<string, ...>>
+type Search = Record<string, string | string[] | undefined>;
 
 export default async function AnalyticsPage({
   params,
   searchParams,
 }: {
-  params: Promise<Params>; // Next 15 canary : Promise
-  searchParams?: Promise<Search> | Search;
+  params: Promise<Params>;
+  searchParams?: Promise<Search>;
 }) {
   const { videoId } = await params;
-  const sp = await Promise.resolve(searchParams ?? {});
-  const platform = (sp.platform === "tiktok" ? "tiktok" : "youtube") as
-    | "youtube"
-    | "tiktok";
+  const sp = (await (searchParams ?? Promise.resolve({}))) as Search;
+
+  const raw = sp.platform;
+  const platform =
+    raw === "tiktok"
+      ? "tiktok"
+      : Array.isArray(raw)
+      ? raw[0] === "tiktok"
+        ? "tiktok"
+        : "youtube"
+      : "youtube";
 
   return (
     <main className="p-6 max-w-7xl mx-auto space-y-4">
-      {/* Bouton retour */}
       <div>
         <Link
           href="/dashboard"
@@ -30,7 +37,6 @@ export default async function AnalyticsPage({
         </Link>
       </div>
 
-      {/* Graphes */}
       <VideoAnalytics videoId={videoId} platform={platform} />
     </main>
   );
