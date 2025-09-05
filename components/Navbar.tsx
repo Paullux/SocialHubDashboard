@@ -37,16 +37,8 @@ export default function Navbar() {
   }, []);
 
   return (
-    <header
-      className="fixed top-0 left-0 w-full z-50
-        border-b border-white/10
-        bg-neutral-900/60          /* couche translucide */
-        backdrop-blur-md           /* flou de l’arrière-plan */
-        supports-[backdrop-filter]:bg-neutral-900/50
-        shadow-[0_8px_30px_rgba(0,0,0,0.12)]  /* ombre douce */
-      "
-    >
-      <div className="container flex h-16 items-center justify-between">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-neutral-800/90 backdrop-blur border-b border-neutral-700">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <Image
             src="/social_hub_icon.svg"
