@@ -16,7 +16,12 @@ function floorToHourUTC(d = new Date()): Date {
   return t;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const key = url.searchParams.get("key");
+  if (!process.env.CRON_SECRET || key !== process.env.CRON_SECRET) {
+    return new Response("Unauthorized", { status: 401 });
+  }
   try {
     const nowHour = floorToHourUTC(new Date());
 
