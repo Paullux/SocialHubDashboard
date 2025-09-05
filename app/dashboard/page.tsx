@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { VideoItem } from "@/lib/types";
 import clsx from "clsx";
 import Link from "next/link";
+import FormatDate from "@/components/FormatDate";
 
 /* ================== Types réponse API ================== */
 interface ApiResponseOk {
@@ -308,29 +309,19 @@ function VideoCard({ video: v }: { video: VideoItem }): JSX.Element {
 
       {/* Zone infos */}
       <div className="flex flex-col flex-1">
-        {/* Header (badge + date) */}
         <div className="p-3 flex items-center gap-2 text-neutral-300 text-xs">
           <span className="uppercase tracking-wide rounded-full border border-neutral-500 px-2 py-0.5">
             {v.platform}
           </span>
-          {v.publishedAt && (
-            <time
-              dateTime={v.publishedAt}
-              title={new Date(v.publishedAt).toLocaleString()}
-            >
-              {new Date(v.publishedAt).toLocaleDateString()}
-            </time>
-          )}
+          {v.publishedAt && <FormatDate iso={v.publishedAt} />}
         </div>
 
-        {/* Titre */}
         <div className="px-3 pb-2 flex-1">
           <h3 className="font-medium line-clamp-2 text-neutral-100">
             {v.title}
           </h3>
         </div>
 
-        {/* KPI + lien stats */}
         <div className="bg-neutral-800/70 backdrop-blur mt-auto p-3 flex items-center justify-between text-neutral-100">
           <KpiLine v={v} />
           <Link

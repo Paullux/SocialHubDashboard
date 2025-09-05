@@ -25,12 +25,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className="dark">
+    <html lang="fr" className="dark" suppressHydrationWarning>
       <head>
         {/* Couleur de la barre d’adresse mobile */}
         <meta name="theme-color" content="#111111" />
       </head>
-      <body className="overflow-x-hidden pt-16">
+      <body className="overflow-x-hidden pt-16" suppressHydrationWarning>
         <Navbar />
         <main className="container py-10">{children}</main>
       </body>
