@@ -1,14 +1,14 @@
 // app/analytics/[videoId]/page.tsx
 import VideoAnalytics from "@/components/VideoAnalytics";
 
-type P = { videoId: string };
+type Params = { videoId: string };
 
 export default async function AnalyticsPage({
   params,
 }: {
-  params: P | Promise<P>;
+  params: Promise<Params>;
 }) {
-  const { videoId } = await Promise.resolve(params);
+  const { videoId } = await params;
 
   return (
     <main className="p-6 max-w-7xl mx-auto">
@@ -16,4 +16,3 @@ export default async function AnalyticsPage({
     </main>
   );
 }
-
