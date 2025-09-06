@@ -2,6 +2,7 @@
 import "@/styles/globals.css";
 import type { Metadata, Viewport } from "next";
 import Navbar from "@/components/Navbar";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Social Hub",
@@ -27,6 +28,23 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className="dark" suppressHydrationWarning>
+      <head>
+        {/* Matomo tracking script */}
+        <Script id="matomo" strategy="afterInteractive">
+          {`
+            var _paq = window._paq = window._paq || [];
+            _paq.push(['trackPageView']);
+            _paq.push(['enableLinkTracking']);
+            (function() {
+              var u = "//stats.social-hub.fr/";
+              _paq.push(['setTrackerUrl', u + 'matomo.php']);
+              _paq.push(['setSiteId', '1']);
+              var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+              g.async = true; g.src = u + 'matomo.js'; s.parentNode.insertBefore(g, s);
+            })();
+          `}
+        </Script>
+      </head>
       <body suppressHydrationWarning>
         <Navbar />
         {children}
