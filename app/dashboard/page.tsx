@@ -188,7 +188,7 @@ export default function DashboardPage(): JSX.Element {
       </div>
 
       {/* marge haute = navbar (56px) + barre (~48px) ≈ 24/28 */}
-      <main className="pt-24 sm:pt-28 px-3 sm:px-6 max-w-7xl mx-auto">
+      <main className="xs:pt-[180px] pt-24 sm:pt-28 px-3 sm:px-6 max-w-7xl mx-auto">
         {err && <ErrorBox message={err} />}
 
         {/* GRID DE SKELETONS pendant le fetch initial */}
