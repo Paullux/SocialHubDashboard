@@ -11,7 +11,7 @@ export default function LoginPage() {
     alert("Placeholder: intégrez Auth.js ici. Email: " + email);
   }
   return (
-    <div className="pt-20 xs:pt-[100px] mx-auto max-w-md space-y-6">
+    <div className="pt-30 xs:pt-[100px] mx-auto max-w-md space-y-6">
       <h2 className="text-2xl font-semibold">Connexion</h2>
       <form onSubmit={onSubmit} className="space-y-4">
         <input

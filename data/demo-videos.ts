@@ -1,0 +1,96 @@
+// data/demo-videos.ts
+export type DemoVideo = {
+  id: string;
+  title: string;
+  thumbnailUrl: string;
+  views: number;
+  likes: number;
+  comments: number;
+  platform: "youtube" | "tiktok";
+};
+
+const demoVideos: DemoVideo[] = [
+  {
+    id: "y1",
+    title: "Intro au projet Social-Hub",
+    thumbnailUrl: "/thumbs/1.jpg",
+    views: 1280,
+    likes: 122,
+    comments: 18,
+    platform: "youtube",
+  },
+  {
+    id: "y2",
+    title: "KPI YouTube : vues & watchtime",
+    thumbnailUrl: "/thumbs/2.jpg",
+    views: 980,
+    likes: 76,
+    comments: 12,
+    platform: "youtube",
+  },
+  {
+    id: "t1",
+    title: "TikTok – test animation",
+    thumbnailUrl: "/thumbs/3.jpg",
+    views: 2050,
+    likes: 310,
+    comments: 44,
+    platform: "tiktok",
+  },
+  {
+    id: "t2",
+    title: "Short: 3 tips montage CapCut",
+    thumbnailUrl: "/thumbs/4.jpg",
+    views: 1520,
+    likes: 150,
+    comments: 21,
+    platform: "tiktok",
+  },
+  {
+    id: "y3",
+    title: "YouTube – intégration API Data",
+    thumbnailUrl: "/thumbs/5.jpg",
+    views: 760,
+    likes: 54,
+    comments: 9,
+    platform: "youtube",
+  },
+  {
+    id: "t3",
+    title: "TikTok – trend musique",
+    thumbnailUrl: "/thumbs/6.jpg",
+    views: 3110,
+    likes: 420,
+    comments: 63,
+    platform: "tiktok",
+  },
+  {
+    id: "y4",
+    title: "Comparatif NextAuth vs Kinde",
+    thumbnailUrl: "/thumbs/7.jpg",
+    views: 640,
+    likes: 70,
+    comments: 7,
+    platform: "youtube",
+  },
+  {
+    id: "y5",
+    title: "Graphiques Recharts – Daily/Hourly",
+    thumbnailUrl: "/thumbs/8.jpg",
+    views: 890,
+    likes: 95,
+    comments: 10,
+    platform: "youtube",
+  },
+  {
+    id: "t4",
+    title: "TikTok – export haute qualité",
+    thumbnailUrl: "/thumbs/9.jpg",
+    views: 2210,
+    likes: 260,
+    comments: 31,
+    platform: "tiktok",
+  },
+];
+
+export default demoVideos;

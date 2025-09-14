@@ -1,34 +1,45 @@
-import Image from "next/image";
+// app/page.tsx
 import Link from "next/link";
-import Button from "@/components/Button";
-export default function Page() {
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+
+export default async function HomePage() {
+  const { getPermission } = getKindeServerSession();
+  const access = await getPermission("read:dashboard");
+  const canSeeDashboard = !!access?.isGranted;
+
   return (
-    <section className="pt-20 mx-auto max-w-2xl space-y-8 w-full">
-      <div className="text-center space-y-8 max-w-2xl">
-        <Image
-          src="/social_hub_icon.svg"
-          alt="Social Hub"
-          width={40}
-          height={40}
-        />
-        <h1 className="text-4xl md:text-5xl font-bold">Social Hub</h1>
-        <p className="text-neutral-300">
-          Vous et vos réseaux. Centralisez vos vidéos YouTube & TikTok, et vos
-          articles WordPress au même endroit.
+    <main className="mx-auto max-w-7xl px-4 py-10">
+      <div className="rounded-2xl p-8 border border-neutral-800 bg-neutral-900/60 backdrop-blur">
+        <h1 className="text-2xl font-semibold mb-3 text-neutral-100">Bienvenue sur Social-Hub</h1>
+        <p className="opacity-80 text-neutral-300 mb-6">
+          Agrégateur de vidéos et KPIs multi-plateformes (YouTube, TikTok…).
         </p>
-        <div className="flex items-center justify-center gap-4">
-          <Link href="/auth/login">
-            <Button>Connexion / Créer un compte</Button>
-          </Link>
+
+        <div className="flex gap-3">
+          {canSeeDashboard ? (
+            <Link
+              href="/dashboard"
+              className="rounded-md border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm font-medium text-neutral-100 hover:bg-neutral-700"
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="rounded-md border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm font-medium text-neutral-100 hover:bg-neutral-700"
+            >
+              Se connecter
+            </Link>
+          )}
+
           <Link
-            href="/dashboard"
-            className="text-sm text-neutral-300 hover:text-white"
+            href="/demo"
+            className="rounded-md border border-neutral-800 px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-900"
           >
-            Voir une démo
+            Voir la démo
           </Link>
         </div>
       </div>
-      <div className="absolute inset-x-0 bottom-0 h-100 bg-[url('/motif.png')] bg-repeat opacity-20" />
-    </section>
+    </main>
   );
 }
