@@ -22,7 +22,7 @@ function genNonce() {
 async function coreMiddleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Skip assets (on laisse Next/Vercel servir)
+  // Skip assets (laisse Next/Vercel servir)
   if (
     pathname.startsWith("/_next/static") ||
     pathname.startsWith("/_next/image") ||
@@ -54,25 +54,25 @@ async function coreMiddleware(req: NextRequest) {
   return res;
 }
 
-// 🛡️ Enveloppe auth Kinde (uniquement quand on est sur /dashboard)
-const authed = withAuth(
-  async function authWrapper(req: NextRequest) {
-    // Important: appliquer quand même la CSP ici (sinon perte de headers sur /dashboard)
-    return coreMiddleware(req);
-  },
-  {
-    loginPage: "/login",
-    isAuthorized: ({ token }: { token: KindeToken | null }) =>
-      (token?.permissions ?? []).includes("read:dashboard"),
-  }
-);
-
-// ✅ Point d’entrée unique
+// ✅ Entrée unique
 export default async function middleware(req: NextRequest) {
-  if (req.nextUrl.pathname.startsWith("/dashboard")) {
-    // Routes protégées → passe par Kinde (qui applique coreMiddleware à l’intérieur)
-    return authed(req);
+  const path = req.nextUrl.pathname;
+
+  if (path.startsWith("/dashboard")) {
+    // Routes protégées → Kinde + CSP
+    const handler = withAuth(
+      async (r: NextRequest) => coreMiddleware(r),
+      {
+        loginPage: "/login",
+        isAuthorized: ({ token }: { token: KindeToken | null }) =>
+          (token?.permissions ?? []).includes("read:dashboard"),
+      }
+      // 👇 Cast explicite: transforme en (req)=>Promise<NextResponse>
+    ) as unknown as (r: NextRequest) => Promise<NextResponse>;
+
+    return handler(req);
   }
+
   // Tout le reste → CSP globale sans auth
   return coreMiddleware(req);
 }
@@ -81,3 +81,4 @@ export default async function middleware(req: NextRequest) {
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
+
