@@ -3,5 +3,7 @@ import { NextResponse } from "next/server";
 import demoVideos from "@/data/demo-videos";
 
 export async function GET() {
-  return NextResponse.json({ videos: demoVideos });
+  const res = NextResponse.json({ videos: demoVideos });
+  res.headers.set("Cache-Control", "no-store");
+  return res;
 }

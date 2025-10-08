@@ -4,26 +4,33 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { getHourlyMetrics, getDailyMetrics } from "@/lib/metrics";
+import { ipFromHeaders, isRateLimitedKey, jsonNoStore } from "@/lib/security";
 
-export async function GET(req: Request, ctx: any) {
+const VIDEO_ID_RX = /^[A-Za-z0-9_\-:.]{1,128}$/;
+
+export async function GET(req: Request, ctx: { params: { videoId: string } }) {
   try {
-    // 👇 Ici c'est ctx.params (pas "context")
-    const { videoId } = await ctx.params;
+    const ip = ipFromHeaders(req);
+    if (isRateLimitedKey(`ana:${ip}`)) {
+      return jsonNoStore({ error: "Too many requests" }, { status: 429 });
+    }
+
+    const { videoId } = ctx.params ?? {};
+    if (!videoId || !VIDEO_ID_RX.test(videoId)) {
+      return jsonNoStore({ error: "Invalid videoId" }, { status: 400 });
+    }
 
     const url = new URL(req.url);
-    const platformParam = (url.searchParams.get("platform") || "youtube").toLowerCase();
-    const platform = platformParam === "tiktok" ? "tiktok" : "youtube";
+    const p = (url.searchParams.get("platform") || "youtube").toLowerCase();
+    const platform = p === "tiktok" ? "tiktok" : "youtube";
 
     const [hourly, daily] = await Promise.all([
       getHourlyMetrics(platform, videoId),
       getDailyMetrics(platform, videoId),
     ]);
 
-    return NextResponse.json({ platform, videoId, hourly, daily });
-  } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : String(e) },
-      { status: 500 }
-    );
+    return jsonNoStore({ platform, videoId, hourly, daily });
+  } catch (e: any) {
+    return jsonNoStore({ error: String(e?.message ?? e) }, { status: 500 });
   }
 }

@@ -8,8 +8,8 @@ export async function GET() {
   const saveToken = async (_t:any)=>{/* write to DB */};
   try {
     await ensureFreshToken(getToken, saveToken);
-    return Response.json({ ok: true });
+    return Response.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
   } catch (e:any) {
-    return Response.json({ ok: false, error: String(e) }, { status: 500 });
+    return Response.json({ ok: false, error: String(e) }, { status: 500, headers: { "Cache-Control": "no-store" } });
   }
 }

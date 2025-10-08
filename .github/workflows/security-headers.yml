@@ -1,0 +1,36 @@
+name: Security Headers Check
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  deployment_status:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait a bit for deploy
+        run: sleep 10
+
+      - name: Check headers on homepage
+        run: |
+          set -e
+          URL="${CHECK_URL:-https://social-hub.fr}"
+          echo "Checking $URL"
+          HDRS=$(curl -sI "$URL")
+          echo "$HDRS"
+
+          # Required headers
+          echo "$HDRS" | grep -i "^content-security-policy:" || (echo "❌ CSP missing" && exit 1)
+          echo "$HDRS" | grep -i "^x-frame-options:" || (echo "❌ X-Frame-Options missing" && exit 1)
+          echo "$HDRS" | grep -i "^x-content-type-options:" || (echo "❌ X-Content-Type-Options missing" && exit 1)
+          echo "$HDRS" | grep -i "^referrer-policy:" || (echo "❌ Referrer-Policy missing" && exit 1)
+          # Optional but recommended in prod
+          echo "$HDRS" | grep -i "^strict-transport-security:" || (echo "⚠️ HSTS missing (ok in non-prod)" && true)
+
+      - name: Check nonce present (CSP strict)
+        run: |
+          URL="${CHECK_URL:-https://social-hub.fr}"
+          HDRS=$(curl -sI "$URL")
+          echo "$HDRS" | grep -i "^content-security-policy:" | grep -q "nonce-" || (echo "❌ CSP nonce missing" && exit 1)

@@ -3,7 +3,42 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 
 /** @type {import('next').NextConfig} */
+const isProd = process.env.NODE_ENV === "production";
+
+// Headers de sécurité (CSP sera injectée dynamiquement via middleware)
+const securityHeaders = [
+  // HSTS (active uniquement en prod et si tout le site est en HTTPS)
+  ...(isProd
+    ? [
+        {
+          key: "Strict-Transport-Security",
+          value: "max-age=63072000; includeSubDomains; preload",
+        },
+      ]
+    : []),
+
+  // Anti-MIME sniffing
+  { key: "X-Content-Type-Options", value: "nosniff" },
+
+  // Anti-clickjacking
+  { key: "X-Frame-Options", value: "DENY" },
+
+  // Limiter les fuites de référent
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+
+  // Isolation contextuelle (limite certaines confusions fenêtre/process)
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+
+  // Permissions minimales par défaut (à étendre si besoin)
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), payment=()",
+  },
+];
+
 const nextConfig = {
+  poweredByHeader: false, // Masque X-Powered-By: Next.js
+
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.ytimg.com" },
@@ -14,6 +49,16 @@ const nextConfig = {
   },
 
   serverExternalPackages: ["@napi-rs/canvas"],
+
+  // Injection des headers de sécurité (hors CSP)
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: securityHeaders,
+      },
+    ];
+  },
 
   webpack: (config, { isServer, nextRuntime }) => {
     // Client & Edge : stub le module natif et ignore *.node
@@ -54,3 +99,4 @@ const nextConfig = {
 };
 
 export default nextConfig;
+

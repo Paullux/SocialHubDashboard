@@ -8,8 +8,8 @@ import { fetchYouTubeLatest } from "@/lib/fetchVideos";
 import { ensureFreshToken } from "@/lib/tiktok/auth.server";
 import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
 import type { VideoItem } from "@/lib/types";
+import { jsonNoStore, timingSafeEqualStr } from "@/lib/security";
 
-// Arrondir à l'heure UTC (ex: 14:37 -> 14:00)
 function floorToHourUTC(d = new Date()): Date {
   const t = new Date(d);
   t.setUTCMinutes(0, 0, 0);
@@ -18,10 +18,12 @@ function floorToHourUTC(d = new Date()): Date {
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const key = url.searchParams.get("key");
-  if (!process.env.CRON_SECRET || key !== process.env.CRON_SECRET) {
-    return new Response("Unauthorized", { status: 401 });
+  const key = url.searchParams.get("key") || "";
+
+  if (!process.env.CRON_SECRET || !(await timingSafeEqualStr(key, process.env.CRON_SECRET))) {
+    return new Response("Unauthorized", { status: 401, headers: { "Cache-Control": "no-store" } });
   }
+
   try {
     const nowHour = floorToHourUTC(new Date());
 
@@ -30,7 +32,6 @@ export async function GET(req: Request) {
     const ytChan = process.env.YT_CHANNEL_ID || "";
     let yt: VideoItem[] = [];
     if (ytKey && ytChan) {
-      // prends un lot assez large pour suivre tes vidéos actives (ajuste à 100/200)
       yt = await fetchYouTubeLatest(ytKey, ytChan, 100);
     }
 
@@ -39,22 +40,17 @@ export async function GET(req: Request) {
     try {
       const access = await ensureFreshToken(getTikTokToken, saveTikTokToken);
       if (access) {
-        // on peut réutiliser ton /api/videos côté serveur, ou un fetch direct TikTok
-        const r = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"}/api/videos?yt=0&tt=100`, { cache: "no-store" });
+        const base = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+        const r = await fetch(`${base}/api/videos?yt=0&tt=100`, { cache: "no-store" });
         if (r.ok) {
           const data = await r.json();
           tiktok = (data?.videos ?? []).filter((v: VideoItem) => v.platform === "tiktok");
         }
       }
-    } catch {
-      // pas de token TikTok valide : on ignore proprement
-    }
+    } catch { /* ignore */ }
 
     const all = [...yt, ...tiktok];
 
-    // 3) Upsert par vidéo
-    // - On n’écrase pas les anciens points, on en ajoute un par heure
-    // - Le unique(platform, videoId, snapshotAt) évite les doublons
     const ops = all.map((v) =>
       prisma.videoMetric.upsert({
         where: {
@@ -84,8 +80,9 @@ export async function GET(req: Request) {
 
     await Promise.all(ops);
 
-    return NextResponse.json({ ok: true, count: all.length, hour: nowHour.toISOString() });
+    return jsonNoStore({ ok: true, count: all.length, hour: nowHour.toISOString() });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: String(e?.message ?? e) }, { status: 500 });
+    return jsonNoStore({ ok: false, error: String(e?.message ?? e) }, { status: 500 });
   }
 }
+

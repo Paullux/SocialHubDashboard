@@ -5,12 +5,18 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { ensureFreshToken } from "@/lib/tiktok/auth.server";
 import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
+import { ipFromHeaders, isRateLimitedKey } from "@/lib/security";
 
 const ALLOW = process.env.ALLOW_TIKTOK_DEBUG === "1";
 
-export async function GET() {
+export async function GET(req: Request) {
   if (!ALLOW) {
     return NextResponse.json({ ok: false, error: "Debug disabled" }, { status: 403 });
+  }
+
+  const ip = ipFromHeaders(req);
+  if (isRateLimitedKey(`ttdiag:${ip}`)) {
+    return NextResponse.json({ ok: false, error: "Too many requests" }, { status: 429, headers: { "Cache-Control": "no-store" } });
   }
 
   try {
@@ -56,9 +62,9 @@ export async function GET() {
         created: v.create_time,
         share_url: v.share_url,
       })),
-    });
+    }, { headers: { "Cache-Control": "no-store" } });
   } catch (e: any) {
     console.error("[TikTok][DIAG][ERROR]", e);
-    return NextResponse.json({ ok: false, error: String(e) }, { status: 500 });
+    return NextResponse.json({ ok: false, error: String(e) }, { status: 500, headers: { "Cache-Control": "no-store" } });
   }
 }

@@ -13,7 +13,7 @@ export async function GET() {
     _count: { _all: true },
   });
 
-  return NextResponse.json({
+  const res = NextResponse.json({
     lastRunAt: last?.snapshotAt?.toISOString() ?? null,
     lastExample: last ?? null,
     totals: perPlatform.reduce((acc, r) => {
@@ -21,4 +21,6 @@ export async function GET() {
       return acc;
     }, {} as Record<string, number>),
   });
+  res.headers.set("Cache-Control", "no-store");
+  return res;
 }
