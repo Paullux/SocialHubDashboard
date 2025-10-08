@@ -8,14 +8,14 @@ import { ipFromHeaders, isRateLimitedKey, jsonNoStore } from "@/lib/security";
 
 const VIDEO_ID_RX = /^[A-Za-z0-9_\-:.]{1,128}$/;
 
-export async function GET(req: Request, ctx: { params: { videoId: string } }) {
+export async function GET(req: Request, { params }: any) {
   try {
     const ip = ipFromHeaders(req);
     if (isRateLimitedKey(`ana:${ip}`)) {
       return jsonNoStore({ error: "Too many requests" }, { status: 429 });
     }
 
-    const { videoId } = ctx.params ?? {};
+    const videoId: string | undefined = params?.videoId;
     if (!videoId || !VIDEO_ID_RX.test(videoId)) {
       return jsonNoStore({ error: "Invalid videoId" }, { status: 400 });
     }
