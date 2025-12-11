@@ -16,6 +16,7 @@ const PUBLIC_PATHS = [
   "/api/oauth/tiktok/callback",
   "/api/oauth/instagram/start",
   "/api/oauth/instagram/callback",
+  "/api/oauth/disconnect",
   // Health and misc
   "/api/health", "/favicon.ico"
 ];
