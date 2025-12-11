@@ -2,8 +2,30 @@
 import { withAuth } from "@kinde-oss/kinde-auth-nextjs/middleware";
 import { NextRequest, NextResponse } from "next/server";
 
-type KindeToken = { permissions?: string[] };
+type KindeToken = {
+  permissions?: string[];
+};
 
+// 🔓 Chemins publics (aucune auth requise)
+const PUBLIC_PATHS = [
+  "/", "/login",
+  // OAuth providers (start + callback)
+  "/api/oauth/google-youtube/start",
+  "/api/oauth/google-youtube/callback",
+  "/api/oauth/tiktok/start",
+  "/api/oauth/tiktok/callback",
+  "/api/oauth/instagram/start",
+  "/api/oauth/instagram/callback",
+  // Health and misc
+  "/api/health", "/favicon.ico"
+];
+
+// 🛡️ Autorisation fine par route (simple et lisible)
+function hasPerm(token: KindeToken | null, perm: string) {
+  return (token?.permissions ?? []).includes(perm);
+}
+
+// Base security headers
 function setBaseSecurityHeaders(res: NextResponse) {
   res.headers.set("X-Content-Type-Options", "nosniff");
   res.headers.set("X-Frame-Options", "DENY");
@@ -12,17 +34,17 @@ function setBaseSecurityHeaders(res: NextResponse) {
   res.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
 }
 
+// Generate CSP nonce
 function genNonce() {
   const buf = new Uint8Array(16);
   crypto.getRandomValues(buf);
   return Buffer.from(buf).toString("base64");
 }
 
-// ⚙️ CSP globale (toujours exécutée)
+// Core middleware for CSP
 async function coreMiddleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Skip assets (laisse Next/Vercel servir)
   if (
     pathname.startsWith("/_next/static") ||
     pathname.startsWith("/_next/image") ||
@@ -54,31 +76,52 @@ async function coreMiddleware(req: NextRequest) {
   return res;
 }
 
-// ✅ Entrée unique
+// Main middleware
 export default async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
-  if (path.startsWith("/dashboard")) {
-    // Routes protégées → Kinde + CSP
+  // Apply auth + CSP for dashboard and settings/* pages
+  if (path.startsWith("/dashboard") || path.startsWith("/settings/linked-accounts")) {
+
     const handler = withAuth(
       async (r: NextRequest) => coreMiddleware(r),
       {
         loginPage: "/login",
-        isAuthorized: ({ token }: { token: KindeToken | null }) =>
-          (token?.permissions ?? []).includes("read:dashboard"),
+        publicPaths: PUBLIC_PATHS,
+        isAuthorized: ({ token, req }: { token: KindeToken | null; req: NextRequest }) => {
+          const p = req.nextUrl.pathname;
+
+          // Public (handled by PUBLIC_PATHS already)
+          if (PUBLIC_PATHS.includes(p)) return true;
+
+          // Dashboard needs read:dashboard
+          if (p.startsWith("/dashboard")) return hasPerm(token, "read:dashboard");
+
+          // Linked accounts can use same permission or a dedicated one
+          if (p.startsWith("/settings/linked-accounts")) return hasPerm(token, "read:dashboard");
+
+          // Default deny
+          return false;
+        },
       }
-      // 👇 Cast explicite: transforme en (req)=>Promise<NextResponse>
     ) as unknown as (r: NextRequest) => Promise<NextResponse>;
 
     return handler(req);
   }
 
-  // Tout le reste → CSP globale sans auth
+  // Everything else → only CSP
   return coreMiddleware(req);
 }
 
-// ✅ Matcher simple et compatible Next 15
+// Matcher for middleware
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    // Protect dashboard and settings UI
+    "/dashboard/:path*",
+    "/settings/linked-accounts/:path*",
+    // OAuth providers are public
+    "/api/oauth/:path*",
+    // Allow other public asset paths
+    "/", "/login",
+  ],
 };
-

@@ -1,38 +1,29 @@
 // components/SocialIcon.tsx
 "use client";
-
-import Link from "next/link";
-import { cn } from "@/lib/utils";
+import React from "react";
 
 export function SocialIcon({
-  href,
   icon,
-  connected,
   label,
+  connected,
+  onClick,
 }: {
-  href: string;
   icon: React.ReactNode;
-  connected: boolean | null; // null = en cours de chargement
   label: string;
+  connected?: boolean;
+  onClick?: () => void;
 }) {
   return (
-    <Link
-      href={href}
-      className="relative flex items-center justify-center w-10 h-10 transition-transform hover:scale-110"
-      aria-label={label}
-      title={label}
+    <button
+      type="button"
+      onClick={onClick}
+      title={connected ? `${label} connecté` : `Connecter ${label}`}
+      className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5
+        ${connected ? "border-green-600/60 bg-green-600/10" : "border-neutral-700 bg-neutral-800 hover:bg-neutral-700"}`}
     >
       {icon}
-      <span
-        className={cn(
-          "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-black transition-colors",
-          connected === null
-            ? "bg-yellow-400" // état indéfini → pastille jaune
-            : connected
-            ? "bg-green-500" // connecté
-            : "bg-red-500" // déconnecté
-        )}
-      />
-    </Link>
+      <span className="sr-only">{label}</span>
+      <span aria-hidden className={`h-2 w-2 rounded-full ${connected ? "bg-green-500" : "bg-neutral-500/60"}`} />
+    </button>
   );
 }

@@ -61,7 +61,7 @@ const nextConfig = {
   },
 
   webpack: (config, { isServer, nextRuntime }) => {
-    // Client & Edge : stub le module natif et ignore *.node
+    // client & edge : stub le module natif et ignore *.node
     if (!isServer || nextRuntime === "edge") {
       config.resolve ??= {};
       config.resolve.alias = {
@@ -80,7 +80,6 @@ const nextConfig = {
     if (isNodeRuntime) {
       config.externals = [
         ...(config.externals || []),
-        // ✅ nouvelle signature ({ context, request }, cb)
         ({ request }, cb) => {
           if (request?.startsWith("@napi-rs/canvas")) {
             return cb(null, "commonjs " + request);
@@ -95,6 +94,14 @@ const nextConfig = {
     }
 
     return config;
+  },
+
+  // 🔥 Désactive Turbopack pour permettre à Webpack de builder
+  experimental: {
+    turbopack: false,
+  },
+  unstable_experimental: {
+    webpack: true
   },
 };
 

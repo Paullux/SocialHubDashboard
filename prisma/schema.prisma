@@ -1,18 +1,21 @@
 // prisma/schema.prisma
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")   // pooled
+  directUrl = env("DATABASE_URL_UNPOOLED")     // direct
 }
 
 generator client {
   provider = "prisma-client-js"
 }
 
-/* ========= EXISTANT ========= */
+/**
+ * ========= EXISTANT =========
+ */
 
 model OAuthToken {
-  provider     String   // "tiktok"
-  userId       String   // ton user interne (ex: "me")
+  provider     String // "tiktok"
+  userId       String // ton user interne (ex: "me")
   openId       String
   accessToken  String
   refreshToken String
@@ -24,18 +27,43 @@ model OAuthToken {
   @@index([expiresAt])
 }
 
-/* ========= NOUVEAU ========= */
+/**
+ * ========= NOUVEAU =========
+ */
 
 model VideoMetric {
-  platform    String
-  videoId     String
-  snapshotAt  DateTime
-  views       BigInt   @default(0)
-  likes       BigInt   @default(0)
-  comments    BigInt   @default(0)
-  shares      BigInt?
+  platform   String
+  videoId    String
+  snapshotAt DateTime
+  views      BigInt   @default(0)
+  likes      BigInt   @default(0)
+  comments   BigInt   @default(0)
+  shares     BigInt?
 
   @@id([platform, videoId, snapshotAt])
   @@index([platform, videoId, snapshotAt])
+}
+
+/**
+ * ======= ACCOUNT LINKED =======
+ */
+
+model AccountLink {
+  id              String   @id @default(cuid())
+  userId          String
+  provider        String
+  externalUserId  String
+  username        String?
+  accessTokenEnc  String
+  refreshTokenEnc String?
+  scope           String
+  expiresAt       DateTime?
+  meta            Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, provider])
+  @@index([userId])
+  @@index([externalUserId])
 }
 
