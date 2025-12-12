@@ -2,27 +2,44 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-import { NextResponse } from "next/server";
 import { getHourlyMetrics, getDailyMetrics } from "@/lib/metrics";
 import { ipFromHeaders, isRateLimitedKey, jsonNoStore } from "@/lib/security";
 
-const VIDEO_ID_RX = /^[A-Za-z0-9_\-:.]{1,128}$/;
-
-export async function GET(req: Request, { params }: any) {
+export async function GET(
+  req: Request,
+  context: { params: Promise<{ videoId: string }> }
+) {
   try {
     const ip = ipFromHeaders(req);
     if (isRateLimitedKey(`ana:${ip}`)) {
       return jsonNoStore({ error: "Too many requests" }, { status: 429 });
     }
 
-    const videoId: string | undefined = params?.videoId;
-    if (!videoId || !VIDEO_ID_RX.test(videoId)) {
-      return jsonNoStore({ error: "Invalid videoId" }, { status: 400 });
+    // ✅ UNWRAP params
+    const { videoId } = await context.params;
+
+    if (!videoId) {
+      return jsonNoStore({ error: "Missing videoId" }, { status: 400 });
     }
 
     const url = new URL(req.url);
     const p = (url.searchParams.get("platform") || "youtube").toLowerCase();
     const platform = p === "tiktok" ? "tiktok" : "youtube";
+
+    const isValid =
+      platform === "youtube"
+        ? /^[A-Za-z0-9_-]{11}$/.test(videoId)
+        : /^\d{15,25}$/.test(videoId);
+
+    if (!isValid) {
+      return jsonNoStore(
+        { error: `Invalid videoId for ${platform}` },
+        { status: 400 }
+      );
+    }
+
+    // ✅ CE LOG VA MAINTENANT S’AFFICHER
+    console.log("[ANALYTICS]", { platform, videoId });
 
     const [hourly, daily] = await Promise.all([
       getHourlyMetrics(platform, videoId),
@@ -34,3 +51,4 @@ export async function GET(req: Request, { params }: any) {
     return jsonNoStore({ error: String(e?.message ?? e) }, { status: 500 });
   }
 }
+

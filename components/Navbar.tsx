@@ -7,14 +7,14 @@ import { LogIn, LogOut } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { SocialIcon } from "./SocialIcon";
 import { FaYoutube, FaTiktok, FaInstagram } from "react-icons/fa";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
+import { useKindeAuth, useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
 
 type Status = { youtube: boolean; tiktok: boolean; instagram: boolean };
 
 export default function Navbar() {
   const [status, setStatus] = useState<Status>({ youtube: false, tiktok: false, instagram: false });
-  const { isAuthenticated, isLoading } = useKindeAuth();
+  const { isAuthenticated, isLoading } = useKindeBrowserClient();
 
   useEffect(() => {
     fetch("/api/auth/status")

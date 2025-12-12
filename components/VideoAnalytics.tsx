@@ -135,9 +135,23 @@ export default function VideoAnalytics({
   const daily = useMemo(() => data?.daily ?? [], [data]);
   const hourly = useMemo(() => data?.hourly ?? [], [data]);
 
+  function truncateTitle(title: string, max: number) {
+    if (!title) return "";
+    return title.length > max
+      ? title.slice(0, max - 1) + "…"
+      : title;
+  }
+
+  const TITLE_LIMIT = platform === "tiktok" ? 45 : 35;
+
+  const displayTitle = videoTitle
+    ? truncateTitle(videoTitle, TITLE_LIMIT)
+    : videoId;
+
   const titleText =
-    (videoTitle ? videoTitle : videoId) +
+    displayTitle +
     ` — ${platform === "youtube" ? "YouTube" : "TikTok"}`;
+
 
   // Couleurs
   const COLOR_VIEWS = "#16a34a"; // vert
