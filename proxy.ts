@@ -1,4 +1,4 @@
-// middleware.ts
+// proxy.ts
 import { withAuth } from "@kinde-oss/kinde-auth-nextjs/middleware";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -42,8 +42,8 @@ function genNonce() {
   return Buffer.from(buf).toString("base64");
 }
 
-// Core middleware for CSP
-async function coreMiddleware(req: NextRequest) {
+// Core proxy for CSP
+async function coreProxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (
@@ -77,15 +77,15 @@ async function coreMiddleware(req: NextRequest) {
   return res;
 }
 
-// Main middleware
-export default async function middleware(req: NextRequest) {
+// Main proxy
+export default async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
   // Apply auth + CSP for dashboard and settings/* pages
   if (path.startsWith("/dashboard") || path.startsWith("/settings/linked-accounts")) {
 
     const handler = withAuth(
-      async (r: NextRequest) => coreMiddleware(r),
+      async (r: NextRequest) => coreProxy(r),
       {
         loginPage: "/login",
         publicPaths: PUBLIC_PATHS,
@@ -111,10 +111,10 @@ export default async function middleware(req: NextRequest) {
   }
 
   // Everything else → only CSP
-  return coreMiddleware(req);
+  return coreProxy(req);
 }
 
-// Matcher for middleware
+// Matcher for proxy
 export const config = {
   matcher: [
     // Protect dashboard and settings UI

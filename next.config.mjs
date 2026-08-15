@@ -1,11 +1,15 @@
 // next.config.mjs
-import { createRequire } from "module";
+import { createRequire } from "node:module";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
 const require = createRequire(import.meta.url);
+const projectRoot = dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const isProd = process.env.NODE_ENV === "production";
 
-// Headers de sécurité (CSP sera injectée dynamiquement via middleware)
+// Headers de sécurité (CSP sera injectée dynamiquement via proxy)
 const securityHeaders = [
   // HSTS (active uniquement en prod et si tout le site est en HTTPS)
   ...(isProd
@@ -38,6 +42,7 @@ const securityHeaders = [
 
 const nextConfig = {
   poweredByHeader: false, // Masque X-Powered-By: Next.js
+  outputFileTracingRoot: projectRoot,
 
   images: {
     remotePatterns: [
@@ -94,14 +99,6 @@ const nextConfig = {
     }
 
     return config;
-  },
-
-  // 🔥 Désactive Turbopack pour permettre à Webpack de builder
-  experimental: {
-    turbopack: false,
-  },
-  unstable_experimental: {
-    webpack: true
   },
 };
 
