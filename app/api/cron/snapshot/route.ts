@@ -7,8 +7,9 @@ import { prisma } from "@/lib/prisma";
 import { fetchYouTubeLatest } from "@/lib/fetchVideos";
 import { ensureFreshToken } from "@/lib/tiktok/auth.server";
 import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
-import { dec } from "@/lib/accountLinks";
-import { fetchInstagramMedia } from "@/lib/meta/media.server";
+import { dec, enc } from "@/lib/accountLinks";
+import { fetchInstagramMedia, fetchFacebookVideos } from "@/lib/meta/media.server";
+import { exchangeForLongLivedToken } from "@/lib/meta/auth.server";
 import type { VideoItem } from "@/lib/types";
 import { jsonNoStore, timingSafeEqualStr } from "@/lib/security";
 
@@ -51,8 +52,10 @@ export async function GET(req: Request) {
       }
     } catch { /* ignore */ }
 
-    // 3) Instagram : tous les comptes liés (le cron n'a pas de session Kinde)
+    // 3) Meta : Instagram + vidéos Page, pour tous les comptes liés
+    //    (le cron n'a pas de session Kinde) + refresh proactif du token long.
     let instagram: VideoItem[] = [];
+    let facebook: VideoItem[] = [];
     try {
       const links = await prisma.accountLink.findMany({ where: { provider: "instagram" } });
       for (const link of links) {
@@ -60,15 +63,38 @@ export async function GET(req: Request) {
           const token = dec(link.accessTokenEnc);
           const meta = (link.meta ?? {}) as Record<string, any>;
           const igId = String(meta.igUserId || link.externalUserId || "");
+          const pageId = String(meta.pageId || "");
           if (token && igId) {
             instagram.push(...(await fetchInstagramMedia(token, igId, 100)));
+          }
+          if (token && pageId) {
+            facebook.push(...(await fetchFacebookVideos(token, pageId, 100)));
+          }
+
+          // refresh si le token long expire dans < 10 jours
+          const daysLeft = link.expiresAt
+            ? (link.expiresAt.getTime() - Date.now()) / 86_400_000
+            : 999;
+          if (token && daysLeft < 10) {
+            const fresh = await exchangeForLongLivedToken(token);
+            if (fresh?.access_token) {
+              await prisma.accountLink.update({
+                where: { id: link.id },
+                data: {
+                  accessTokenEnc: enc(fresh.access_token),
+                  expiresAt: fresh.expires_in
+                    ? new Date(Date.now() + fresh.expires_in * 1000)
+                    : link.expiresAt,
+                },
+              });
+            }
           }
         } catch { /* saute ce compte */ }
       }
     } catch { /* ignore */ }
 
     const seen = new Set<string>();
-    const all = [...yt, ...tiktok, ...instagram].filter((v) => {
+    const all = [...yt, ...tiktok, ...instagram, ...facebook].filter((v) => {
       const k = `${v.platform}:${v.id}`;
       if (!v.id || seen.has(k)) return false;
       seen.add(k);
