@@ -7,6 +7,8 @@ import { prisma } from "@/lib/prisma";
 import { fetchYouTubeLatest } from "@/lib/fetchVideos";
 import { ensureFreshToken } from "@/lib/tiktok/auth.server";
 import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
+import { dec } from "@/lib/accountLinks";
+import { fetchInstagramMedia } from "@/lib/meta/media.server";
 import type { VideoItem } from "@/lib/types";
 import { jsonNoStore, timingSafeEqualStr } from "@/lib/security";
 
@@ -49,7 +51,29 @@ export async function GET(req: Request) {
       }
     } catch { /* ignore */ }
 
-    const all = [...yt, ...tiktok];
+    // 3) Instagram : tous les comptes liés (le cron n'a pas de session Kinde)
+    let instagram: VideoItem[] = [];
+    try {
+      const links = await prisma.accountLink.findMany({ where: { provider: "instagram" } });
+      for (const link of links) {
+        try {
+          const token = dec(link.accessTokenEnc);
+          const meta = (link.meta ?? {}) as Record<string, any>;
+          const igId = String(meta.igUserId || link.externalUserId || "");
+          if (token && igId) {
+            instagram.push(...(await fetchInstagramMedia(token, igId, 100)));
+          }
+        } catch { /* saute ce compte */ }
+      }
+    } catch { /* ignore */ }
+
+    const seen = new Set<string>();
+    const all = [...yt, ...tiktok, ...instagram].filter((v) => {
+      const k = `${v.platform}:${v.id}`;
+      if (!v.id || seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
 
     const ops = all.map((v) =>
       prisma.videoMetric.upsert({
