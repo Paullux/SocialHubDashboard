@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { upsertAccountLink } from "@/lib/accountLinks";
+import { saveTikTokToken } from "@/lib/tiktok/store";
 
 const ALLOWED_REDIRECTS = [
   "http://localhost:3000/api/oauth/tiktok/callback",
@@ -87,7 +88,9 @@ export async function GET(req: Request) {
       // laisse username = null si l'appel échoue
     }
 
-    // Persistance
+    // Persistance — les deux stores TikTok, gardés en phase :
+    // - AccountLink : par utilisateur Kinde, chiffré, source pour /api/auth/status
+    // - OAuthToken (userId "me") : lu par /api/videos et le cron via ensureFreshToken
     await upsertAccountLink({
       userId: user.id,
       provider: "tiktok",
@@ -97,6 +100,13 @@ export async function GET(req: Request) {
       refreshToken: tok.refresh_token,
       scope: tok.scope,
       expiresAtSec: tok.expires_in,
+    });
+    await saveTikTokToken({
+      accessToken: tok.access_token,
+      refreshToken: tok.refresh_token,
+      expiresAt: Date.now() + (Number(tok.expires_in) || 86400) * 1000,
+      openId: tok.open_id,
+      scope: tok.scope,
     });
 
     // Nettoie le cookie PKCE et redirige
