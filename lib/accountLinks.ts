@@ -32,6 +32,18 @@ export function dec(payloadB64: string): string {
   return Buffer.concat([decipher.update(ct), decipher.final()]).toString("utf8");
 }
 
+// -- test d'existence (sans déchiffrement)
+export async function hasAccountLink(
+  userId: string,
+  provider: "google-youtube" | "tiktok" | "instagram" | "facebook"
+): Promise<boolean> {
+  const row = await prisma.accountLink.findUnique({
+    where: { userId_provider: { userId, provider } },
+    select: { id: true },
+  });
+  return Boolean(row);
+}
+
 // -- lecture + déchiffrement d'un compte lié
 export async function getAccountLink(
   userId: string,

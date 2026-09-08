@@ -8,7 +8,7 @@ import type { VideoItem } from "@/lib/types";
 import { fetchYouTubeLatest } from "@/lib/fetchVideos";
 import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
 import { ensureFreshToken } from "@/lib/tiktok/auth.server";
-import { getAccountLink } from "@/lib/accountLinks";
+import { getAccountLink, hasAccountLink } from "@/lib/accountLinks";
 import { fetchInstagramMedia, fetchFacebookVideos } from "@/lib/meta/media.server";
 import { ipFromHeaders, isRateLimitedKey } from "@/lib/security";
 
@@ -152,7 +152,11 @@ export async function GET(req: Request) {
     const ytChan = process.env.YT_CHANNEL_ID || "";
     let hasYTLink = false;
     if (kuserId) {
-      hasYTLink = Boolean(await getAccountLink(kuserId, "google-youtube"));
+      try {
+        hasYTLink = await hasAccountLink(kuserId, "google-youtube");
+      } catch {
+        /* ignore */
+      }
     }
 
     // TikTok OAuth
