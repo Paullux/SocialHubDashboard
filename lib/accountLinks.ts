@@ -32,6 +32,28 @@ export function dec(payloadB64: string): string {
   return Buffer.concat([decipher.update(ct), decipher.final()]).toString("utf8");
 }
 
+// -- lecture + déchiffrement d'un compte lié
+export async function getAccountLink(
+  userId: string,
+  provider: "google-youtube" | "tiktok" | "instagram" | "facebook"
+) {
+  const row = await prisma.accountLink.findUnique({
+    where: { userId_provider: { userId, provider } },
+  });
+  if (!row) return null;
+  return {
+    id: row.id,
+    provider: row.provider,
+    externalUserId: row.externalUserId,
+    username: row.username,
+    accessToken: dec(row.accessTokenEnc),
+    refreshToken: row.refreshTokenEnc ? dec(row.refreshTokenEnc) : null,
+    scope: row.scope,
+    expiresAt: row.expiresAt,
+    meta: (row.meta ?? {}) as Record<string, any>,
+  };
+}
+
 // -- export nommé attendu par tes routes OAuth
 export async function upsertAccountLink(args: {
   userId: string;

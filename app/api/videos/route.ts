@@ -3,10 +3,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import type { VideoItem } from "@/lib/types";
 import { fetchYouTubeLatest } from "@/lib/fetchVideos";
 import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
 import { ensureFreshToken } from "@/lib/tiktok/auth.server";
+import { getAccountLink } from "@/lib/accountLinks";
+import { fetchInstagramMedia } from "@/lib/meta/media.server";
 import { ipFromHeaders, isRateLimitedKey } from "@/lib/security";
 
 /* ================== Types ================== */
@@ -189,20 +192,38 @@ export async function GET(req: Request) {
       }
     }
 
+    // Collecte Instagram (uniquement si l'utilisateur Kinde a lié un compte)
+    let ig: VideoItem[] = [];
+    try {
+      const { getUser } = getKindeServerSession();
+      const kuser = await getUser();
+      if (kuser?.id) {
+        const link = await getAccountLink(kuser.id, "instagram");
+        if (link?.accessToken) {
+          const igId = String(link.meta?.igUserId || link.externalUserId || "");
+          ig = await fetchInstagramMedia(link.accessToken, igId, TOTAL_LIMIT);
+        }
+      }
+    } catch (e: unknown) {
+      (notes as any).instagram_error = String(e);
+    }
+
     if (debug) {
       (notes as any).yt_count = yt.length;
       (notes as any).tt_count = tt.length;
+      (notes as any).ig_count = ig.length;
     }
 
     const seen = new Set<string>();
-    const videos = [...yt, ...tt]
+    const videos = [...yt, ...tt, ...ig]
       .filter((v) => {
         const key = `${v.platform}:${v.id}`;
         if (!v.id || seen.has(key)) return false;
         seen.add(key);
         return true;
       })
-      .sort((a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt));
+      .sort((a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt))
+      .slice(0, TOTAL_LIMIT);
 
     const res = NextResponse.json(debug ? { videos, count: videos.length, notes } : { videos });
     res.headers.set("Cache-Control", "no-store");
