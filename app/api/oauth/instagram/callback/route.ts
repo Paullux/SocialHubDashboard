@@ -103,9 +103,33 @@ export async function GET(req: Request) {
     pagesJson?.data?.[0];
   const igUserId: string | undefined = page?.instagram_business_account?.id;
   if (!igUserId) {
-    return fail(
-      "Aucune Page avec instagram_business_account. Vérifie que ton compte Instagram (Business/Creator) est bien lié à une Page Facebook."
+    // Diagnostic : que nous a réellement accordé Facebook ?
+    let permissions: unknown = null;
+    try {
+      const permRes = await fetch(
+        `${META_GRAPH}/me/permissions?access_token=${encodeURIComponent(accessToken)}`,
+        { cache: "no-store" }
+      );
+      if (permRes.ok) permissions = (await permRes.json())?.data;
+    } catch {
+      /* ignore */
+    }
+    const res = NextResponse.json(
+      {
+        error: "no_instagram_business_account",
+        hint:
+          "Sur l'écran d'autorisation Facebook, coche la Page liée à ton compte Instagram Business. Vérifie aussi que le compte FB utilisé est admin de cette Page.",
+        pages: (pagesJson?.data ?? []).map((p: any) => ({
+          id: p?.id,
+          name: p?.name,
+          has_instagram: Boolean(p?.instagram_business_account?.id),
+        })),
+        permissions,
+      },
+      { status: 400 }
     );
+    res.headers.append("Set-Cookie", stateCookieClear());
+    return res;
   }
 
   // 5) username Instagram (affichage)
