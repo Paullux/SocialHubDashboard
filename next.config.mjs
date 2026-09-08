@@ -50,6 +50,8 @@ const nextConfig = {
       { protocol: "https", hostname: "yt3.ggpht.com" },
       { protocol: "https", hostname: "**.tiktokcdn.com" },
       { protocol: "https", hostname: "p16-sign-va.tiktokcdn.com" },
+      { protocol: "https", hostname: "**.cdninstagram.com" },
+      { protocol: "https", hostname: "**.fbcdn.net" },
     ],
   },
 
