@@ -16,6 +16,6 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           echo "Calling $BASE_URL/api/cron/snapshot"
-          curl -sS "${BASE_URL}/api/cron/snapshot?key=${CRON_SECRET}" \
-            --max-time 30 \
+          curl -sS --fail-with-body "${BASE_URL}/api/cron/snapshot?key=${CRON_SECRET}" \
+            --max-time 90 \
             -H "User-Agent: github-actions-cron"
