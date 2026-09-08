@@ -15,14 +15,12 @@ export default async function AnalyticsPage({
   const { videoId } = await params;
   const sp = (await (searchParams ?? Promise.resolve({}))) as Search;
 
-  const raw = sp.platform;
+  const rawPlatform = Array.isArray(sp.platform) ? sp.platform[0] : sp.platform;
   const platform =
-    raw === "tiktok"
-      ? "tiktok"
-      : Array.isArray(raw)
-      ? raw[0] === "tiktok"
-        ? "tiktok"
-        : "youtube"
+    rawPlatform === "tiktok" ||
+    rawPlatform === "instagram" ||
+    rawPlatform === "facebook"
+      ? rawPlatform
       : "youtube";
 
   return (

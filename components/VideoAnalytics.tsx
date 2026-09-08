@@ -13,7 +13,14 @@ import {
   CartesianGrid,
 } from "recharts";
 
-type Platform = "youtube" | "tiktok";
+type Platform = "youtube" | "tiktok" | "instagram" | "facebook";
+
+const PLATFORM_LABEL: Record<Platform, string> = {
+  youtube: "YouTube",
+  tiktok: "TikTok",
+  instagram: "Instagram",
+  facebook: "Facebook",
+};
 
 type HourlyPoint = {
   at: string;
@@ -150,7 +157,7 @@ export default function VideoAnalytics({
 
   const titleText =
     displayTitle +
-    ` — ${platform === "youtube" ? "YouTube" : "TikTok"}`;
+    ` — ${PLATFORM_LABEL[platform] ?? "YouTube"}`;
 
 
   // Couleurs

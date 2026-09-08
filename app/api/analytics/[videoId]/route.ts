@@ -24,12 +24,13 @@ export async function GET(
 
     const url = new URL(req.url);
     const p = (url.searchParams.get("platform") || "youtube").toLowerCase();
-    const platform = p === "tiktok" ? "tiktok" : "youtube";
+    const platform =
+      p === "tiktok" ? "tiktok" : p === "instagram" ? "instagram" : p === "facebook" ? "facebook" : "youtube";
 
     const isValid =
       platform === "youtube"
         ? /^[A-Za-z0-9_-]{11}$/.test(videoId)
-        : /^\d{15,25}$/.test(videoId);
+        : /^\d{5,25}$/.test(videoId);
 
     if (!isValid) {
       return jsonNoStore(
