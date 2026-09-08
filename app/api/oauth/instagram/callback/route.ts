@@ -103,28 +103,41 @@ export async function GET(req: Request) {
     pagesJson?.data?.[0];
   const igUserId: string | undefined = page?.instagram_business_account?.id;
   if (!igUserId) {
-    // Diagnostic : que nous a réellement accordé Facebook ?
-    let permissions: unknown = null;
-    try {
-      const permRes = await fetch(
-        `${META_GRAPH}/me/permissions?access_token=${encodeURIComponent(accessToken)}`,
-        { cache: "no-store" }
-      );
-      if (permRes.ok) permissions = (await permRes.json())?.data;
-    } catch {
-      /* ignore */
-    }
+    // Diagnostic complet
+    const at = encodeURIComponent(accessToken);
+    const grab = async (path: string) => {
+      try {
+        const r = await fetch(`${META_GRAPH}/${path}${path.includes("?") ? "&" : "?"}access_token=${at}`, {
+          cache: "no-store",
+        });
+        return await r.json();
+      } catch (e) {
+        return { fetch_error: String(e) };
+      }
+    };
+    const appToken = `${process.env.META_APP_ID}|${process.env.META_APP_SECRET}`;
+    const debugToken = await fetch(
+      `${META_GRAPH}/debug_token?input_token=${at}&access_token=${encodeURIComponent(appToken)}`,
+      { cache: "no-store" }
+    )
+      .then((r) => r.json())
+      .catch((e) => ({ fetch_error: String(e) }));
+
+    const [me, permsJson, businesses, igAccounts] = await Promise.all([
+      grab("me?fields=id,name"),
+      grab("me/permissions"),
+      grab("me/businesses?fields=id,name,verification_status"),
+      grab("me/accounts?fields=id,name,instagram_business_account,access_token"),
+    ]);
+
     const res = NextResponse.json(
       {
         error: "no_instagram_business_account",
-        hint:
-          "Sur l'écran d'autorisation Facebook, coche la Page liée à ton compte Instagram Business. Vérifie aussi que le compte FB utilisé est admin de cette Page.",
-        pages: (pagesJson?.data ?? []).map((p: any) => ({
-          id: p?.id,
-          name: p?.name,
-          has_instagram: Boolean(p?.instagram_business_account?.id),
-        })),
-        permissions,
+        me,
+        token: debugToken?.data ?? debugToken,
+        permissions: permsJson?.data,
+        businesses,
+        me_accounts_raw: igAccounts,
       },
       { status: 400 }
     );
