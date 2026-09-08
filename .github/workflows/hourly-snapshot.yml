@@ -1,12 +1,14 @@
 name: Hourly Snapshot
 
+# ⚠️ Cron désactivé : le snapshot horaire est maintenant piloté par le crontab
+# du VPS (Coolify) qui ping https://social-hub.fr/api/cron/snapshot.
+# On garde ce workflow en secours, lançable à la main (workflow_dispatch).
+# Pour réactiver le cron auto : décommenter le bloc "schedule" ci-dessous.
 on:
-  schedule:
-    # 12 et 42 min après l'heure : évite le créneau saturé "pile à l'heure" et
-    # se donne un 2e passage si le 1er est retardé/sauté (l'upsert rend ça idempotent).
-    - cron: "12 * * * *"
-    - cron: "42 * * * *"
-  workflow_dispatch: {}    # permet de lancer manuellement aussi
+  # schedule:
+  #   - cron: "12 * * * *"
+  #   - cron: "42 * * * *"
+  workflow_dispatch: {}
 
 jobs:
   call-snapshot:

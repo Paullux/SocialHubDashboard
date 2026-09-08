@@ -138,9 +138,22 @@ export async function GET(req: Request) {
     const ttParam = url.searchParams.get("tt");
     const TOTAL_LIMIT = Math.min(Math.max(Number(limitParam ?? 60), 1), 200); // borne à 200
 
-    // YouTube
+    // Utilisateur Kinde (une seule fois) : chaque plateforme n'est affichée que
+    // si l'utilisateur a lié le compte correspondant → la déconnexion masque les vidéos.
+    let kuserId: string | null = null;
+    try {
+      kuserId = (await getKindeServerSession().getUser())?.id ?? null;
+    } catch {
+      /* pas de session */
+    }
+
+    // YouTube (liste via clé API, mais seulement si le compte est lié)
     const ytKey = process.env.YT_API_KEY || "";
     const ytChan = process.env.YT_CHANNEL_ID || "";
+    let hasYTLink = false;
+    if (kuserId) {
+      hasYTLink = Boolean(await getAccountLink(kuserId, "google-youtube"));
+    }
 
     // TikTok OAuth
     let tiktokAccess: string | null = null;
@@ -172,7 +185,7 @@ export async function GET(req: Request) {
 
     // Collecte YouTube
     let yt: VideoItem[] = [];
-    if (ytKey && ytChan && ytTarget > 0) {
+    if (ytKey && ytChan && ytTarget > 0 && hasYTLink) {
       try {
         yt = await fetchYouTubeLatest(ytKey, ytChan, ytTarget);
       } catch (e: unknown) {
@@ -180,6 +193,8 @@ export async function GET(req: Request) {
       }
     } else if (!ytKey || !ytChan) {
       (notes as any).youtube = "missing key/channel";
+    } else if (!hasYTLink) {
+      (notes as any).youtube = "not linked";
     }
 
     // Collecte TikTok
@@ -196,10 +211,8 @@ export async function GET(req: Request) {
     let ig: VideoItem[] = [];
     let fb: VideoItem[] = [];
     try {
-      const { getUser } = getKindeServerSession();
-      const kuser = await getUser();
-      if (kuser?.id) {
-        const link = await getAccountLink(kuser.id, "instagram");
+      if (kuserId) {
+        const link = await getAccountLink(kuserId, "instagram");
         if (link?.accessToken) {
           const igId = String(link.meta?.igUserId || link.externalUserId || "");
           const pageId = String(link.meta?.pageId || "");
