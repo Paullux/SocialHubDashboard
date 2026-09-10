@@ -1,6 +1,8 @@
 // components/dashboard/VideoCard.tsx
 "use client";
 
+import { useCallback, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import FormatDate from "@/components/FormatDate";
 import type { VideoItem } from "@/lib/types";
@@ -15,29 +17,71 @@ function normalizeText(s?: string | null): string {
     .trim();
 }
 
-export default function VideoCard({ video: v }: { video: VideoItem }) {
+type TipContent = {
+  /** Titre (gras) — vide si la vidéo n'a pas de vrai titre distinct. */
+  headline: string;
+  /** Corps (non gras) : description, ou la légende complète (TikTok/Insta). */
+  body: string;
+};
+
+function buildTip(v: VideoItem): TipContent | null {
   const title = normalizeText(v.title);
-  const description = normalizeText(v.description);
-  const showDesc = Boolean(description && description !== title);
-  // Inutile d'afficher l'infobulle si elle ne ferait que répéter un titre court
-  // déjà visible sous la carte.
-  const hasTip = showDesc || title.length > 70 || title.includes("\n");
+  const desc = normalizeText(v.description);
+
+  // TikTok / Instagram : `title` est en réalité la légende, il n'y a pas de
+  // titre distinct → tout passe en corps de texte (non gras).
+  const titleIsCaption =
+    !desc ||
+    desc === title ||
+    title.startsWith(desc) ||
+    desc.startsWith(title);
+
+  const headline = titleIsCaption ? "" : title;
+  const body = titleIsCaption ? title : desc;
+
+  // Rien de plus à montrer que ce que la carte affiche déjà.
+  if (!headline && (!body || (body.length <= 70 && !body.includes("\n")))) {
+    return null;
+  }
+  return { headline, body };
+}
+
+export default function VideoCard({ video: v }: { video: VideoItem }) {
+  const tip = buildTip(v);
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+
+  const track = useCallback((e: React.MouseEvent) => {
+    setPos({ x: e.clientX, y: e.clientY });
+  }, []);
+  const anchor = useCallback((e: React.FocusEvent<HTMLLIElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    setPos({ x: r.left + 8, y: r.bottom + 2 });
+  }, []);
+  const hide = useCallback(() => setPos(null), []);
+
+  const altText = normalizeText(v.title);
 
   return (
-    <li className="group relative bg-neutral-800/70 backdrop-blur rounded-2xl overflow-hidden border border-neutral-700 shadow-sm hover:shadow transition flex flex-col">
+    <li
+      className="group relative bg-neutral-800/70 backdrop-blur rounded-2xl overflow-hidden border border-neutral-700 shadow-sm hover:shadow transition flex flex-col"
+      onMouseMove={tip ? track : undefined}
+      onMouseLeave={hide}
+      onFocusCapture={tip ? anchor : undefined}
+      onBlurCapture={hide}
+    >
       {/* Preview */}
       <a
         href={v.url || "#"}
         target="_blank"
         rel="noreferrer"
-        aria-label={title || "Ouvrir la vidéo"}
+        aria-label={altText || "Ouvrir la vidéo"}
         className="block"
       >
         <div className="aspect-video bg-neutral-100 overflow-hidden">
           {v.thumbnail ? (
             <img
               src={v.thumbnail}
-              alt={title}
+              alt={altText}
               className="w-full h-full object-cover"
               loading="lazy"
             />
@@ -72,7 +116,7 @@ export default function VideoCard({ video: v }: { video: VideoItem }) {
           <Link
             href={`/analytics/${v.id}?platform=${v.platform}`}
             className="ml-2 text-[11px] sm:text-xs px-2 py-1 rounded bg-neutral-700 hover:bg-neutral-600 flex items-center gap-1 shrink-0"
-            aria-label={`Ouvrir les stats pour ${title}`}
+            aria-label={`Ouvrir les stats pour ${altText}`}
             title="Stats"
           >
             <span aria-hidden>📈</span>
@@ -81,24 +125,58 @@ export default function VideoCard({ video: v }: { video: VideoItem }) {
         </div>
       </div>
 
-      {/* Infobulle au survol : titre + description (fins de ligne préservées). */}
-      {hasTip && (
-        <div
-          role="tooltip"
-          className="pointer-events-none absolute inset-x-1.5 top-1.5 z-30 max-h-[calc(100%-0.75rem)] overflow-hidden rounded-xl border border-white/10 bg-neutral-950/90 p-3 text-left opacity-0 shadow-xl ring-1 ring-black/30 backdrop-blur-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
-        >
-          {title && (
-            <p className="text-sm font-semibold leading-snug text-neutral-50">
-              {title}
-            </p>
-          )}
-          {showDesc && (
-            <p className="mt-1.5 line-clamp-[14] whitespace-pre-line text-xs leading-relaxed text-neutral-200">
-              {description}
-            </p>
-          )}
-        </div>
-      )}
+      {tip && pos && <HoverTip pos={pos} content={tip} />}
     </li>
+  );
+}
+
+/** Infobulle : panneau sombre flouté, coin haut-gauche calé sous le curseur,
+ *  rendue dans <body> pour échapper à l'`overflow-hidden` de la carte. */
+function HoverTip({
+  pos,
+  content,
+}: {
+  pos: { x: number; y: number };
+  content: TipContent;
+}) {
+  if (typeof document === "undefined") return null;
+
+  const W = 320;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  // Coin haut-gauche calé juste sous le curseur.
+  const left = Math.min(pos.x + 4, Math.max(8, vw - W - 8));
+  const flipUp = pos.y > vh * 0.62;
+  const top = flipUp ? pos.y - 8 : pos.y + 12;
+
+  return createPortal(
+    <div
+      role="tooltip"
+      style={{
+        position: "fixed",
+        left,
+        top,
+        maxWidth: W,
+        transform: flipUp ? "translateY(-100%)" : undefined,
+      }}
+      className="pointer-events-none z-[60] max-h-[60vh] overflow-hidden rounded-xl border border-white/10 bg-neutral-950/90 p-3 text-left shadow-xl ring-1 ring-black/30 backdrop-blur-lg"
+    >
+      {content.headline && (
+        <p className="text-sm font-semibold leading-snug text-neutral-50">
+          {content.headline}
+        </p>
+      )}
+      {content.body && (
+        <p
+          className={`${
+            content.headline ? "mt-1.5 " : ""
+          }line-clamp-[18] whitespace-pre-line text-xs leading-relaxed text-neutral-200`}
+        >
+          {content.body}
+        </p>
+      )}
+    </div>,
+    document.body,
   );
 }
