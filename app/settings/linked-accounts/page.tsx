@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import EraseData from "@/components/settings/EraseData";
 
 type LinkData = {
   provider: string;
@@ -124,6 +125,8 @@ export default function LinkedAccountsPage() {
           </div>
         )}
       </section>
+
+      <EraseData />
 
       <div className="pt-2">
         <Link href="/dashboard" className="underline">
