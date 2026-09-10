@@ -15,8 +15,11 @@ export default async function DeleteDataPage({
   const code = typeof sp.code === "string" ? sp.code : null;
 
   return (
-    <main className="max-w-3xl mx-auto p-8 prose">
-      <h1>Suppression de vos données</h1>
+    <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
+      <h1 className="text-2xl font-semibold text-neutral-100 sm:text-3xl">
+        Suppression de vos données
+      </h1>
+      <div className="legal-prose mt-4">
 
       {code && (
         <p>
@@ -51,6 +54,7 @@ export default async function DeleteDataPage({
         compte concerné. La suppression est effectuée sous 30&nbsp;jours et une
         confirmation vous est envoyée.
       </p>
+      </div>
     </main>
   );
 }

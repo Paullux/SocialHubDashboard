@@ -3,6 +3,44 @@
 @tailwind utilities;
 
 html,body{height:100%;width:100%}
+
+/* --- Contenu éditorial (pages légales) : remplace @tailwindcss/typography --- */
+@layer components {
+  .legal-prose {
+    @apply text-neutral-300 leading-relaxed;
+  }
+  .legal-prose h2 {
+    @apply mt-10 mb-3 text-xl font-semibold text-neutral-100 scroll-mt-24;
+  }
+  .legal-prose h3 {
+    @apply mt-6 mb-2 text-base font-semibold text-neutral-100;
+  }
+  .legal-prose p {
+    @apply my-3;
+  }
+  .legal-prose ul {
+    @apply my-3 list-disc space-y-1 pl-6 marker:text-neutral-500;
+  }
+  .legal-prose ol {
+    @apply my-3 list-decimal space-y-1 pl-6 marker:text-neutral-500;
+  }
+  .legal-prose a {
+    @apply text-brand underline underline-offset-2 hover:no-underline;
+  }
+  .legal-prose strong {
+    @apply font-semibold text-neutral-100;
+  }
+  .legal-prose table {
+    @apply my-4 w-full min-w-[34rem] border-collapse text-sm;
+  }
+  .legal-prose th,
+  .legal-prose td {
+    @apply border border-neutral-700 px-3 py-2 text-left align-top;
+  }
+  .legal-prose th {
+    @apply bg-neutral-800 font-semibold text-neutral-100;
+  }
+}
 @layer base {
     body {
         @apply bg-neutral-700 text-neutral-100 relative;
