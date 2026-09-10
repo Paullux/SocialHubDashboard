@@ -90,8 +90,9 @@ function Fr() {
         Pour afficher vos vidéos, vous connectez vos comptes de plateformes via les
         mécanismes officiels d’autorisation (OAuth 2.0). Vous déclarez être titulaire des
         comptes connectés ou dûment autorisé à les utiliser. Social Hub accède à ces
-        comptes <strong>en lecture seule</strong> et ne publie, ne modifie ni ne supprime
-        jamais de contenu. Vous pouvez révoquer cet accès à tout moment depuis la page
+        comptes <strong>en lecture seule</strong>{" "}
+        et ne publie, ne modifie ni ne supprime jamais de contenu. Vous pouvez révoquer cet
+        accès à tout moment depuis la page
         «&nbsp;Comptes liés&nbsp;» ou depuis les réglages du compte concerné (Google,
         TikTok, Meta).
       </p>
@@ -221,8 +222,9 @@ function En() {
         To display your videos, you connect your platform accounts through official
         authorization mechanisms (OAuth 2.0). You represent that you own the connected
         accounts or are duly authorized to use them. Social Hub accesses those accounts on
-        a <strong>read-only</strong> basis and never posts, edits or deletes content. You
-        may revoke this access at any time from the “Linked accounts” page or from the
+        a <strong>read-only</strong>{" "}
+        basis and never posts, edits or deletes content. You may revoke this access at any
+        time from the “Linked accounts” page or from the
         settings of the relevant account (Google, TikTok, Meta).
       </p>
       <p>

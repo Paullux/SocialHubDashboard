@@ -58,8 +58,8 @@ function Fr() {
       <ul>
         <li>
           les <strong>jetons d’accès et de rafraîchissement</strong> délivrés par la
-          plateforme, <strong>chiffrés</strong> au repos (AES-256-GCM), afin d’appeler les
-          API en votre nom&nbsp;;
+          plateforme, <strong>chiffrés</strong>{" "}
+          au repos (AES-256-GCM), afin d’appeler les API en votre nom&nbsp;;
         </li>
         <li>
           l’identifiant du compte/chaîne/page (par ex. <em>channel ID</em>, <em>open_id</em>,
@@ -79,8 +79,9 @@ function Fr() {
         instantané horaire de ces indicateurs est enregistré pour vous fournir un
         historique d’évolution. Ces enregistrements ne contiennent que des données
         publiques&nbsp;: plateforme, identifiant de vidéo, horodatage et compteurs. Ils ne
-        sont <strong>pas rattachés à votre identité</strong> ni à votre compte&nbsp;: une
-        fois un compte déconnecté, il n’est plus possible de relier ces mesures à vous.
+        sont <strong>pas rattachés à votre identité</strong>{" "}
+        ni à votre compte&nbsp;: une fois un compte déconnecté, il n’est plus possible de
+        relier ces mesures à vous.
         Vous pouvez néanmoins supprimer cet historique à tout moment depuis la page{" "}
         <a href="/settings/linked-accounts">Comptes liés</a> (voir §8).
       </p>
@@ -349,8 +350,8 @@ function En() {
       <ul>
         <li>
           the <strong>access and refresh tokens</strong> issued by the platform,{" "}
-          <strong>encrypted</strong> at rest (AES-256-GCM), so that we can call the APIs on
-          your behalf;
+          <strong>encrypted</strong>{" "}
+          at rest (AES-256-GCM), so that we can call the APIs on your behalf;
         </li>
         <li>
           the account/channel/page identifier (e.g. <em>channel ID</em>, <em>open_id</em>,{" "}
@@ -368,9 +369,9 @@ function En() {
         metrics (views, likes, comments, shares). An hourly snapshot of those metrics is
         stored to give you a history over time. These records contain public data only:
         platform, video identifier, timestamp and counters. They are{" "}
-        <strong>not linked to your identity</strong> or your account: once an account is
-        disconnected, these measurements can no longer be tied back to you. You can still
-        delete this history at any time from the{" "}
+        <strong>not linked to your identity</strong>{" "}
+        or your account: once an account is disconnected, these measurements can no longer
+        be tied back to you. You can still delete this history at any time from the{" "}
         <a href="/settings/linked-accounts">Linked accounts</a> page (see §8).
       </p>
       <h3>2.4 Technical data</h3>
