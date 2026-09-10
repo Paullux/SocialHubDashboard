@@ -81,6 +81,8 @@ function Fr() {
         publiques&nbsp;: plateforme, identifiant de vidéo, horodatage et compteurs. Ils ne
         sont <strong>pas rattachés à votre identité</strong> ni à votre compte&nbsp;: une
         fois un compte déconnecté, il n’est plus possible de relier ces mesures à vous.
+        Vous pouvez néanmoins supprimer cet historique à tout moment depuis la page{" "}
+        <a href="/settings/linked-accounts">Comptes liés</a> (voir §8).
       </p>
       <h3>2.4 Données techniques</h3>
       <p>
@@ -180,8 +182,10 @@ function Fr() {
         <li>
           <strong>Historique de statistiques</strong>&nbsp;: conservé au maximum
           25&nbsp;mois. Ces données publiques n’étant pas rattachées à votre identité, elles
-          ne sont pas supprimées individuellement à la clôture d’un compte&nbsp;; vous
-          pouvez toutefois en demander la suppression (voir §8).
+          ne sont pas supprimées automatiquement à la clôture d’un compte&nbsp;; vous pouvez
+          toutefois les effacer <strong>immédiatement</strong> depuis la page{" "}
+          <a href="/settings/linked-accounts">Comptes liés</a>, ou en demander la
+          suppression par e-mail (voir §8).
         </li>
         <li>
           <strong>Journaux techniques</strong>&nbsp;: durée courte, selon la configuration
@@ -261,10 +265,22 @@ function Fr() {
       <p>
         Pour les exercer&nbsp;: écrivez à{" "}
         <a href="mailto:paulwoisard@gmail.com">paulwoisard@gmail.com</a>. Une réponse vous
-        est apportée dans un délai d’un mois. Vous pouvez aussi&nbsp;: déconnecter un compte
-        depuis <a href="/settings/linked-accounts">Comptes liés</a>, ou suivre la procédure
-        de la page <a href="/delete-data">Suppression des données</a>.
+        est apportée dans un délai d’un mois. Vous pouvez aussi, sans nous écrire&nbsp;:
       </p>
+      <ul>
+        <li>déconnecter un compte depuis <a href="/settings/linked-accounts">Comptes liés</a>&nbsp;;</li>
+        <li>
+          sur cette même page, utiliser le bouton{" "}
+          <strong>«&nbsp;Tout déconnecter et supprimer mes données&nbsp;»</strong>{" "}
+          (zone de danger)&nbsp;: après avoir recopié la phrase de confirmation, tous vos
+          comptes liés et l’historique de statistiques de vos vidéos sont effacés
+          immédiatement de notre base&nbsp;;
+        </li>
+        <li>
+          consulter la page <a href="/delete-data">Suppression des données</a> pour la
+          suppression complète de votre compte (identité Kinde).
+        </li>
+      </ul>
       <p>
         Si vous estimez que vos droits ne sont pas respectés, vous pouvez introduire une
         réclamation auprès de la <a href="https://www.cnil.fr">CNIL</a> (3 place de
@@ -353,7 +369,9 @@ function En() {
         stored to give you a history over time. These records contain public data only:
         platform, video identifier, timestamp and counters. They are{" "}
         <strong>not linked to your identity</strong> or your account: once an account is
-        disconnected, these measurements can no longer be tied back to you.
+        disconnected, these measurements can no longer be tied back to you. You can still
+        delete this history at any time from the{" "}
+        <a href="/settings/linked-accounts">Linked accounts</a> page (see §8).
       </p>
       <h3>2.4 Technical data</h3>
       <p>
@@ -447,8 +465,10 @@ function En() {
         </li>
         <li>
           <strong>Statistics history</strong>: kept for a maximum of 25 months. As this
-          public data is not linked to your identity, it is not deleted individually when
-          an account is closed; you may nonetheless request its deletion (see §8).
+          public data is not linked to your identity, it is not deleted automatically when
+          an account is closed; you can however erase it <strong>immediately</strong> from
+          the <a href="/settings/linked-accounts">Linked accounts</a> page, or request its
+          deletion by e-mail (see §8).
         </li>
         <li>
           <strong>Technical logs</strong>: short period, per the hosting provider’s
@@ -526,10 +546,21 @@ function En() {
       <p>
         To exercise them: write to{" "}
         <a href="mailto:paulwoisard@gmail.com">paulwoisard@gmail.com</a>. We reply within
-        one month. You can also: disconnect an account from{" "}
-        <a href="/settings/linked-accounts">Linked accounts</a>, or follow the procedure on
-        the <a href="/delete-data">Data deletion</a> page.
+        one month. You can also, without contacting us:
       </p>
+      <ul>
+        <li>disconnect an account from <a href="/settings/linked-accounts">Linked accounts</a>;</li>
+        <li>
+          on that same page, use the{" "}
+          <strong>“Disconnect everything and delete my data”</strong> button (danger zone):
+          after retyping the confirmation phrase, all your linked accounts and your videos’
+          statistics history are erased from our database immediately;
+        </li>
+        <li>
+          see the <a href="/delete-data">Data deletion</a> page for full deletion of your
+          account (Kinde identity).
+        </li>
+      </ul>
       <p>
         If you believe your rights are not being respected, you may lodge a complaint with
         the French supervisory authority, the <a href="https://www.cnil.fr">CNIL</a> (3

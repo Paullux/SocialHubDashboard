@@ -63,7 +63,19 @@ export default async function DeleteDataPage({
           n’appelons plus aucune API en votre nom.
         </p>
 
-        <h2>2. Supprimer votre compte</h2>
+        <h2>2. Tout déconnecter et supprimer vos statistiques</h2>
+        <p>
+          Toujours sur la page <a href="/settings/linked-accounts">Comptes liés</a>, la
+          <strong> zone de danger</strong> propose un bouton
+          «&nbsp;Tout déconnecter et supprimer mes données&nbsp;». Après avoir recopié la
+          phrase de confirmation <code>tout effacer</code>, nous supprimons
+          <strong> immédiatement</strong>&nbsp;: tous vos comptes liés (jetons inclus) et
+          l’<strong>historique de statistiques</strong> des vidéos rattachées à ces comptes.
+          Cette action est <strong>irréversible</strong>. Votre compte (identité gérée par
+          Kinde) n’est pas supprimé — voir le point suivant.
+        </p>
+
+        <h2>3. Supprimer votre compte</h2>
         <p>
           Pour supprimer l’ensemble de votre compte (identité gérée par Kinde et tous les
           comptes liés), écrivez à{" "}
@@ -72,13 +84,15 @@ export default async function DeleteDataPage({
           suppression est effectuée sous 30&nbsp;jours et une confirmation vous est envoyée.
         </p>
 
-        <h2>3. Historique de statistiques</h2>
+        <h2>4. Historique de statistiques</h2>
         <p>
           L’historique d’indicateurs n’étant pas relié à votre identité (ni à votre compte),
-          il n’est pas supprimé automatiquement à la clôture d’un compte. Il est conservé au
-          maximum <strong>25&nbsp;mois</strong> puis effacé. Vous pouvez néanmoins en
-          demander la suppression à la même adresse en fournissant les identifiants ou les
-          liens des vidéos concernées.
+          il n’est pas supprimé automatiquement à la clôture d’un compte&nbsp;; il est
+          conservé au maximum <strong>25&nbsp;mois</strong> puis effacé. Vous pouvez
+          l’effacer vous-même immédiatement via la zone de danger de la page{" "}
+          <a href="/settings/linked-accounts">Comptes liés</a> (point&nbsp;2 ci-dessus), ou
+          en demander la suppression à la même adresse en fournissant les identifiants ou
+          les liens des vidéos concernées.
         </p>
       </div>
     </main>
