@@ -94,6 +94,19 @@ async function fetchTikTokPaged(
     const list: TikTokVideo[] = data?.data?.videos ?? [];
     dbg.total_received += list.length;
 
+    // 🔎 DEBUG : `video_description` BRUT tel que renvoyé par l'API TikTok
+    // (champ `data.data.videos[i].video_description`, avant tout mapping).
+    // JSON.stringify → les \r \n \\n littéraux sont visibles.
+    if (debug) {
+      console.log(
+        "[tiktok] raw video_description[0]:",
+        JSON.stringify(data?.data?.videos?.[0]?.video_description),
+      );
+      (notes as any).tiktok_raw_video_description = (data?.data?.videos ?? [])
+        .slice(0, 3)
+        .map((v) => v?.video_description ?? null);
+    }
+
     for (const v of list) {
       items.push({
         id: String(v.id),
