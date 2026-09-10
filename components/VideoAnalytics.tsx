@@ -180,7 +180,11 @@ export default function VideoAnalytics({
       <section className="rounded-2xl border border-neutral-700 bg-neutral-800/60 backdrop-blur p-4 xs:p-2">
         <h3 className="font-medium mb-2 text-neutral-200">Vues / jour</h3>
         <div className="w-full h-72">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+            initialDimension={{ width: 800, height: 288 }}
+          >
             <LineChart data={daily} margin={chartMargin}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" tickFormatter={formatDayLabel} />
@@ -228,7 +232,11 @@ export default function VideoAnalytics({
           Engagement / jour (Likes, Commentaires)
         </h3>
         <div className="w-full h-72">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+            initialDimension={{ width: 800, height: 288 }}
+          >
             <LineChart data={daily} margin={chartMargin}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" tickFormatter={formatDayLabel} />
@@ -273,7 +281,11 @@ export default function VideoAnalytics({
       <section className="rounded-2xl border border-neutral-700 bg-neutral-800/60 backdrop-blur p-4 xs:p-2">
         <h3 className="font-medium mb-2 text-neutral-200">Vues / heure</h3>
         <div className="w-full h-72">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+            initialDimension={{ width: 800, height: 288 }}
+          >
             <LineChart data={hourly} margin={chartMargin}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="at" tickFormatter={formatHourLabel} />
@@ -323,7 +335,11 @@ export default function VideoAnalytics({
           Engagement / heure (Likes, Commentaires)
         </h3>
         <div className="w-full h-72">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+            initialDimension={{ width: 800, height: 288 }}
+          >
             <LineChart data={hourly} margin={chartMargin}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="at" tickFormatter={formatHourLabel} />
