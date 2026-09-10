@@ -8,14 +8,15 @@ import FormatDate from "@/components/FormatDate";
 import type { VideoItem } from "@/lib/types";
 import KpiLine from "./KpiLine";
 
-/** Normalise les fins de ligne en `\n` et resserre les lignes vides.
- *  `white-space: pre-line` (classe `whitespace-pre-line`) ne casse QUE sur `\n` :
- *  or `video_description` de TikTok contient souvent des `\r` seuls, parfois des
- *  séquences `\r\n` ou `\\n` littérales (double encodage) → sans ça, tout le
- *  texte reste sur une seule ligne quel que soit le CSS. */
+/** Ramène toutes les formes de saut de ligne à `\n` (seul séparateur que
+ *  `white-space: pre-line` sait rendre) et resserre les lignes vides.
+ *  `video_description` de TikTok peut contenir : des `\r` seuls, des séquences
+ *  `\r\n` / `\n` LITTÉRALES (double encodage), voire des balises `<br>`.
+ *  Le texte reste une string affichée en `{texte}` (pas de HTML injecté). */
 function normalizeText(s?: string | null): string {
   return (s ?? "")
-    .replace(/\\r\\n?|\\n/g, "\n") // séquences littérales "\r\n" / "\n"
+    .replace(/<br\s*\/?>/gi, "\n") // balises <br> éventuelles
+    .replace(/\\r\\n?|\\n/g, "\n") // séquences "\r\n" / "\n" littérales
     .replace(/\r\n?/g, "\n") // vrais CRLF / CR isolés
     .replace(/\n{3,}/g, "\n\n")
     .trim();
