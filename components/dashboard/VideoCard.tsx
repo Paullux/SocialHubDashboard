@@ -27,13 +27,37 @@ function normalizeText(s?: string | null): string {
  *  totalement à plat (ni `\n`, ni `<br>`). On ne s'appuie que sur des repères
  *  non ambigus, et on ne touche à rien si le texte a déjà des sauts de ligne
  *  (YouTube, par ex., les conserve). */
+/** Espace horizontale (dont NBSP / espace fine insécable FR), jamais le `\n`. */
+const HSP = "[^\\S\\n]";
+/** Un texte ressemble à un nouveau début de phrase : majuscule, chiffre, #,
+ *  puce, ou emoji. */
+const SENTENCE_START = "[\\p{Lu}\\p{Nd}#•]|\\p{Extended_Pictographic}";
+
 function prettifyCaption(s: string): string {
   if (!s || s.includes("\n")) return s;
-  return s
-    .replace(/\s*[•·]\s+/g, "\n• ") // chaque puce sur sa propre ligne
-    .replace(/\s+(#[^\s#]+(?:\s+#[^\s#]+)+)\s*$/, "\n\n$1") // bloc de hashtags final
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
+  return (
+    s
+      // 1) chaque puce sur sa propre ligne
+      .replace(/\s*[•·]\s+/g, "\n• ")
+      // 2) fin de phrase → saut de ligne. Sans lookbehind (Safari < 16.4) :
+      //    la ponctuation doit suivre un mot en minuscule / un chiffre / une
+      //    parenthèse ou un guillemet fermant (→ pas « M. Dupont »), l'espace
+      //    fine française éventuelle est conservée ; et la suite doit ressembler
+      //    à un nouveau début.
+      .replace(
+        new RegExp(
+          `([\\p{Ll}\\p{Nd})»"'’])(${HSP}?)([.!?…]+)${HSP}+(?=${SENTENCE_START})`,
+          "gu",
+        ),
+        "$1$2$3\n",
+      )
+      // 3) une ligne vide avant ET après un bloc de puces
+      .replace(/\n(• [^\n]*(?:\n• [^\n]*)*)/g, "\n\n$1\n\n")
+      // 4) bloc de hashtags final sur sa propre ligne
+      .replace(/\s+(#[^\s#]+(?:\s+#[^\s#]+)+)\s*$/, "\n\n$1")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim()
+  );
 }
 
 type TipContent = {
