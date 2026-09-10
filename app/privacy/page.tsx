@@ -140,8 +140,9 @@ function Fr() {
           <a href="https://vercel.com/legal/privacy-policy">politique</a>.
         </li>
         <li>
-          <strong>Hébergeur de la base de données</strong> — base PostgreSQL managée&nbsp;;{" "}
-          <em>[à compléter&nbsp;: fournisseur et région]</em>.
+          <strong>Prisma Data, Inc.</strong> — base de données Prisma Postgres managée,
+          fournie via l’intégration Vercel Marketplace —{" "}
+          <a href="https://www.prisma.io/privacy">politique</a>.
         </li>
         <li>
           <strong>Google/YouTube, TikTok, Meta (Instagram/Facebook)</strong>&nbsp;: vos
@@ -158,10 +159,12 @@ function Fr() {
 
       <h2 id="transferts">5. Transferts hors Union européenne</h2>
       <p>
-        L’hébergement applicatif (Vercel) et, le cas échéant, Kinde peuvent impliquer un
-        transfert de données vers les États-Unis. Ces transferts sont encadrés par les
-        clauses contractuelles types de la Commission européenne et/ou l’adhésion au{" "}
-        <em>EU–US Data Privacy Framework</em>.
+        L’hébergement applicatif (Vercel), la base de données (Prisma Data, Inc.) et, le
+        cas échéant, Kinde peuvent impliquer un transfert de données vers les États-Unis.
+        Ces transferts sont encadrés par les clauses contractuelles types de la Commission
+        européenne et/ou l’adhésion au <em>EU–US Data Privacy Framework</em>. Selon la
+        région choisie pour la base, les données peuvent aussi être hébergées dans l’Union
+        européenne.
       </p>
 
       <h2 id="duree">6. Durées de conservation</h2>
@@ -405,8 +408,9 @@ function En() {
           <a href="https://vercel.com/legal/privacy-policy">policy</a>.
         </li>
         <li>
-          <strong>Database host</strong> — managed PostgreSQL database;{" "}
-          <em>[to be completed: provider and region]</em>.
+          <strong>Prisma Data, Inc.</strong> — managed Prisma Postgres database, provided
+          through the Vercel Marketplace integration —{" "}
+          <a href="https://www.prisma.io/privacy">policy</a>.
         </li>
         <li>
           <strong>Google/YouTube, TikTok, Meta (Instagram/Facebook)</strong>: your tokens
@@ -420,10 +424,12 @@ function En() {
 
       <h2 id="transfers">5. Transfers outside the European Union</h2>
       <p>
-        Application hosting (Vercel) and, where applicable, Kinde may involve a transfer of
-        data to the United States. Such transfers are governed by the European Commission’s
-        Standard Contractual Clauses and/or certification under the{" "}
-        <em>EU–US Data Privacy Framework</em>.
+        Application hosting (Vercel), the database (Prisma Data, Inc.) and, where
+        applicable, Kinde may involve a transfer of data to the United States. Such
+        transfers are governed by the European Commission’s Standard Contractual Clauses
+        and/or certification under the <em>EU–US Data Privacy Framework</em>. Depending on
+        the region selected for the database, data may also be hosted within the European
+        Union.
       </p>
 
       <h2 id="retention">6. Retention periods</h2>

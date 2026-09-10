@@ -48,7 +48,7 @@ function BannerBar({
     <div
       role="region"
       aria-label="Gestion des cookies"
-      className="fixed inset-x-0 bottom-0 z-50 px-3 pb-3 sm:px-4 sm:pb-4"
+      className="fixed inset-x-0 bottom-20 z-50 px-3 pb-2 sm:bottom-16 sm:px-4"
     >
       <div className="mx-auto max-w-4xl rounded-2xl border border-neutral-700 bg-neutral-900/95 p-4 shadow-soft backdrop-blur sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

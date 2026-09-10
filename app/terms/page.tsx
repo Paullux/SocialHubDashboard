@@ -58,8 +58,9 @@ function Fr() {
           CA 91789, États-Unis — <a href="https://vercel.com">vercel.com</a>.
         </li>
         <li>
-          <strong>Base de données&nbsp;:</strong> base PostgreSQL managée —{" "}
-          <em>[à compléter&nbsp;: nom et pays de l’hébergeur, ex. Neon, région UE]</em>.
+          <strong>Base de données&nbsp;:</strong> Prisma Postgres (Prisma Data, Inc.),
+          base PostgreSQL managée fournie via l’intégration Vercel Marketplace —{" "}
+          <a href="https://www.prisma.io/privacy">prisma.io/privacy</a>.
         </li>
         <li>
           <strong>Mesure d’audience&nbsp;:</strong> instance Matomo auto-hébergée par
@@ -189,8 +190,9 @@ function En() {
           91789, USA — <a href="https://vercel.com">vercel.com</a>.
         </li>
         <li>
-          <strong>Database:</strong> managed PostgreSQL database —{" "}
-          <em>[to be completed: hosting provider name and country, e.g. Neon, EU region]</em>.
+          <strong>Database:</strong> Prisma Postgres (Prisma Data, Inc.), a managed
+          PostgreSQL database provided through the Vercel Marketplace integration —{" "}
+          <a href="https://www.prisma.io/privacy">prisma.io/privacy</a>.
         </li>
         <li>
           <strong>Analytics:</strong> a Matomo instance self-hosted by the publisher at{" "}
