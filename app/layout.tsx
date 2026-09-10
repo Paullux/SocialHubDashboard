@@ -14,6 +14,13 @@ export const metadata: Metadata = {
   description: "Dashboard vidéos & KPIs",
 };
 
+// La CSP (proxy.ts) utilise un nonce + 'strict-dynamic' : Next doit poser ce
+// nonce sur ses <script> à chaque requête, ce qui impose un rendu dynamique.
+// Sans cela, les pages prérendues statiquement (/terms, /privacy, /demo…)
+// servent des scripts sans nonce → tout le JS client est bloqué (bandeau
+// cookies, sélecteur FR/EN, Matomo…).
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr" className="h-full" suppressHydrationWarning>
@@ -24,11 +31,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AuthProvider>
           <CookieConsentProvider>
             <Navbar />
-            <div className="flex min-h-screen flex-col pt-[var(--nav-h)]">
-              <div className="flex-1">{children}</div>
-              <SiteFooter />
+            <div className="min-h-screen pt-[var(--nav-h)] pb-20 sm:pb-14">
+              {children}
             </div>
 
+            <SiteFooter />
             <CookieBanner />
 
             <Suspense fallback={null}>
