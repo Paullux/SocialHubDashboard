@@ -5,6 +5,8 @@ export type VideoItem = {
   id: string;
   platform: Platform;
   title: string;
+  /** Description / légende complète (affichée au survol de la carte). */
+  description?: string;
   url: string;
   thumbnail: string;
   publishedAt: string;

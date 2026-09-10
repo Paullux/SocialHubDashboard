@@ -129,6 +129,7 @@ export async function fetchFacebookVideos(
         id: String(v.id),
         platform: "facebook",
         title: v.title || v.description || "",
+        description: v.description || "",
         url: v.permalink_url
           ? v.permalink_url.startsWith("http")
             ? v.permalink_url
