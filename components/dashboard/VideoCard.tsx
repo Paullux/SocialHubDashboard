@@ -8,11 +8,15 @@ import FormatDate from "@/components/FormatDate";
 import type { VideoItem } from "@/lib/types";
 import KpiLine from "./KpiLine";
 
-/** Normalise les fins de ligne (CRLF / CR isolé → LF) et resserre les lignes
- *  vides multiples. TikTok renvoie souvent des `\r` seuls dans `video_description`. */
+/** Normalise les fins de ligne en `\n` et resserre les lignes vides.
+ *  `white-space: pre-line` (classe `whitespace-pre-line`) ne casse QUE sur `\n` :
+ *  or `video_description` de TikTok contient souvent des `\r` seuls, parfois des
+ *  séquences `\r\n` ou `\\n` littérales (double encodage) → sans ça, tout le
+ *  texte reste sur une seule ligne quel que soit le CSS. */
 function normalizeText(s?: string | null): string {
   return (s ?? "")
-    .replace(/\r\n?/g, "\n")
+    .replace(/\\r\\n?|\\n/g, "\n") // séquences littérales "\r\n" / "\n"
+    .replace(/\r\n?/g, "\n") // vrais CRLF / CR isolés
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
