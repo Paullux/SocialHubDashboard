@@ -33,9 +33,11 @@ const demoVideos: DemoVideo[] = [
   },
   {
     id: "t1",
-    title: "TikTok – test animation",
+    // TikTok : pas de titre distinct, `title` = la légende (souvent des \r seuls).
+    title:
+      "Petit test d'animation image par image.\r\rMusique : son original\r#animation #motion #behindthescenes #creatortools",
     description:
-      "Petit test d'animation image par image.\n\nMusique : son original\n#animation #motion #behindthescenes #creatortools",
+      "Petit test d'animation image par image.\r\rMusique : son original\r#animation #motion #behindthescenes #creatortools",
     thumbnailUrl: "/thumbs/3.jpg",
     views: 2050,
     likes: 310,
