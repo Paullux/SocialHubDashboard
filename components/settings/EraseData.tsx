@@ -91,7 +91,7 @@ export default function EraseData() {
     <section className="rounded-2xl border border-red-900/60 bg-red-950/10 p-4">
       <h2 className="text-lg font-medium text-red-200">Zone de danger</h2>
       <p className="mt-1 text-sm text-neutral-400">
-        Déconnecte <strong>toutes</strong> les plateformes et supprime
+        Déconnecte <strong>toutes les plateformes</strong> et supprime
         définitivement l’historique de statistiques de vos vidéos dans notre base.
         Votre compte (identité Kinde) n’est pas supprimé&nbsp;: voir la page{" "}
         <a className="underline" href="/delete-data">
