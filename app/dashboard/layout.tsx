@@ -1,14 +1,9 @@
 // app/dashboard/layout.tsx
 import { ReactNode } from "react";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 
-export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  // Tu peux laisser ces logs en dev
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
-  console.log("User:", user?.given_name, user?.family_name);
-
-  // Pas de gros padding ici : le spacing est géré par la page
+export default function DashboardLayout({ children }: { children: ReactNode }) {
+  // Pas de gros padding ici : le spacing est géré par la page.
+  // L'accès est déjà gardé par le middleware (`proxy.ts`, permission `read:dashboard`).
   return (
     <section className="mx-auto max-w-7xl px-4">
       {children}
