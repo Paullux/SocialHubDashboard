@@ -15,6 +15,7 @@ export default function DemoPage() {
       const normalized: VideoItem[] = demoVideos.map((d: DemoVideo) => ({
         id: d.id,
         title: d.title,
+        description: d.description,       // 👈 affichée au survol de la carte
         platform: d.platform,            // "youtube" | "tiktok"
         url: "#",                        // pas d’URL dans la démo
         thumbnail: d.thumbnailUrl,       // 👈 mapping clé de la correction

@@ -99,6 +99,7 @@ async function fetchTikTokPaged(
         id: String(v.id),
         platform: "tiktok",
         title: v.title || v.video_description || "",
+        description: v.video_description || "",
         url: v.share_url || "",
         thumbnail: v.cover_image_url || "",
         publishedAt: v.create_time ? new Date(v.create_time * 1000).toISOString() : new Date().toISOString(),

@@ -2,6 +2,7 @@
 export type DemoVideo = {
   id: string;
   title: string;
+  description?: string;
   thumbnailUrl: string;
   views: number;
   likes: number;
@@ -13,6 +14,8 @@ const demoVideos: DemoVideo[] = [
   {
     id: "y1",
     title: "Intro au projet Social-Hub",
+    description:
+      "Présentation du tableau de bord : agréger vidéos YouTube, TikTok et Instagram au même endroit et suivre les KPI dans le temps.\n\nChapitres, liens et sources dans la description complète — visible ici au survol de la carte.",
     thumbnailUrl: "/thumbs/1.jpg",
     views: 1280,
     likes: 122,
@@ -31,6 +34,8 @@ const demoVideos: DemoVideo[] = [
   {
     id: "t1",
     title: "TikTok – test animation",
+    description:
+      "Petit test d'animation image par image.\n\nMusique : son original\n#animation #motion #behindthescenes #creatortools",
     thumbnailUrl: "/thumbs/3.jpg",
     views: 2050,
     likes: 310,
@@ -58,6 +63,8 @@ const demoVideos: DemoVideo[] = [
   {
     id: "t3",
     title: "TikTok – trend musique",
+    description:
+      "Reprise d'une trend du moment, version piano.\n\nMusique : Still Here — extrait\n#piano #trend #cover #fyp",
     thumbnailUrl: "/thumbs/6.jpg",
     views: 3110,
     likes: 420,

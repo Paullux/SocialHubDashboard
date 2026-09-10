@@ -90,10 +90,17 @@ export async function fetchYouTubeLatest(
           ? Number(st.commentCount)
           : Number(st?.commentCount ?? 0);
 
+      // Les descriptions YouTube peuvent faire plusieurs milliers de caractères
+      // (liens, minutages, promo). On borne pour l'infobulle et le poids réseau.
+      const rawDesc = typeof sn?.description === "string" ? sn.description.trim() : "";
+      const description =
+        rawDesc.length > 800 ? `${rawDesc.slice(0, 800).trimEnd()}…` : rawDesc;
+
       return {
         id,
         platform: "youtube",
         title: sn?.title ?? "",
+        description,
         url: id ? `https://www.youtube.com/watch?v=${id}` : "",
         thumbnail: thumb,
         publishedAt: sn?.publishedAt ?? new Date().toISOString(),
