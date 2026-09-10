@@ -10,7 +10,7 @@ import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
 import { ensureFreshToken } from "@/lib/tiktok/auth.server";
 import { getAccountLink, hasAccountLink } from "@/lib/accountLinks";
 import { fetchInstagramMedia, fetchFacebookVideos } from "@/lib/meta/media.server";
-import { ipFromHeaders, isRateLimitedKey } from "@/lib/security";
+import { ipFromHeaders, isRateLimitedKey, timingSafeEqualStr } from "@/lib/security";
 
 /* ================== Types ================== */
 type Notes = Record<string, unknown>;
@@ -146,6 +146,20 @@ export async function GET(req: Request) {
       kuserId = (await getKindeServerSession().getUser())?.id ?? null;
     } catch {
       /* pas de session */
+    }
+
+    // 🔒 Données réservées : session Kinde requise. Exception : appel interne du
+    // cron (snapshot) qui présente ?key=CRON_SECRET.
+    const cronKey = url.searchParams.get("key");
+    const isCron =
+      !!process.env.CRON_SECRET &&
+      !!cronKey &&
+      (await timingSafeEqualStr(cronKey, process.env.CRON_SECRET));
+    if (!kuserId && !isCron) {
+      return NextResponse.json(
+        { error: "unauthorized" },
+        { status: 401, headers: { "Cache-Control": "no-store" } }
+      );
     }
 
     // YouTube (liste via clé API, mais seulement si le compte est lié)

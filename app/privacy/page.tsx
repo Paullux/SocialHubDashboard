@@ -146,9 +146,9 @@ function Fr() {
           <a href="https://vercel.com/legal/privacy-policy">politique</a>.
         </li>
         <li>
-          <strong>Prisma Data, Inc.</strong> — base de données Prisma Postgres managée,
-          fournie via l’intégration Vercel Marketplace —{" "}
-          <a href="https://www.prisma.io/privacy">politique</a>.
+          <strong>Neon, Inc.</strong> — base de données PostgreSQL managée, données
+          hébergées dans la région AWS <em>eu-central-1</em> (Francfort, Union européenne) —{" "}
+          <a href="https://neon.tech/privacy-policy">politique</a>.
         </li>
         <li>
           <strong>Google/YouTube, TikTok, Meta (Instagram/Facebook)</strong>&nbsp;: vos
@@ -165,12 +165,12 @@ function Fr() {
 
       <h2 id="transferts">5. Transferts hors Union européenne</h2>
       <p>
-        L’hébergement applicatif (Vercel), la base de données (Prisma Data, Inc.) et, le
-        cas échéant, Kinde peuvent impliquer un transfert de données vers les États-Unis.
-        Ces transferts sont encadrés par les clauses contractuelles types de la Commission
-        européenne et/ou l’adhésion au <em>EU–US Data Privacy Framework</em>. Selon la
-        région choisie pour la base, les données peuvent aussi être hébergées dans l’Union
-        européenne.
+        La base de données est hébergée dans l’Union européenne (Neon, région de Francfort).
+        En revanche, l’hébergement applicatif (Vercel), l’exploitant de la base (Neon, Inc.)
+        et, le cas échéant, Kinde sont établis aux États-Unis, ce qui peut impliquer un
+        transfert ou un accès depuis les États-Unis. Ces transferts sont encadrés par les
+        clauses contractuelles types de la Commission européenne et/ou l’adhésion au{" "}
+        <em>EU–US Data Privacy Framework</em>.
       </p>
 
       <h2 id="duree">6. Durées de conservation</h2>
@@ -181,10 +181,11 @@ function Fr() {
           effacés immédiatement.
         </li>
         <li>
-          <strong>Historique de statistiques</strong>&nbsp;: conservé au maximum
-          25&nbsp;mois. Ces données publiques n’étant pas rattachées à votre identité, elles
-          ne sont pas supprimées automatiquement à la clôture d’un compte&nbsp;; vous pouvez
-          toutefois les effacer <strong>immédiatement</strong> depuis la page{" "}
+          <strong>Historique de statistiques</strong>&nbsp;: <strong>purgé
+          automatiquement au-delà de 25&nbsp;mois</strong>. Ces données publiques n’étant
+          pas rattachées à votre identité, elles ne sont pas supprimées à la clôture d’un
+          compte&nbsp;; vous pouvez toutefois les effacer{" "}
+          <strong>immédiatement</strong> depuis la page{" "}
           <a href="/settings/linked-accounts">Comptes liés</a>, ou en demander la
           suppression par e-mail (voir §8).
         </li>
@@ -434,9 +435,9 @@ function En() {
           <a href="https://vercel.com/legal/privacy-policy">policy</a>.
         </li>
         <li>
-          <strong>Prisma Data, Inc.</strong> — managed Prisma Postgres database, provided
-          through the Vercel Marketplace integration —{" "}
-          <a href="https://www.prisma.io/privacy">policy</a>.
+          <strong>Neon, Inc.</strong> — managed PostgreSQL database, data hosted in the AWS{" "}
+          <em>eu-central-1</em> region (Frankfurt, European Union) —{" "}
+          <a href="https://neon.tech/privacy-policy">policy</a>.
         </li>
         <li>
           <strong>Google/YouTube, TikTok, Meta (Instagram/Facebook)</strong>: your tokens
@@ -450,12 +451,12 @@ function En() {
 
       <h2 id="transfers">5. Transfers outside the European Union</h2>
       <p>
-        Application hosting (Vercel), the database (Prisma Data, Inc.) and, where
-        applicable, Kinde may involve a transfer of data to the United States. Such
-        transfers are governed by the European Commission’s Standard Contractual Clauses
-        and/or certification under the <em>EU–US Data Privacy Framework</em>. Depending on
-        the region selected for the database, data may also be hosted within the European
-        Union.
+        The database is hosted within the European Union (Neon, Frankfurt region). However,
+        application hosting (Vercel), the database operator (Neon, Inc.) and, where
+        applicable, Kinde are established in the United States, which may involve a transfer
+        or access from the United States. Such transfers are governed by the European
+        Commission’s Standard Contractual Clauses and/or certification under the{" "}
+        <em>EU–US Data Privacy Framework</em>.
       </p>
 
       <h2 id="retention">6. Retention periods</h2>
@@ -465,10 +466,11 @@ function En() {
           your account. Tokens for an account you disconnect are erased immediately.
         </li>
         <li>
-          <strong>Statistics history</strong>: kept for a maximum of 25 months. As this
-          public data is not linked to your identity, it is not deleted automatically when
-          an account is closed; you can however erase it <strong>immediately</strong> from
-          the <a href="/settings/linked-accounts">Linked accounts</a> page, or request its
+          <strong>Statistics history</strong>: <strong>automatically purged beyond 25
+          months</strong>. As this public data is not linked to your identity, it is not
+          deleted when an account is closed; you can however erase it{" "}
+          <strong>immediately</strong> from the{" "}
+          <a href="/settings/linked-accounts">Linked accounts</a> page, or request its
           deletion by e-mail (see §8).
         </li>
         <li>

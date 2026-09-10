@@ -19,6 +19,15 @@ function floorToHourUTC(d = new Date()): Date {
   return t;
 }
 
+// Durée de conservation de l'historique de métriques (annoncée dans /privacy).
+const METRICS_RETENTION_MONTHS = 25;
+
+function retentionCutoff(now = new Date()): Date {
+  const t = new Date(now);
+  t.setUTCMonth(t.getUTCMonth() - METRICS_RETENTION_MONTHS);
+  return t;
+}
+
 /** Écrit un lot de métriques pour l'heure donnée. Best-effort, ne throw pas. */
 async function writeMetrics(items: VideoItem[], nowHour: Date): Promise<number> {
   const seen = new Set<string>();
@@ -90,7 +99,11 @@ export async function GET(req: Request) {
     const access = await ensureFreshToken(getTikTokToken, saveTikTokToken);
     if (access) {
       const base = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
-      const r = await fetch(`${base}/api/videos?yt=0&tt=100`, { cache: "no-store" });
+      // `/api/videos` exige une session Kinde ; le cron s'authentifie via ?key.
+      const r = await fetch(
+        `${base}/api/videos?yt=0&tt=100&key=${encodeURIComponent(process.env.CRON_SECRET ?? "")}`,
+        { cache: "no-store" }
+      );
       if (r.ok) {
         const data = await r.json();
         const tt = (data?.videos ?? []).filter((v: VideoItem) => v.platform === "tiktok");
@@ -140,9 +153,21 @@ export async function GET(req: Request) {
     errors.meta = String(e?.message ?? e);
   }
 
+  // 4) Purge de l'historique au-delà de la durée de conservation (25 mois).
+  let purged = 0;
+  try {
+    const cutoff = retentionCutoff();
+    const res = await prisma.videoMetric.deleteMany({
+      where: { snapshotAt: { lt: cutoff } },
+    });
+    purged = res.count;
+  } catch (e: any) {
+    errors.purge = String(e?.message ?? e);
+  }
+
   const ok = Object.keys(errors).length === 0;
   return jsonNoStore(
-    { ok, hour: nowHour.toISOString(), counts, errors },
+    { ok, hour: nowHour.toISOString(), counts, purged, errors },
     { status: ok ? 200 : 207 }
   );
 }

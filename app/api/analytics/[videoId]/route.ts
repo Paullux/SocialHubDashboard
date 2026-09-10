@@ -4,12 +4,20 @@ export const dynamic = "force-dynamic";
 
 import { getHourlyMetrics, getDailyMetrics } from "@/lib/metrics";
 import { ipFromHeaders, isRateLimitedKey, jsonNoStore } from "@/lib/security";
+import { requireUser } from "@/lib/auth";
 
 export async function GET(
   req: Request,
   context: { params: Promise<{ videoId: string }> }
 ) {
   try {
+    // Données réservées : accessibles uniquement après authentification Kinde.
+    try {
+      await requireUser();
+    } catch {
+      return jsonNoStore({ error: "unauthorized" }, { status: 401 });
+    }
+
     const ip = ipFromHeaders(req);
     if (isRateLimitedKey(`ana:${ip}`)) {
       return jsonNoStore({ error: "Too many requests" }, { status: 429 });
