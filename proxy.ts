@@ -86,8 +86,12 @@ async function coreProxy(req: NextRequest) {
 export default async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
-  // Apply auth + CSP for dashboard and settings/* pages
-  if (path.startsWith("/dashboard") || path.startsWith("/settings/linked-accounts")) {
+  // Apply auth + CSP for dashboard, analytics and settings/* pages
+  if (
+    path.startsWith("/dashboard") ||
+    path.startsWith("/analytics") ||
+    path.startsWith("/settings/linked-accounts")
+  ) {
 
     const handler = withAuth(
       async (r: NextRequest) => coreProxy(r),
@@ -100,8 +104,9 @@ export default async function proxy(req: NextRequest) {
           // Public (handled by PUBLIC_PATHS already)
           if (PUBLIC_PATHS.includes(p)) return true;
 
-          // Dashboard needs read:dashboard
+          // Dashboard + analytics need read:dashboard
           if (p.startsWith("/dashboard")) return hasPerm(token, "read:dashboard");
+          if (p.startsWith("/analytics")) return hasPerm(token, "read:dashboard");
 
           // Linked accounts can use same permission or a dedicated one
           if (p.startsWith("/settings/linked-accounts")) return hasPerm(token, "read:dashboard");
@@ -122,8 +127,9 @@ export default async function proxy(req: NextRequest) {
 // Matcher for proxy
 export const config = {
   matcher: [
-    // Protect dashboard and settings UI
+    // Protect dashboard, analytics and settings UI
     "/dashboard/:path*",
+    "/analytics/:path*",
     "/settings/linked-accounts/:path*",
     // OAuth providers are public
     "/api/oauth/:path*",
