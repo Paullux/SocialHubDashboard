@@ -22,6 +22,20 @@ function normalizeText(s?: string | null): string {
     .trim();
 }
 
+/** Ré-insertion best-effort de sauts de ligne quand la source les a perdus :
+ *  l'API TikTok (`video/list`) et son oEmbed renvoient `video_description`
+ *  totalement à plat (ni `\n`, ni `<br>`). On ne s'appuie que sur des repères
+ *  non ambigus, et on ne touche à rien si le texte a déjà des sauts de ligne
+ *  (YouTube, par ex., les conserve). */
+function prettifyCaption(s: string): string {
+  if (!s || s.includes("\n")) return s;
+  return s
+    .replace(/\s*[•·]\s+/g, "\n• ") // chaque puce sur sa propre ligne
+    .replace(/\s+(#[^\s#]+(?:\s+#[^\s#]+)+)\s*$/, "\n\n$1") // bloc de hashtags final
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 type TipContent = {
   /** Titre (gras) — vide si la vidéo n'a pas de vrai titre distinct. */
   headline: string;
@@ -42,7 +56,7 @@ function buildTip(v: VideoItem): TipContent | null {
     desc.startsWith(title);
 
   const headline = titleIsCaption ? "" : title;
-  const body = titleIsCaption ? title : desc;
+  const body = prettifyCaption(titleIsCaption ? title : desc);
 
   // Rien de plus à montrer que ce que la carte affiche déjà.
   if (!headline && (!body || (body.length <= 70 && !body.includes("\n")))) {
