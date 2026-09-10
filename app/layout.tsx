@@ -31,7 +31,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AuthProvider>
           <CookieConsentProvider>
             <Navbar />
-            <div className="min-h-screen pt-[var(--nav-h)] pb-20 sm:pb-14">
+            {/* relative z-10 : le contenu passe devant le motif « pellicule »
+                (body::before, z-0) mais reste sous la navbar (z-30) et le
+                pied de page (z-20). */}
+            <div className="relative z-10 min-h-screen pt-[var(--nav-h)] pb-20 sm:pb-14">
               {children}
             </div>
 

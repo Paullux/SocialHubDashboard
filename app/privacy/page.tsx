@@ -76,8 +76,11 @@ function Fr() {
       <p>
         Nous récupérons via les API&nbsp;: titre, miniature, date de publication, lien, et
         indicateurs publics (vues, «&nbsp;j’aime&nbsp;», commentaires, partages). Un
-        instantané horaire de ces indicateurs est enregistré (plateforme, identifiant de
-        vidéo, horodatage, compteurs) pour vous fournir un historique d’évolution.
+        instantané horaire de ces indicateurs est enregistré pour vous fournir un
+        historique d’évolution. Ces enregistrements ne contiennent que des données
+        publiques&nbsp;: plateforme, identifiant de vidéo, horodatage et compteurs. Ils ne
+        sont <strong>pas rattachés à votre identité</strong> ni à votre compte&nbsp;: une
+        fois un compte déconnecté, il n’est plus possible de relier ces mesures à vous.
       </p>
       <h3>2.4 Données techniques</h3>
       <p>
@@ -175,8 +178,10 @@ function Fr() {
           effacés immédiatement.
         </li>
         <li>
-          <strong>Historique de statistiques</strong>&nbsp;: conservé tant que votre compte
-          est actif, puis supprimé avec le compte.
+          <strong>Historique de statistiques</strong>&nbsp;: conservé au maximum
+          25&nbsp;mois. Ces données publiques n’étant pas rattachées à votre identité, elles
+          ne sont pas supprimées individuellement à la clôture d’un compte&nbsp;; vous
+          pouvez toutefois en demander la suppression (voir §8).
         </li>
         <li>
           <strong>Journaux techniques</strong>&nbsp;: durée courte, selon la configuration
@@ -345,8 +350,10 @@ function En() {
       <p>
         Through the APIs we retrieve: title, thumbnail, publication date, link, and public
         metrics (views, likes, comments, shares). An hourly snapshot of those metrics is
-        stored (platform, video identifier, timestamp, counters) to give you a history over
-        time.
+        stored to give you a history over time. These records contain public data only:
+        platform, video identifier, timestamp and counters. They are{" "}
+        <strong>not linked to your identity</strong> or your account: once an account is
+        disconnected, these measurements can no longer be tied back to you.
       </p>
       <h3>2.4 Technical data</h3>
       <p>
@@ -439,8 +446,9 @@ function En() {
           your account. Tokens for an account you disconnect are erased immediately.
         </li>
         <li>
-          <strong>Statistics history</strong>: kept while your account is active, then
-          deleted with the account.
+          <strong>Statistics history</strong>: kept for a maximum of 25 months. As this
+          public data is not linked to your identity, it is not deleted individually when
+          an account is closed; you may nonetheless request its deletion (see §8).
         </li>
         <li>
           <strong>Technical logs</strong>: short period, per the hosting provider’s
