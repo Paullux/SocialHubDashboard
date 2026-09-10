@@ -8,7 +8,7 @@ type KindeToken = {
 
 // 🔓 Chemins publics (aucune auth requise)
 const PUBLIC_PATHS = [
-  "/", "/login",
+  "/", "/login", "/terms", "/privacy", "/demo", "/delete-data",
   // OAuth providers (start + callback)
   "/api/oauth/google-youtube/start",
   "/api/oauth/google-youtube/callback",
@@ -58,13 +58,18 @@ async function coreProxy(req: NextRequest) {
   const res = NextResponse.next();
   const nonce = genNonce();
 
+  // Origine de l'instance Matomo auto-hébergée (mesure d'audience, chargée sur
+  // consentement). Sous 'strict-dynamic' l'hôte est ignoré par les navigateurs
+  // récents mais reste utile pour les autres.
+  const MATOMO_ORIGIN = "https://stats.social-hub.fr";
+
   const csp = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${MATOMO_ORIGIN}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' https: data:",
     "font-src 'self' https: data:",
-    "connect-src 'self' https:",
+    `connect-src 'self' https: ${MATOMO_ORIGIN}`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -122,7 +127,7 @@ export const config = {
     "/settings/linked-accounts/:path*",
     // OAuth providers are public
     "/api/oauth/:path*",
-    // Allow other public asset paths
-    "/", "/login",
+    // Public pages (CSP applied here too)
+    "/", "/login", "/terms", "/privacy", "/demo", "/delete-data",
   ],
 };

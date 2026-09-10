@@ -1,20 +1,20 @@
 // app/layout.tsx
 import type { Metadata } from "next";
 import "@/styles/globals.css";
+import { Suspense, type ReactNode } from "react";
 import Navbar from "@/components/Navbar";
+import SiteFooter from "@/components/SiteFooter";
 import { AuthProvider } from "./providers/AuthProviders";
-import { headers } from "next/headers";
-import type { ReactNode } from "react";
+import { CookieConsentProvider } from "@/components/consent/CookieConsentProvider";
+import CookieBanner from "@/components/consent/CookieBanner";
+import Matomo from "@/components/analytics/Matomo";
 
 export const metadata: Metadata = {
   title: "Social-Hub",
   description: "Dashboard vidéos & KPIs",
 };
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
-  const h = await headers();                  // ✅ Next 15: async
-  const nonce = h.get("x-nonce") ?? undefined;
-
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr" className="h-full" suppressHydrationWarning>
       <body
@@ -22,15 +22,21 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         style={{ ["--nav-h" as any]: "56px" }}
       >
         <AuthProvider>
-          <Navbar />
-          {/* Exemple si un jour tu as un inline Script :
-              <Script id="boot" nonce={nonce} strategy="afterInteractive">{`console.log("boot")`}</Script>
-           */}
-          <div className="pt-[var(--nav-h)]">{children}</div>
+          <CookieConsentProvider>
+            <Navbar />
+            <div className="flex min-h-screen flex-col pt-[var(--nav-h)]">
+              <div className="flex-1">{children}</div>
+              <SiteFooter />
+            </div>
+
+            <CookieBanner />
+
+            <Suspense fallback={null}>
+              <Matomo />
+            </Suspense>
+          </CookieConsentProvider>
         </AuthProvider>
       </body>
     </html>
   );
 }
-
-
