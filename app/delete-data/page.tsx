@@ -71,8 +71,8 @@ function Fr({ code }: { code: string | null }) {
       <p>
         Depuis la page <a href="/settings/linked-accounts">Comptes liés</a>, cliquez sur
         «&nbsp;Déconnecter&nbsp;» pour la plateforme concernée. Vous pouvez aussi retirer
-        l’autorisation directement dans les réglages de votre compte Google, TikTok,
-        Facebook ou Instagram. Dans les deux cas, les{" "}
+        l’autorisation directement dans les réglages de votre compte Google, TikTok ou
+        Instagram. Dans les deux cas, les{" "}
         <strong>jetons correspondants et le lien de compte sont supprimés immédiatement</strong>{" "}
         de nos serveurs&nbsp;; nous n’appelons plus aucune API en votre nom.
       </p>
@@ -153,7 +153,7 @@ function En({ code }: { code: string | null }) {
       <p>
         From the <a href="/settings/linked-accounts">Linked accounts</a> page, click{" "}
         “Disconnect” for the platform concerned. You can also remove the authorization
-        directly in your Google, TikTok, Facebook or Instagram account settings. In both
+        directly in your Google, TikTok or Instagram account settings. In both
         cases, the{" "}
         <strong>corresponding tokens and the account link are deleted immediately</strong>{" "}
         from our servers; we no longer call any API on your behalf.

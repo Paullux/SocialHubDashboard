@@ -35,7 +35,7 @@ export function dec(payloadB64: string): string {
 // -- test d'existence (sans déchiffrement)
 export async function hasAccountLink(
   userId: string,
-  provider: "google-youtube" | "tiktok" | "instagram" | "facebook"
+  provider: "google-youtube" | "tiktok" | "instagram"
 ): Promise<boolean> {
   const row = await prisma.accountLink.findUnique({
     where: { userId_provider: { userId, provider } },
@@ -47,7 +47,7 @@ export async function hasAccountLink(
 // -- lecture + déchiffrement d'un compte lié
 export async function getAccountLink(
   userId: string,
-  provider: "google-youtube" | "tiktok" | "instagram" | "facebook"
+  provider: "google-youtube" | "tiktok" | "instagram"
 ) {
   const row = await prisma.accountLink.findUnique({
     where: { userId_provider: { userId, provider } },

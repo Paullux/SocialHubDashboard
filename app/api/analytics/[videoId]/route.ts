@@ -33,7 +33,7 @@ export async function GET(
     const url = new URL(req.url);
     const p = (url.searchParams.get("platform") || "youtube").toLowerCase();
     const platform =
-      p === "tiktok" ? "tiktok" : p === "instagram" ? "instagram" : p === "facebook" ? "facebook" : "youtube";
+      p === "tiktok" ? "tiktok" : p === "instagram" ? "instagram" : "youtube";
 
     const isValid =
       platform === "youtube"

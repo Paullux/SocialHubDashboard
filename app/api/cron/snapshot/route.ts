@@ -8,8 +8,8 @@ import { fetchYouTubeLatest } from "@/lib/fetchVideos";
 import { ensureFreshToken } from "@/lib/tiktok/auth.server";
 import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
 import { dec, enc } from "@/lib/accountLinks";
-import { fetchInstagramMedia, fetchFacebookVideos } from "@/lib/meta/media.server";
-import { exchangeForLongLivedToken } from "@/lib/meta/auth.server";
+import { fetchInstagramMedia } from "@/lib/meta/media.server";
+import { refreshLongLivedToken } from "@/lib/meta/auth.server";
 import type { VideoItem } from "@/lib/types";
 import { jsonNoStore, timingSafeEqualStr } from "@/lib/security";
 
@@ -114,25 +114,22 @@ export async function GET(req: Request) {
     errors.tiktok = String(e?.message ?? e);
   }
 
-  // 3) Meta : Instagram + vidéos Page, par compte lié + refresh proactif du token
+  // 3) Instagram, par compte lié + refresh proactif du token long
   try {
     const links = await prisma.accountLink.findMany({ where: { provider: "instagram" } });
     for (const link of links) {
       try {
         const token = dec(link.accessTokenEnc);
-        const meta = (link.meta ?? {}) as Record<string, any>;
-        const igId = String(meta.igUserId || link.externalUserId || "");
-        const pageId = String(meta.pageId || "");
-        const batch: VideoItem[] = [];
-        if (token && igId) batch.push(...(await fetchInstagramMedia(token, igId, 50)));
-        if (token && pageId) batch.push(...(await fetchFacebookVideos(token, pageId, 50)));
+        const batch: VideoItem[] = token ? await fetchInstagramMedia(token, 50) : [];
         counts[`meta:${link.id}`] = await writeMetrics(batch, nowHour);
 
         const daysLeft = link.expiresAt
           ? (link.expiresAt.getTime() - Date.now()) / 86_400_000
           : 999;
+        // ig_refresh_token exige un token âgé d'au moins 24h : sans risque ici,
+        // vu qu'on ne rafraîchit qu'à moins de 10 jours de l'expiration (~60j).
         if (token && daysLeft < 10) {
-          const fresh = await exchangeForLongLivedToken(token);
+          const fresh = await refreshLongLivedToken(token);
           if (fresh?.access_token) {
             await prisma.accountLink.update({
               where: { id: link.id },

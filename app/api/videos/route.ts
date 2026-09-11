@@ -9,7 +9,7 @@ import { fetchYouTubeLatest } from "@/lib/fetchVideos";
 import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
 import { ensureFreshToken } from "@/lib/tiktok/auth.server";
 import { getAccountLink, hasAccountLink } from "@/lib/accountLinks";
-import { fetchInstagramMedia, fetchFacebookVideos } from "@/lib/meta/media.server";
+import { fetchInstagramMedia } from "@/lib/meta/media.server";
 import { ipFromHeaders, isRateLimitedKey, timingSafeEqualStr } from "@/lib/security";
 
 /* ================== Types ================== */
@@ -226,21 +226,13 @@ export async function GET(req: Request) {
       }
     }
 
-    // Collecte Meta (Instagram + vidéos Page Facebook) si l'utilisateur Kinde a lié un compte
+    // Collecte Instagram si l'utilisateur Kinde a lié son compte
     let ig: VideoItem[] = [];
-    let fb: VideoItem[] = [];
     try {
       if (kuserId) {
         const link = await getAccountLink(kuserId, "instagram");
         if (link?.accessToken) {
-          const igId = String(link.meta?.igUserId || link.externalUserId || "");
-          const pageId = String(link.meta?.pageId || "");
-          [ig, fb] = await Promise.all([
-            fetchInstagramMedia(link.accessToken, igId, TOTAL_LIMIT),
-            pageId
-              ? fetchFacebookVideos(link.accessToken, pageId, TOTAL_LIMIT).catch(() => [])
-              : Promise.resolve([] as VideoItem[]),
-          ]);
+          ig = await fetchInstagramMedia(link.accessToken, TOTAL_LIMIT);
         }
       }
     } catch (e: unknown) {
@@ -251,11 +243,10 @@ export async function GET(req: Request) {
       (notes as any).yt_count = yt.length;
       (notes as any).tt_count = tt.length;
       (notes as any).ig_count = ig.length;
-      (notes as any).fb_count = fb.length;
     }
 
     const seen = new Set<string>();
-    const videos = [...yt, ...tt, ...ig, ...fb]
+    const videos = [...yt, ...tt, ...ig]
       .filter((v) => {
         const key = `${v.platform}:${v.id}`;
         if (!v.id || seen.has(key)) return false;

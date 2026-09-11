@@ -12,7 +12,7 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { fetchYouTubeLatest } from "@/lib/fetchVideos";
 import { getAccountLink } from "@/lib/accountLinks";
-import { fetchInstagramMedia, fetchFacebookVideos } from "@/lib/meta/media.server";
+import { fetchInstagramMedia } from "@/lib/meta/media.server";
 import { ensureFreshToken } from "@/lib/tiktok/auth.server";
 import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
 import { jsonNoStore } from "@/lib/security";
@@ -75,24 +75,15 @@ export async function POST(req: Request) {
     console.error("[account/erase] tiktok list failed", e);
   }
 
-  // Instagram + vidéos de Page Facebook.
+  // Instagram.
   try {
     const link = await getAccountLink(user.id, "instagram");
     if (link?.accessToken) {
-      const igId = String(link.meta?.igUserId || link.externalUserId || "");
-      const pageId = String(link.meta?.pageId || "");
-      const [ig, fb] = await Promise.all([
-        igId ? fetchInstagramMedia(link.accessToken, igId, 200) : Promise.resolve([]),
-        pageId
-          ? fetchFacebookVideos(link.accessToken, pageId, 200).catch(() => [])
-          : Promise.resolve([]),
-      ]);
-      push(ig);
-      push(fb);
+      push(await fetchInstagramMedia(link.accessToken, 200));
     }
   } catch (e) {
     partial = true;
-    console.error("[account/erase] meta list failed", e);
+    console.error("[account/erase] instagram list failed", e);
   }
 
   // 2) Supprimer l'historique de métriques pour ces vidéos.

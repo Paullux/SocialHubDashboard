@@ -8,7 +8,7 @@ function toNum(v: bigint | null | undefined): number | null {
   return Number.isSafeInteger(n) ? n : null;
 }
 
-export async function getHourlyMetrics(platform: "youtube" | "tiktok" | "instagram" | "facebook", videoId: string) {
+export async function getHourlyMetrics(platform: "youtube" | "tiktok" | "instagram", videoId: string) {
   const rows = await prisma.videoMetric.findMany({
     where: { platform, videoId },
     orderBy: { snapshotAt: "asc" },
@@ -24,7 +24,7 @@ export async function getHourlyMetrics(platform: "youtube" | "tiktok" | "instagr
   }));
 }
 
-export async function getDailyMetrics(platform: "youtube" | "tiktok" | "instagram" | "facebook", videoId: string) {
+export async function getDailyMetrics(platform: "youtube" | "tiktok" | "instagram", videoId: string) {
   // Agrégation par jour via SQL (date_trunc)
   const rows = await prisma.$queryRaw<
     { day: Date; views: bigint; likes: bigint; comments: bigint; shares: bigint | null }[]

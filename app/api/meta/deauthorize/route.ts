@@ -1,6 +1,6 @@
 // app/api/meta/deauthorize/route.ts
 // Callback de désautorisation Meta : appelé (POST, server-to-server) quand un
-// utilisateur retire l'accès de l'app depuis ses paramètres Facebook/Instagram.
+// utilisateur retire l'accès de l'app depuis ses paramètres Instagram.
 // Doc : https://developers.facebook.com/docs/facebook-login/guides/data-deletion
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,7 +35,7 @@ function parseSignedRequest(signed: string, appSecret: string): any | null {
 }
 
 export async function POST(req: Request) {
-  const appSecret = process.env.META_APP_SECRET;
+  const appSecret = process.env.IG_LOGIN_APP_SECRET;
   if (!appSecret) {
     return NextResponse.json({ error: "not_configured" }, { status: 500 });
   }
@@ -47,21 +47,18 @@ export async function POST(req: Request) {
   }
 
   const data = parseSignedRequest(signed, appSecret);
-  const fbUserId: string | undefined = data?.user_id;
-  if (!fbUserId) {
+  const igUserId: string | undefined = data?.user_id;
+  if (!igUserId) {
     return NextResponse.json({ error: "invalid signed_request" }, { status: 400 });
   }
 
-  // Supprime les comptes liés Instagram rattachés à cet utilisateur Facebook.
+  // Supprime le compte lié Instagram correspondant à cet IGSID.
   const { count } = await prisma.accountLink.deleteMany({
-    where: {
-      provider: "instagram",
-      meta: { path: ["fbUserId"], equals: fbUserId },
-    },
+    where: { provider: "instagram", externalUserId: igUserId },
   });
 
   const code = crypto.randomUUID();
-  console.log("[META][deauthorize] fb_user=%s deleted=%d code=%s", fbUserId, count, code);
+  console.log("[META][deauthorize] ig_user=%s deleted=%d code=%s", igUserId, count, code);
 
   // Meta attend un 200 ; on renvoie un statut de suppression consultable.
   const base = process.env.NEXT_PUBLIC_BASE_URL ?? new URL(req.url).origin;

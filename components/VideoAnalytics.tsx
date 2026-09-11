@@ -13,13 +13,12 @@ import {
   CartesianGrid,
 } from "recharts";
 
-type Platform = "youtube" | "tiktok" | "instagram" | "facebook";
+type Platform = "youtube" | "tiktok" | "instagram";
 
 const PLATFORM_LABEL: Record<Platform, string> = {
   youtube: "YouTube",
   tiktok: "TikTok",
   instagram: "Instagram",
-  facebook: "Facebook",
 };
 
 type HourlyPoint = {

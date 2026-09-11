@@ -3,16 +3,16 @@ export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { buildState, stateCookieSet } from "@/lib/security";
-import { META_OAUTH_DIALOG, META_LOGIN_CONFIG_ID } from "@/lib/meta/config";
+import { IG_LOGIN_OAUTH_AUTHORIZE, IG_LOGIN_SCOPE_PARAM } from "@/lib/meta/config";
 
 export async function GET(req: Request) {
-  const clientId = process.env.META_APP_ID;
-  const redirectUri = process.env.META_REDIRECT_URI;
+  const clientId = process.env.IG_LOGIN_APP_ID;
+  const redirectUri = process.env.IG_LOGIN_REDIRECT_URI;
   if (!clientId || !redirectUri) {
     return NextResponse.json(
       {
-        error: "meta_oauth_not_configured",
-        missing: { META_APP_ID: !clientId, META_REDIRECT_URI: !redirectUri },
+        error: "instagram_oauth_not_configured",
+        missing: { IG_LOGIN_APP_ID: !clientId, IG_LOGIN_REDIRECT_URI: !redirectUri },
       },
       { status: 500 }
     );
@@ -20,23 +20,22 @@ export async function GET(req: Request) {
 
   const state = buildState();
 
-  // Facebook Login for Business : config_id + override_default_response_type,
-  // PAS de scope (les permissions sont portées par la configuration).
+  // Instagram API with Instagram Login : OAuth classique, scope= (PAS config_id,
+  // contrairement à l'ancien Facebook Login for Business).
   const params = new URLSearchParams({
     client_id: clientId,
-    config_id: META_LOGIN_CONFIG_ID,
     redirect_uri: redirectUri,
     response_type: "code",
-    override_default_response_type: "true",
+    scope: IG_LOGIN_SCOPE_PARAM,
     state,
   });
 
-  // ?reconnect=1 : force le ré-affichage de l'écran de sélection des actifs
+  // ?reconnect=1 : force le ré-affichage de l'écran d'autorisation.
   if (new URL(req.url).searchParams.get("reconnect") === "1") {
-    params.set("auth_type", "reauthorize");
+    params.set("force_reauth", "true");
   }
 
-  const res = NextResponse.redirect(`${META_OAUTH_DIALOG}?${params.toString()}`);
+  const res = NextResponse.redirect(`${IG_LOGIN_OAUTH_AUTHORIZE}?${params.toString()}`);
   res.headers.append("Set-Cookie", stateCookieSet(state));
   return res;
 }

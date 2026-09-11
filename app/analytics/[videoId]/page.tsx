@@ -17,9 +17,7 @@ export default async function AnalyticsPage({
 
   const rawPlatform = Array.isArray(sp.platform) ? sp.platform[0] : sp.platform;
   const platform =
-    rawPlatform === "tiktok" ||
-    rawPlatform === "instagram" ||
-    rawPlatform === "facebook"
+    rawPlatform === "tiktok" || rawPlatform === "instagram"
       ? rawPlatform
       : "youtube";
 

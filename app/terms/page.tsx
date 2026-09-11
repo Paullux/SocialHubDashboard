@@ -71,7 +71,7 @@ function Fr() {
       <h2 id="objet">3. Objet du service</h2>
       <p>
         Social Hub est un tableau de bord qui agrège, au même endroit, les vidéos publiées
-        par l’utilisateur sur ses propres comptes YouTube, TikTok, Instagram et Facebook,
+        par l’utilisateur sur ses propres comptes YouTube, TikTok et Instagram,
         ainsi que leurs indicateurs de performance publics (vues, «&nbsp;j’aime&nbsp;»,
         commentaires, partages). Le service est fourni à des fins d’information et de suivi
         personnel.
@@ -110,7 +110,7 @@ function Fr() {
         l’éditeur ou sont utilisés avec l’autorisation de leurs titulaires. Les contenus
         (vidéos, miniatures, textes) affichés via les API restent la propriété de leurs
         auteurs et des plateformes d’origine. Le projet est distribué sous licence MIT&nbsp;;
-        les marques citées (YouTube, TikTok, Instagram, Facebook, Kinde, Matomo, Vercel)
+        les marques citées (YouTube, TikTok, Instagram, Kinde, Matomo, Vercel)
         appartiennent à leurs titulaires respectifs.
       </p>
 
@@ -204,7 +204,7 @@ function En() {
       <h2 id="purpose">3. Purpose of the service</h2>
       <p>
         Social Hub is a dashboard that brings together, in one place, the videos published
-        by the user on their own YouTube, TikTok, Instagram and Facebook accounts, along
+        by the user on their own YouTube, TikTok and Instagram accounts, along
         with their public performance metrics (views, likes, comments, shares). The service
         is provided for personal information and monitoring purposes.
       </p>
@@ -240,7 +240,7 @@ function En() {
         used with the permission of their owners. Content (videos, thumbnails, text)
         displayed through the APIs remains the property of its authors and of the source
         platforms. The project is distributed under the MIT license; the trademarks
-        mentioned (YouTube, TikTok, Instagram, Facebook, Kinde, Matomo, Vercel) belong to
+        mentioned (YouTube, TikTok, Instagram, Kinde, Matomo, Vercel) belong to
         their respective owners.
       </p>
 

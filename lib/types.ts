@@ -1,5 +1,5 @@
 // lib/types.ts
-export type Platform = "youtube" | "tiktok" | "instagram" | "facebook";
+export type Platform = "youtube" | "tiktok" | "instagram";
 
 export type VideoItem = {
   id: string;

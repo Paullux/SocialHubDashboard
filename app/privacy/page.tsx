@@ -54,7 +54,7 @@ function Fr() {
         passe n’est jamais connu de Social Hub.
       </p>
       <h3>2.2 Comptes de plateformes que vous connectez</h3>
-      <p>Lorsque vous reliez un compte YouTube, TikTok, Instagram ou Facebook, nous stockons&nbsp;:</p>
+      <p>Lorsque vous reliez un compte YouTube, TikTok ou Instagram, nous stockons&nbsp;:</p>
       <ul>
         <li>
           les <strong>jetons d’accès et de rafraîchissement</strong> délivrés par la
@@ -151,7 +151,7 @@ function Fr() {
           <a href="https://neon.tech/privacy-policy">politique</a>.
         </li>
         <li>
-          <strong>Google/YouTube, TikTok, Meta (Instagram/Facebook)</strong>&nbsp;: vos
+          <strong>Google/YouTube, TikTok, Meta (Instagram)</strong>&nbsp;: vos
           jetons sont transmis à ces plateformes lors de chaque appel d’API que vous avez
           autorisé.
         </li>
@@ -347,7 +347,7 @@ function En() {
         password.
       </p>
       <h3>2.2 Platform accounts you connect</h3>
-      <p>When you link a YouTube, TikTok, Instagram or Facebook account, we store:</p>
+      <p>When you link a YouTube, TikTok or Instagram account, we store:</p>
       <ul>
         <li>
           the <strong>access and refresh tokens</strong> issued by the platform,{" "}
@@ -440,7 +440,7 @@ function En() {
           <a href="https://neon.tech/privacy-policy">policy</a>.
         </li>
         <li>
-          <strong>Google/YouTube, TikTok, Meta (Instagram/Facebook)</strong>: your tokens
+          <strong>Google/YouTube, TikTok, Meta (Instagram)</strong>: your tokens
           are sent to these platforms on every API call you have authorized.
         </li>
         <li>

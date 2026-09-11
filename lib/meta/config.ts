@@ -1,29 +1,22 @@
 // lib/meta/config.ts
-// Constantes partagées pour l'intégration Meta (Instagram Graph API via Facebook Login).
+// Constantes partagées pour l'intégration Instagram (Instagram API with Instagram
+// Login — graph.instagram.com). Remplace l'ancien flux Facebook Login for Business
+// depuis le 2026-09-11 : plus de Page Facebook requise pour les insights.
 
-// ⚠️ v19 est dépréciée depuis le 21/05/2026, v20 le 24/09/2026.
-// Bumper ici quand Meta déprécie (une seule source de vérité).
-export const META_GRAPH_VERSION = "v23.0";
+export const IG_LOGIN_GRAPH_VERSION = "v23.0";
 
-export const META_GRAPH = `https://graph.facebook.com/${META_GRAPH_VERSION}`;
-export const META_OAUTH_TOKEN = `${META_GRAPH}/oauth/access_token`;
-export const META_OAUTH_DIALOG = `https://www.facebook.com/${META_GRAPH_VERSION}/dialog/oauth`;
+export const IG_LOGIN_GRAPH = `https://graph.instagram.com/${IG_LOGIN_GRAPH_VERSION}`;
+export const IG_LOGIN_OAUTH_AUTHORIZE = "https://www.instagram.com/oauth/authorize";
+export const IG_LOGIN_OAUTH_TOKEN = "https://api.instagram.com/oauth/access_token";
+export const IG_LOGIN_EXCHANGE_TOKEN = `https://graph.instagram.com/${IG_LOGIN_GRAPH_VERSION}/access_token`;
+export const IG_LOGIN_REFRESH_TOKEN = `https://graph.instagram.com/${IG_LOGIN_GRAPH_VERSION}/refresh_access_token`;
 
-// Facebook Login for Business : le dialogue OAuth utilise config_id (PAS scope).
-// ID de la configuration "Social Hub - lecture insights" (public, visible dans l'URL OAuth).
-// Permissions portées par la config : instagram_basic, instagram_manage_insights,
-// pages_show_list, pages_read_engagement + types d'actifs Pages/Instagram.
-export const META_LOGIN_CONFIG_ID =
-  process.env.META_LOGIN_CONFIG_ID || "1771703167309447";
-
-// Lecture seule : médias + insights Instagram + vidéos/insights de la Page liée.
-// (On ne demande PAS instagram_content_publishing / instagram_manage_messages :
-//  inutiles pour Social Hub et motif de refus à l'App Review.)
-export const META_SCOPES = [
-  "instagram_basic",
-  "instagram_manage_insights",
-  "pages_show_list",
-  "pages_read_engagement",
+// Lecture seule : profil + médias + insights. On ne demande PAS
+// instagram_business_content_publish / _manage_comments / _manage_messages :
+// inutiles pour Social Hub (dashboard) et motif de refus à l'App Review.
+export const IG_LOGIN_SCOPES = [
+  "instagram_business_basic",
+  "instagram_business_manage_insights",
 ] as const;
 
-export const META_SCOPE_PARAM = META_SCOPES.join(",");
+export const IG_LOGIN_SCOPE_PARAM = IG_LOGIN_SCOPES.join(",");
