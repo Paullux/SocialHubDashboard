@@ -135,7 +135,9 @@ export default function VideoCard({ video: v }: { video: VideoItem }) {
         aria-label={altText || "Ouvrir la vidéo"}
         className="block"
       >
-        <div className="relative aspect-video bg-neutral-100 overflow-hidden">
+        <div
+          className={`relative aspect-video overflow-hidden ${portrait ? "bg-neutral-900" : "bg-neutral-100"}`}
+        >
           {v.thumbnail ? (
             portrait ? (
               <>
@@ -144,9 +146,11 @@ export default function VideoCard({ video: v }: { video: VideoItem }) {
                   src={v.thumbnail}
                   alt=""
                   aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-60"
+                  className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-40"
                   loading="lazy"
                 />
+                {/* Assombrit le flou pour rester dans le thème sombre, quelle que soit la luminosité de l'image */}
+                <div className="absolute inset-0 bg-neutral-900/55" />
                 <img
                   src={v.thumbnail}
                   alt={altText}
