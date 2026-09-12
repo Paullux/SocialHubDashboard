@@ -89,9 +89,21 @@ function buildTip(v: VideoItem): TipContent | null {
   return { headline, body };
 }
 
+/** Miniature verticale (Reels/TikTok...) : on adapte le cadre à la largeur
+ *  (la hauteur suit le ratio réel, rien n'est rogné). Horizontale ou carrée :
+ *  on garde le cadre 16:9 existant, adapté à la hauteur (comportement actuel). */
+function isPortraitThumbnail(v: VideoItem): boolean {
+  return (
+    typeof v.thumbnailWidth === "number" &&
+    typeof v.thumbnailHeight === "number" &&
+    v.thumbnailHeight > v.thumbnailWidth
+  );
+}
+
 export default function VideoCard({ video: v }: { video: VideoItem }) {
   const tip = buildTip(v);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const portrait = isPortraitThumbnail(v);
 
   const track = useCallback((e: React.MouseEvent) => {
     setPos({ x: e.clientX, y: e.clientY });
@@ -120,7 +132,10 @@ export default function VideoCard({ video: v }: { video: VideoItem }) {
         aria-label={altText || "Ouvrir la vidéo"}
         className="block"
       >
-        <div className="aspect-video bg-neutral-100 overflow-hidden">
+        <div
+          className={`bg-neutral-100 overflow-hidden ${portrait ? "" : "aspect-video"}`}
+          style={portrait ? { aspectRatio: `${v.thumbnailWidth} / ${v.thumbnailHeight}` } : undefined}
+        >
           {v.thumbnail ? (
             <img
               src={v.thumbnail}

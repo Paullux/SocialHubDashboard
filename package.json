@@ -24,6 +24,7 @@
     "lucide-react": "^0.542.0",
     "napi-rs": "^0.3.10",
     "next": "16.2.12",
+    "probe-image-size": "^7.4.0",
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "react-icons": "^5.5.0",
@@ -33,6 +34,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.12.12",
+    "@types/probe-image-size": "^7.2.5",
     "@types/react": "^18.2.79",
     "@types/react-dom": "^18.2.25",
     "autoprefixer": "^10.4.19",

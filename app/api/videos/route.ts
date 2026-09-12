@@ -11,6 +11,7 @@ import { ensureFreshToken } from "@/lib/tiktok/auth.server";
 import { getAccountLink, hasAccountLink } from "@/lib/accountLinks";
 import { fetchInstagramMedia } from "@/lib/meta/media.server";
 import { ipFromHeaders, isRateLimitedKey, timingSafeEqualStr } from "@/lib/security";
+import { attachThumbnailDimensions } from "@/lib/imageProbe.server";
 
 /* ================== Types ================== */
 type Notes = Record<string, unknown>;
@@ -255,6 +256,11 @@ export async function GET(req: Request) {
       })
       .sort((a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt))
       .slice(0, TOTAL_LIMIT);
+
+    // TikTok/Instagram ne fournissent pas les dimensions de leur miniature :
+    // on les sonde nous-mêmes (best-effort), uniquement sur la liste finale
+    // déjà limitée. YouTube les a déjà (cf. fetchVideos.ts), donc ignoré ici.
+    await attachThumbnailDimensions(videos);
 
     const res = NextResponse.json(debug ? { videos, count: videos.length, notes } : { videos });
     res.headers.set("Cache-Control", "no-store");

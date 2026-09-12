@@ -9,6 +9,10 @@ export type VideoItem = {
   description?: string;
   url: string;
   thumbnail: string;
+  /** Dimensions de `thumbnail` en pixels, quand connues (permet de distinguer
+   *  une miniature verticale d'une horizontale/carrée côté affichage). */
+  thumbnailWidth?: number;
+  thumbnailHeight?: number;
   publishedAt: string;
 
   // KPI optionnels TikTok

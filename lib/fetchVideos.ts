@@ -72,13 +72,14 @@ export async function fetchYouTubeLatest(
       const sn = v?.snippet ?? {};
       const st = v?.statistics ?? {};
 
-      // thumbnails : on prend le meilleur dispo
-      const thumb =
-        sn?.thumbnails?.maxres?.url ||
-        sn?.thumbnails?.high?.url ||
-        sn?.thumbnails?.medium?.url ||
-        sn?.thumbnails?.default?.url ||
-        "";
+      // thumbnails : on prend le meilleur dispo (YouTube fournit width/height
+      // pour chaque taille, pas besoin de les sonder nous-mêmes)
+      const thumbObj =
+        sn?.thumbnails?.maxres ||
+        sn?.thumbnails?.high ||
+        sn?.thumbnails?.medium ||
+        sn?.thumbnails?.default;
+      const thumb = thumbObj?.url || "";
 
       // IMPORTANT: on **renseigne les KPI** (0 si absent pour éviter "—")
       const views =
@@ -103,6 +104,8 @@ export async function fetchYouTubeLatest(
         description,
         url: id ? `https://www.youtube.com/watch?v=${id}` : "",
         thumbnail: thumb,
+        thumbnailWidth: thumbObj?.width,
+        thumbnailHeight: thumbObj?.height,
         publishedAt: sn?.publishedAt ?? new Date().toISOString(),
         viewCount: views,
         likeCount: likes,
