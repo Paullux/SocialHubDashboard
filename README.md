@@ -8,6 +8,16 @@ Il te permet de visualiser rapidement les performances (vues, likes, commentaire
 
 ---
 
+## 📚 Documentation
+
+Une documentation complète (présentation, fonctionnement, architecture technique, sécurité, intégrations API, vision & roadmap) est disponible sur la branche dédiée **[`Documents`](https://github.com/Paullux/SocialHub/tree/Documents)** :
+
+👉 **[Consulter la documentation](https://github.com/Paullux/SocialHub/tree/Documents)**
+
+Écrite à deux niveaux de lecture — grand public et développeurs — avec la même navigation sur chaque page.
+
+---
+
 ## 🚀 Fonctionnalités
 
 - 🔗 **Connexion API YouTube & TikTok**
