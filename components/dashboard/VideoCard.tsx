@@ -89,9 +89,12 @@ function buildTip(v: VideoItem): TipContent | null {
   return { headline, body };
 }
 
-/** Miniature verticale (Reels/TikTok...) : on adapte le cadre à la largeur
- *  (la hauteur suit le ratio réel, rien n'est rogné). Horizontale ou carrée :
- *  on garde le cadre 16:9 existant, adapté à la hauteur (comportement actuel). */
+/** Miniature verticale (Reels/TikTok...) : le cadre 16:9 reste identique pour
+ *  toutes les cartes (grille alignée), mais l'image est ajustée à la hauteur
+ *  du cadre (rien n'est rogné) et les bandes latérales sont comblées par un
+ *  flou du même visuel plutôt que rognées ou vides. Horizontale ou carrée :
+ *  comportement actuel inchangé (l'image remplit le cadre, léger rognage
+ *  possible sur les bords si le ratio diffère un peu de 16:9). */
 function isPortraitThumbnail(v: VideoItem): boolean {
   return (
     typeof v.thumbnailWidth === "number" &&
@@ -132,17 +135,33 @@ export default function VideoCard({ video: v }: { video: VideoItem }) {
         aria-label={altText || "Ouvrir la vidéo"}
         className="block"
       >
-        <div
-          className={`bg-neutral-100 overflow-hidden ${portrait ? "" : "aspect-video"}`}
-          style={portrait ? { aspectRatio: `${v.thumbnailWidth} / ${v.thumbnailHeight}` } : undefined}
-        >
+        <div className="relative aspect-video bg-neutral-100 overflow-hidden">
           {v.thumbnail ? (
-            <img
-              src={v.thumbnail}
-              alt={altText}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
+            portrait ? (
+              <>
+                {/* Fond flouté : comble les bandes latérales sans rogner ni laisser de vide */}
+                <img
+                  src={v.thumbnail}
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-60"
+                  loading="lazy"
+                />
+                <img
+                  src={v.thumbnail}
+                  alt={altText}
+                  className="relative w-full h-full object-contain"
+                  loading="lazy"
+                />
+              </>
+            ) : (
+              <img
+                src={v.thumbnail}
+                alt={altText}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            )
           ) : (
             <div className="w-full h-full flex items-center justify-center text-neutral-400 text-sm">
               (Pas d’aperçu)
