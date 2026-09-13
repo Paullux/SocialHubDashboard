@@ -1,5 +1,3 @@
 {
-  "crons": [
-    { "path": "/api/cron/tiktok-refresh", "schedule": "0 0 * * *" }
-  ]
+  "crons": []
 }
