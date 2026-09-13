@@ -175,12 +175,26 @@ export async function GET(req: Request) {
       }
     }
 
-    // TikTok OAuth
+    // TikTok OAuth — le jeton est stocké dans un singleton partagé pour toute
+    // l'app (cf. lib/tiktok/store.ts), donc on ne le sert qu'aux utilisateurs
+    // ayant explicitement lié leur compte TikTok, sous peine de montrer les
+    // vidéos TikTok d'un autre utilisateur (Kinde) à n'importe qui.
+    let hasTTLink = false;
+    if (kuserId) {
+      try {
+        hasTTLink = await hasAccountLink(kuserId, "tiktok");
+      } catch {
+        /* ignore */
+      }
+    }
+
     let tiktokAccess: string | null = null;
-    try {
-      tiktokAccess = await ensureFreshToken(getTikTokToken, saveTikTokToken);
-    } catch (e: unknown) {
-      (notes as any).tiktok_token_error = String(e);
+    if (hasTTLink) {
+      try {
+        tiktokAccess = await ensureFreshToken(getTikTokToken, saveTikTokToken);
+      } catch (e: unknown) {
+        (notes as any).tiktok_token_error = String(e);
+      }
     }
 
     let ytTarget: number;
