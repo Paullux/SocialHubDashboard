@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { upsertAccountLink } from "@/lib/accountLinks";
 import { saveTikTokToken } from "@/lib/tiktok/store";
+import { isOwnerEmail } from "@/lib/owner";
 
 const ALLOWED_REDIRECTS = [
   "http://localhost:3000/api/oauth/tiktok/callback",
@@ -101,13 +102,19 @@ export async function GET(req: Request) {
       scope: tok.scope,
       expiresAtSec: tok.expires_in,
     });
-    await saveTikTokToken({
-      accessToken: tok.access_token,
-      refreshToken: tok.refresh_token,
-      expiresAt: Date.now() + (Number(tok.expires_in) || 86400) * 1000,
-      openId: tok.open_id,
-      scope: tok.scope,
-    });
+    // 🔒 OAuthToken("me") est PARTAGÉ par toute l'app (lu par /api/videos et
+    // le cron). Ne l'écraser que si c'est le propriétaire qui vient de se
+    // connecter, sinon n'importe quel autre compte qui lie TikTok remplace
+    // silencieusement le jeton (et donc les vidéos) du propriétaire.
+    if (isOwnerEmail(user.email)) {
+      await saveTikTokToken({
+        accessToken: tok.access_token,
+        refreshToken: tok.refresh_token,
+        expiresAt: Date.now() + (Number(tok.expires_in) || 86400) * 1000,
+        openId: tok.open_id,
+        scope: tok.scope,
+      });
+    }
 
     // Nettoie le cookie PKCE et redirige
     const res = NextResponse.redirect(
