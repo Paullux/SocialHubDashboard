@@ -146,7 +146,7 @@ export default function VideoCard({ video: v }: { video: VideoItem }) {
                   src={v.thumbnail}
                   alt=""
                   aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-40"
+                  className="absolute inset-0 w-full h-full object-cover blur-md scale-110 opacity-40"
                   loading="lazy"
                 />
                 {/* Assombrit le flou pour rester dans le thème sombre, quelle que soit la luminosité de l'image */}
