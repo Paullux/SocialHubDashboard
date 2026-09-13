@@ -15,6 +15,7 @@ import { getAccountLink } from "@/lib/accountLinks";
 import { fetchInstagramMedia } from "@/lib/meta/media.server";
 import { ensureFreshToken } from "@/lib/tiktok/auth.server";
 import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
+import { isOwnerEmail } from "@/lib/owner";
 import { jsonNoStore } from "@/lib/security";
 import type { VideoItem } from "@/lib/types";
 
@@ -63,9 +64,11 @@ export async function POST(req: Request) {
     console.error("[account/erase] youtube list failed", e);
   }
 
-  // TikTok — via le jeton stocké (table OAuthToken « me »).
+  // TikTok — via le jeton stocké (table OAuthToken « me », partagée pour
+  // toute l'app) : réservé au propriétaire, sinon un autre compte ayant lié
+  // TikTok pourrait effacer l'historique de métriques du propriétaire.
   try {
-    const tik = await getAccountLink(user.id, "tiktok");
+    const tik = isOwnerEmail(user.email) && (await getAccountLink(user.id, "tiktok"));
     if (tik) {
       const access = await ensureFreshToken(getTikTokToken, saveTikTokToken);
       if (access) push(await fetchTikTokList(access));
@@ -97,13 +100,15 @@ export async function POST(req: Request) {
   }
 
   // 3) Supprimer tous les comptes liés de l'utilisateur.
-  const hadTikTok = Boolean(await getAccountLink(user.id, "tiktok"));
+  const hadTikTok = isOwnerEmail(user.email) && Boolean(await getAccountLink(user.id, "tiktok"));
   const { count: deletedLinks } = await prisma.accountLink.deleteMany({
     where: { userId: user.id },
   });
 
   // 4) TikTok : purger aussi le jeton partagé (table OAuthToken « me »),
-  //    comme le fait /api/oauth/disconnect?provider=tiktok.
+  //    comme le fait /api/oauth/disconnect?provider=tiktok. Réservé au
+  //    propriétaire : ce jeton est partagé par toute l'app, un autre compte
+  //    ne doit jamais pouvoir le purger.
   if (hadTikTok) {
     await prisma.oAuthToken
       .delete({ where: { provider_userId: { provider: "tiktok", userId: "me" } } })

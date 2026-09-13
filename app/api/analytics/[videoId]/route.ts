@@ -52,7 +52,7 @@ export async function GET(
     // 🔒 Empêche un utilisateur d'accéder aux statistiques d'une vidéo qui
     // n'appartient pas à un compte qu'il a lui-même lié (sinon un videoId
     // deviné/observé donnait accès aux stats de n'importe quel utilisateur).
-    const owns = await userOwnsVideo(user.id, platform, videoId);
+    const owns = await userOwnsVideo(user.id, user.email, platform, videoId);
     if (!owns) {
       return jsonNoStore({ error: "forbidden" }, { status: 403 });
     }

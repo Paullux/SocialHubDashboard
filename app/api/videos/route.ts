@@ -12,6 +12,7 @@ import { getAccountLink, hasAccountLink } from "@/lib/accountLinks";
 import { fetchInstagramMedia } from "@/lib/meta/media.server";
 import { ipFromHeaders, isRateLimitedKey, timingSafeEqualStr } from "@/lib/security";
 import { attachThumbnailDimensions } from "@/lib/imageProbe.server";
+import { isOwnerEmail } from "@/lib/owner";
 
 /* ================== Types ================== */
 type Notes = Record<string, unknown>;
@@ -143,11 +144,17 @@ export async function GET(req: Request) {
     // Utilisateur Kinde (une seule fois) : chaque plateforme n'est affichée que
     // si l'utilisateur a lié le compte correspondant → la déconnexion masque les vidéos.
     let kuserId: string | null = null;
+    let kuserEmail: string | null = null;
     try {
-      kuserId = (await getKindeServerSession().getUser())?.id ?? null;
+      const ku = await getKindeServerSession().getUser();
+      kuserId = ku?.id ?? null;
+      kuserEmail = ku?.email ?? null;
     } catch {
       /* pas de session */
     }
+    // 🔒 YouTube (chaîne fixe via YT_CHANNEL_ID) et TikTok (jeton partagé
+    // unique) ne sont pas encore multi-tenant : réservés au propriétaire.
+    const isOwner = isOwnerEmail(kuserEmail);
 
     // 🔒 Données réservées : session Kinde requise. Exception : appel interne du
     // cron (snapshot) qui présente ?key=CRON_SECRET.
@@ -167,7 +174,7 @@ export async function GET(req: Request) {
     const ytKey = process.env.YT_API_KEY || "";
     const ytChan = process.env.YT_CHANNEL_ID || "";
     let hasYTLink = false;
-    if (kuserId) {
+    if (kuserId && isOwner) {
       try {
         hasYTLink = await hasAccountLink(kuserId, "google-youtube");
       } catch {
@@ -180,7 +187,7 @@ export async function GET(req: Request) {
     // ayant explicitement lié leur compte TikTok, sous peine de montrer les
     // vidéos TikTok d'un autre utilisateur (Kinde) à n'importe qui.
     let hasTTLink = false;
-    if (kuserId) {
+    if (kuserId && isOwner) {
       try {
         hasTTLink = await hasAccountLink(kuserId, "tiktok");
       } catch {

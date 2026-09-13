@@ -6,6 +6,7 @@ import { hasAccountLink, getAccountLink } from "@/lib/accountLinks";
 import { ensureFreshToken } from "@/lib/tiktok/auth.server";
 import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
 import { fetchInstagramMedia } from "@/lib/meta/media.server";
+import { isOwnerEmail } from "@/lib/owner";
 
 type Platform = "youtube" | "tiktok" | "instagram";
 
@@ -31,17 +32,23 @@ async function tiktokHasVideo(access: string, videoId: string): Promise<boolean>
 
 export async function userOwnsVideo(
   userId: string,
+  userEmail: string | null | undefined,
   platform: Platform,
   videoId: string
 ): Promise<boolean> {
   try {
     if (platform === "youtube") {
-      // Chaîne unique configurée pour toute l'app (YT_CHANNEL_ID) : seul le
-      // lien de compte fait foi tant qu'il n'y a qu'une chaîne par déploiement.
+      // Chaîne unique configurée pour toute l'app (YT_CHANNEL_ID) et clé API
+      // publique : tant que ce n'est pas multi-tenant, seul le propriétaire
+      // peut voir ces stats, même si un autre compte a "lié" YouTube.
+      if (!isOwnerEmail(userEmail)) return false;
       return await hasAccountLink(userId, "google-youtube");
     }
 
     if (platform === "tiktok") {
+      // Jeton stocké dans une table partagée unique (lib/tiktok/store.ts) :
+      // même restriction que ci-dessus, en plus de la vérification par vidéo.
+      if (!isOwnerEmail(userEmail)) return false;
       const linked = await hasAccountLink(userId, "tiktok");
       if (!linked) return false;
       const access = await ensureFreshToken(getTikTokToken, saveTikTokToken);
