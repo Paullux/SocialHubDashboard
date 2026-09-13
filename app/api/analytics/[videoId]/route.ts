@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import { getHourlyMetrics, getDailyMetrics } from "@/lib/metrics";
 import { ipFromHeaders, isRateLimitedKey, jsonNoStore } from "@/lib/security";
 import { requireUser } from "@/lib/auth";
+import { userOwnsVideo } from "@/lib/videoOwnership";
 
 export async function GET(
   req: Request,
@@ -12,8 +13,9 @@ export async function GET(
 ) {
   try {
     // Données réservées : accessibles uniquement après authentification Kinde.
+    let user;
     try {
-      await requireUser();
+      user = await requireUser();
     } catch {
       return jsonNoStore({ error: "unauthorized" }, { status: 401 });
     }
@@ -47,8 +49,16 @@ export async function GET(
       );
     }
 
+    // 🔒 Empêche un utilisateur d'accéder aux statistiques d'une vidéo qui
+    // n'appartient pas à un compte qu'il a lui-même lié (sinon un videoId
+    // deviné/observé donnait accès aux stats de n'importe quel utilisateur).
+    const owns = await userOwnsVideo(user.id, platform, videoId);
+    if (!owns) {
+      return jsonNoStore({ error: "forbidden" }, { status: 403 });
+    }
+
     // ✅ CE LOG VA MAINTENANT S’AFFICHER
-    console.log("[ANALYTICS]", { platform, videoId });
+    console.log("[ANALYTICS]", { platform, videoId, user: user.id });
 
     const [hourly, daily] = await Promise.all([
       getHourlyMetrics(platform, videoId),
