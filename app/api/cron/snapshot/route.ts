@@ -5,13 +5,61 @@ export const maxDuration = 60; // Vercel Hobby autorise jusqu'à 60s
 
 import { prisma } from "@/lib/prisma";
 import { fetchYouTubeLatest } from "@/lib/fetchVideos";
-import { ensureFreshToken } from "@/lib/tiktok/auth.server";
-import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
+import { getFreshTikTokAccessToken } from "@/lib/tiktok/perUser";
 import { dec, enc } from "@/lib/accountLinks";
 import { fetchInstagramMedia } from "@/lib/meta/media.server";
 import { refreshLongLivedToken } from "@/lib/meta/auth.server";
 import type { VideoItem } from "@/lib/types";
 import { jsonNoStore, timingSafeEqualStr } from "@/lib/security";
+
+async function fetchTikTokIdsForMetrics(access: string): Promise<VideoItem[]> {
+  const fields = [
+    "id", "title", "video_description", "create_time",
+    "like_count", "comment_count", "share_count", "view_count",
+  ].join(",");
+  const out: VideoItem[] = [];
+  let cursor: number | undefined;
+  while (out.length < 100) {
+    const body: Record<string, unknown> = { max_count: 20 };
+    if (cursor != null) body.cursor = cursor;
+    const r = await fetch(
+      `https://open.tiktokapis.com/v2/video/list/?fields=${encodeURIComponent(fields)}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${access}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "User-Agent": "social-hub/1.0",
+        },
+        body: JSON.stringify(body),
+        cache: "no-store",
+      }
+    );
+    if (!r.ok) break;
+    const data = (await r.json()) as {
+      data?: { videos?: any[]; has_more?: boolean; cursor?: number };
+    };
+    const list = data?.data?.videos ?? [];
+    for (const v of list) {
+      out.push({
+        id: String(v.id),
+        platform: "tiktok",
+        title: v.title || v.video_description || "",
+        url: "",
+        thumbnail: "",
+        publishedAt: v.create_time ? new Date(v.create_time * 1000).toISOString() : new Date().toISOString(),
+        viewCount: typeof v.view_count === "number" ? v.view_count : undefined,
+        likeCount: typeof v.like_count === "number" ? v.like_count : undefined,
+        commentCount: typeof v.comment_count === "number" ? v.comment_count : undefined,
+        shareCount: typeof v.share_count === "number" ? v.share_count : undefined,
+      });
+    }
+    if (!data?.data?.has_more || data?.data?.cursor == null) break;
+    cursor = data.data.cursor;
+  }
+  return out;
+}
 
 function floorToHourUTC(d = new Date()): Date {
   const t = new Date(d);
@@ -82,34 +130,43 @@ export async function GET(req: Request) {
   const counts: Record<string, number> = {};
   const errors: Record<string, string> = {};
 
-  // 1) YouTube — écrit immédiatement (indépendant du reste)
+  // 1) YouTube — un snapshot par compte lié (chacun sa propre chaîne).
   try {
     const ytKey = process.env.YT_API_KEY || "";
-    const ytChan = process.env.YT_CHANNEL_ID || "";
-    if (ytKey && ytChan) {
-      const yt = await fetchYouTubeLatest(ytKey, ytChan, 100);
-      counts.youtube = await writeMetrics(yt, nowHour);
+    const links = ytKey
+      ? await prisma.accountLink.findMany({ where: { provider: "google-youtube" } })
+      : [];
+    let total = 0;
+    for (const link of links) {
+      try {
+        const channelId = (link.meta as { channelId?: string } | null)?.channelId;
+        if (!channelId) continue;
+        const yt = await fetchYouTubeLatest(ytKey, channelId, 100);
+        total += await writeMetrics(yt, nowHour);
+      } catch (e: any) {
+        errors[`youtube:${link.id}`] = String(e?.message ?? e);
+      }
     }
+    counts.youtube = total;
   } catch (e: any) {
     errors.youtube = String(e?.message ?? e);
   }
 
-  // 2) TikTok
+  // 2) TikTok — un snapshot par compte lié (jeton propre à chacun).
   try {
-    const access = await ensureFreshToken(getTikTokToken, saveTikTokToken);
-    if (access) {
-      const base = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
-      // `/api/videos` exige une session Kinde ; le cron s'authentifie via ?key.
-      const r = await fetch(
-        `${base}/api/videos?yt=0&tt=100&key=${encodeURIComponent(process.env.CRON_SECRET ?? "")}`,
-        { cache: "no-store" }
-      );
-      if (r.ok) {
-        const data = await r.json();
-        const tt = (data?.videos ?? []).filter((v: VideoItem) => v.platform === "tiktok");
-        counts.tiktok = await writeMetrics(tt, nowHour);
+    const links = await prisma.accountLink.findMany({ where: { provider: "tiktok" } });
+    let total = 0;
+    for (const link of links) {
+      try {
+        const access = await getFreshTikTokAccessToken(link.userId);
+        if (!access) continue;
+        const tt = await fetchTikTokIdsForMetrics(access);
+        total += await writeMetrics(tt, nowHour);
+      } catch (e: any) {
+        errors[`tiktok:${link.id}`] = String(e?.message ?? e);
       }
     }
+    counts.tiktok = total;
   } catch (e: any) {
     errors.tiktok = String(e?.message ?? e);
   }

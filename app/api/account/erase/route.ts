@@ -1,6 +1,6 @@
 // app/api/account/erase/route.ts
 // Effacement en self-service demandé par l'utilisateur depuis « Comptes liés » :
-//   1. déconnecte toutes les plateformes (AccountLink + OAuthToken TikTok « me ») ;
+//   1. déconnecte toutes les plateformes (AccountLink) ;
 //   2. supprime de la base l'historique de métriques (VideoMetric) des vidéos
 //      rattachées aux comptes que l'utilisateur avait connectés.
 // Garde-fou : le corps JSON doit contenir { confirm: "tout effacer" }.
@@ -13,9 +13,7 @@ import { prisma } from "@/lib/prisma";
 import { fetchYouTubeLatest } from "@/lib/fetchVideos";
 import { getAccountLink } from "@/lib/accountLinks";
 import { fetchInstagramMedia } from "@/lib/meta/media.server";
-import { ensureFreshToken } from "@/lib/tiktok/auth.server";
-import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
-import { isOwnerEmail } from "@/lib/owner";
+import { getFreshTikTokAccessToken } from "@/lib/tiktok/perUser";
 import { jsonNoStore } from "@/lib/security";
 import type { VideoItem } from "@/lib/types";
 
@@ -53,26 +51,22 @@ export async function POST(req: Request) {
     }
   };
 
-  // YouTube — liste publique via clé API, uniquement si le compte est lié.
+  // YouTube — chaîne propre à l'utilisateur (AccountLink.meta.channelId),
+  // liste publique via clé API.
   try {
     const ytLink = await getAccountLink(user.id, "google-youtube");
+    const ytChannelId = (ytLink?.meta as { channelId?: string } | null)?.channelId;
     const ytKey = process.env.YT_API_KEY || "";
-    const ytChan = process.env.YT_CHANNEL_ID || "";
-    if (ytLink && ytKey && ytChan) push(await fetchYouTubeLatest(ytKey, ytChan, 200));
+    if (ytChannelId && ytKey) push(await fetchYouTubeLatest(ytKey, ytChannelId, 200));
   } catch (e) {
     partial = true;
     console.error("[account/erase] youtube list failed", e);
   }
 
-  // TikTok — via le jeton stocké (table OAuthToken « me », partagée pour
-  // toute l'app) : réservé au propriétaire, sinon un autre compte ayant lié
-  // TikTok pourrait effacer l'historique de métriques du propriétaire.
+  // TikTok — jeton propre à l'utilisateur (AccountLink), comme Instagram.
   try {
-    const tik = isOwnerEmail(user.email) && (await getAccountLink(user.id, "tiktok"));
-    if (tik) {
-      const access = await ensureFreshToken(getTikTokToken, saveTikTokToken);
-      if (access) push(await fetchTikTokList(access));
-    }
+    const access = await getFreshTikTokAccessToken(user.id);
+    if (access) push(await fetchTikTokList(access));
   } catch (e) {
     partial = true;
     console.error("[account/erase] tiktok list failed", e);
@@ -99,21 +93,11 @@ export async function POST(req: Request) {
     deletedMetrics += count;
   }
 
-  // 3) Supprimer tous les comptes liés de l'utilisateur.
-  const hadTikTok = isOwnerEmail(user.email) && Boolean(await getAccountLink(user.id, "tiktok"));
+  // 3) Supprimer tous les comptes liés de l'utilisateur (chacun n'efface que
+  //    ses propres AccountLink, jamais ceux d'un autre).
   const { count: deletedLinks } = await prisma.accountLink.deleteMany({
     where: { userId: user.id },
   });
-
-  // 4) TikTok : purger aussi le jeton partagé (table OAuthToken « me »),
-  //    comme le fait /api/oauth/disconnect?provider=tiktok. Réservé au
-  //    propriétaire : ce jeton est partagé par toute l'app, un autre compte
-  //    ne doit jamais pouvoir le purger.
-  if (hadTikTok) {
-    await prisma.oAuthToken
-      .delete({ where: { provider_userId: { provider: "tiktok", userId: "me" } } })
-      .catch(() => {});
-  }
 
   const code = crypto.randomUUID();
   console.log(

@@ -2,13 +2,24 @@
 // Vérifie qu'un videoId appartient bien à un compte que l'utilisateur Kinde a
 // lui-même lié, avant de lui exposer des statistiques (page Stats).
 import "server-only";
-import { hasAccountLink, getAccountLink } from "@/lib/accountLinks";
-import { ensureFreshToken } from "@/lib/tiktok/auth.server";
-import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
+import { getAccountLink } from "@/lib/accountLinks";
+import { getFreshTikTokAccessToken } from "@/lib/tiktok/perUser";
 import { fetchInstagramMedia } from "@/lib/meta/media.server";
-import { isOwnerEmail } from "@/lib/owner";
 
 type Platform = "youtube" | "tiktok" | "instagram";
+
+async function youtubeVideoChannelId(videoId: string): Promise<string | null> {
+  const key = process.env.YT_API_KEY || "";
+  if (!key) return null;
+  const url = new URL("https://www.googleapis.com/youtube/v3/videos");
+  url.searchParams.set("part", "snippet");
+  url.searchParams.set("id", videoId);
+  url.searchParams.set("key", key);
+  const r = await fetch(url.toString(), { cache: "no-store" });
+  if (!r.ok) return null;
+  const json = (await r.json()) as { items?: Array<{ snippet?: { channelId?: string } }> };
+  return json?.items?.[0]?.snippet?.channelId ?? null;
+}
 
 async function tiktokHasVideo(access: string, videoId: string): Promise<boolean> {
   const r = await fetch(
@@ -32,26 +43,26 @@ async function tiktokHasVideo(access: string, videoId: string): Promise<boolean>
 
 export async function userOwnsVideo(
   userId: string,
-  userEmail: string | null | undefined,
+  _userEmail: string | null | undefined,
   platform: Platform,
   videoId: string
 ): Promise<boolean> {
   try {
     if (platform === "youtube") {
-      // Chaîne unique configurée pour toute l'app (YT_CHANNEL_ID) et clé API
-      // publique : tant que ce n'est pas multi-tenant, seul le propriétaire
-      // peut voir ces stats, même si un autre compte a "lié" YouTube.
-      if (!isOwnerEmail(userEmail)) return false;
-      return await hasAccountLink(userId, "google-youtube");
+      // Chaque utilisateur a sa propre chaîne (résolue à la connexion via
+      // channels?mine=true, stockée dans AccountLink.meta.channelId) : on
+      // vérifie que la vidéo demandée appartient bien à CETTE chaîne.
+      const link = await getAccountLink(userId, "google-youtube");
+      const channelId = (link?.meta as { channelId?: string } | null)?.channelId;
+      if (!channelId) return false;
+      const videoChannelId = await youtubeVideoChannelId(videoId);
+      return !!videoChannelId && videoChannelId === channelId;
     }
 
     if (platform === "tiktok") {
-      // Jeton stocké dans une table partagée unique (lib/tiktok/store.ts) :
-      // même restriction que ci-dessus, en plus de la vérification par vidéo.
-      if (!isOwnerEmail(userEmail)) return false;
-      const linked = await hasAccountLink(userId, "tiktok");
-      if (!linked) return false;
-      const access = await ensureFreshToken(getTikTokToken, saveTikTokToken);
+      // Jeton propre à l'utilisateur (AccountLink), comme Instagram.
+      const access = await getFreshTikTokAccessToken(userId);
+      if (!access) return false;
       return await tiktokHasVideo(access, videoId);
     }
 

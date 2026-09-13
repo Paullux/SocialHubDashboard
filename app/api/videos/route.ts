@@ -6,13 +6,11 @@ import { NextResponse } from "next/server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import type { VideoItem } from "@/lib/types";
 import { fetchYouTubeLatest } from "@/lib/fetchVideos";
-import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
-import { ensureFreshToken } from "@/lib/tiktok/auth.server";
-import { getAccountLink, hasAccountLink } from "@/lib/accountLinks";
+import { getFreshTikTokAccessToken } from "@/lib/tiktok/perUser";
+import { getAccountLink } from "@/lib/accountLinks";
 import { fetchInstagramMedia } from "@/lib/meta/media.server";
 import { ipFromHeaders, isRateLimitedKey, timingSafeEqualStr } from "@/lib/security";
 import { attachThumbnailDimensions } from "@/lib/imageProbe.server";
-import { isOwnerEmail } from "@/lib/owner";
 
 /* ================== Types ================== */
 type Notes = Record<string, unknown>;
@@ -142,19 +140,14 @@ export async function GET(req: Request) {
     const TOTAL_LIMIT = Math.min(Math.max(Number(limitParam ?? 60), 1), 200); // borne à 200
 
     // Utilisateur Kinde (une seule fois) : chaque plateforme n'est affichée que
-    // si l'utilisateur a lié le compte correspondant → la déconnexion masque les vidéos.
+    // si l'utilisateur a lié SON PROPRE compte → chacun ne voit que ses vidéos,
+    // et la déconnexion masque les siennes (jamais celles d'un autre).
     let kuserId: string | null = null;
-    let kuserEmail: string | null = null;
     try {
-      const ku = await getKindeServerSession().getUser();
-      kuserId = ku?.id ?? null;
-      kuserEmail = ku?.email ?? null;
+      kuserId = (await getKindeServerSession().getUser())?.id ?? null;
     } catch {
       /* pas de session */
     }
-    // 🔒 YouTube (chaîne fixe via YT_CHANNEL_ID) et TikTok (jeton partagé
-    // unique) ne sont pas encore multi-tenant : réservés au propriétaire.
-    const isOwner = isOwnerEmail(kuserEmail);
 
     // 🔒 Données réservées : session Kinde requise. Exception : appel interne du
     // cron (snapshot) qui présente ?key=CRON_SECRET.
@@ -170,35 +163,27 @@ export async function GET(req: Request) {
       );
     }
 
-    // YouTube (liste via clé API, mais seulement si le compte est lié)
+    // YouTube — chaque utilisateur voit SA propre chaîne (résolue via
+    // channels?mine=true à la connexion et stockée dans AccountLink.meta),
+    // jamais une chaîne fixe partagée par toute l'app.
     const ytKey = process.env.YT_API_KEY || "";
-    const ytChan = process.env.YT_CHANNEL_ID || "";
-    let hasYTLink = false;
-    if (kuserId && isOwner) {
+    let ytChannelId: string | null = null;
+    if (kuserId) {
       try {
-        hasYTLink = await hasAccountLink(kuserId, "google-youtube");
+        const link = await getAccountLink(kuserId, "google-youtube");
+        ytChannelId = (link?.meta as { channelId?: string } | null)?.channelId ?? null;
       } catch {
         /* ignore */
       }
     }
+    const hasYTLink = Boolean(ytChannelId);
 
-    // TikTok OAuth — le jeton est stocké dans un singleton partagé pour toute
-    // l'app (cf. lib/tiktok/store.ts), donc on ne le sert qu'aux utilisateurs
-    // ayant explicitement lié leur compte TikTok, sous peine de montrer les
-    // vidéos TikTok d'un autre utilisateur (Kinde) à n'importe qui.
-    let hasTTLink = false;
-    if (kuserId && isOwner) {
-      try {
-        hasTTLink = await hasAccountLink(kuserId, "tiktok");
-      } catch {
-        /* ignore */
-      }
-    }
-
+    // TikTok — jeton propre à l'utilisateur (AccountLink), comme Instagram ;
+    // plus de singleton partagé.
     let tiktokAccess: string | null = null;
-    if (hasTTLink) {
+    if (kuserId) {
       try {
-        tiktokAccess = await ensureFreshToken(getTikTokToken, saveTikTokToken);
+        tiktokAccess = await getFreshTikTokAccessToken(kuserId);
       } catch (e: unknown) {
         (notes as any).tiktok_token_error = String(e);
       }
@@ -226,14 +211,14 @@ export async function GET(req: Request) {
 
     // Collecte YouTube
     let yt: VideoItem[] = [];
-    if (ytKey && ytChan && ytTarget > 0 && hasYTLink) {
+    if (ytKey && ytChannelId && ytTarget > 0) {
       try {
-        yt = await fetchYouTubeLatest(ytKey, ytChan, ytTarget);
+        yt = await fetchYouTubeLatest(ytKey, ytChannelId, ytTarget);
       } catch (e: unknown) {
         (notes as any).youtube_error = String(e);
       }
-    } else if (!ytKey || !ytChan) {
-      (notes as any).youtube = "missing key/channel";
+    } else if (!ytKey) {
+      (notes as any).youtube = "missing key";
     } else if (!hasYTLink) {
       (notes as any).youtube = "not linked";
     }
