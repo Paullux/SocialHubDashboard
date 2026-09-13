@@ -162,6 +162,22 @@ function Fr() {
       <p>
         Nous ne vendons pas vos données et ne les utilisons pas à des fins publicitaires.
       </p>
+      <p>
+        L’utilisation par Social Hub des informations reçues des API Google respecte la{" "}
+        <a href="https://developers.google.com/terms/api-services-user-data-policy">
+          Google API Services User Data Policy
+        </a>
+        , y compris les exigences relatives à l’usage limité («&nbsp;Limited Use&nbsp;»). Ces
+        données ne sont jamais utilisées à des fins publicitaires, ni transférées ou vendues à
+        des tiers, ni consultées par des humains sauf avec votre consentement explicite, pour
+        des raisons de sécurité, ou pour se conformer à la loi. Vous pouvez révoquer à tout
+        moment l’accès de Social Hub à votre compte Google depuis{" "}
+        <a href="https://myaccount.google.com/permissions">
+          myaccount.google.com/permissions
+        </a>
+        , en plus du bouton de déconnexion disponible sur la page{" "}
+        <a href="/settings/linked-accounts">Comptes liés</a>.
+      </p>
 
       <h2 id="transferts">5. Transferts hors Union européenne</h2>
       <p>
@@ -448,6 +464,22 @@ function En() {
         </li>
       </ul>
       <p>We do not sell your data and do not use it for advertising.</p>
+      <p>
+        Social Hub's use and transfer of information received from Google APIs adheres to
+        the{" "}
+        <a href="https://developers.google.com/terms/api-services-user-data-policy">
+          Google API Services User Data Policy
+        </a>
+        , including the Limited Use requirements. This data is never used for advertising,
+        never transferred or sold to third parties, and never accessed by humans except with
+        your explicit consent, for security purposes, or to comply with applicable law. You
+        can revoke Social Hub's access to your Google account at any time from{" "}
+        <a href="https://myaccount.google.com/permissions">
+          myaccount.google.com/permissions
+        </a>
+        , in addition to the disconnect button on the{" "}
+        <a href="/settings/linked-accounts">Linked accounts</a> page.
+      </p>
 
       <h2 id="transfers">5. Transfers outside the European Union</h2>
       <p>

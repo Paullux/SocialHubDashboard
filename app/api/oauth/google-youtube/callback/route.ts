@@ -3,6 +3,13 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { upsertAccountLink } from "@/lib/accountLinks";
+import {
+  ipFromHeaders,
+  isRateLimitedKey,
+  readStateFromCookie,
+  stateCookieClear,
+  timingSafeEqualStr,
+} from "@/lib/security";
 
 const OAUTH_TOKEN = "https://oauth2.googleapis.com/token";
 
@@ -11,13 +18,27 @@ function dev() {
 }
 
 export async function GET(req: Request) {
+  const ip = ipFromHeaders(req);
+  if (isRateLimitedKey(`yt-oauth:${ip}`)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   try {
     const user = await requireUser(); // assure-toi d'être connecté Kinde
     const { searchParams } = new URL(req.url);
     const code = searchParams.get("code");
     const err = searchParams.get("error");
+    const state = searchParams.get("state");
     if (err) return NextResponse.json({ error: err }, { status: 400 });
     if (!code) return NextResponse.json({ error: "Missing code" }, { status: 400 });
+
+    // Anti-CSRF
+    const cookieState = readStateFromCookie(req);
+    if (!cookieState || !state || !timingSafeEqualStr(state, cookieState)) {
+      const res = NextResponse.json({ error: "invalid_state" }, { status: 400 });
+      res.headers.append("Set-Cookie", stateCookieClear());
+      return res;
+    }
 
     const client_id = process.env.GOOGLE_CLIENT_ID!;
     const client_secret = process.env.GOOGLE_CLIENT_SECRET!;
@@ -73,7 +94,9 @@ export async function GET(req: Request) {
     });
 
     const base = process.env.NEXT_PUBLIC_BASE_URL!;
-    return NextResponse.redirect(`${base}/settings/linked-accounts?connected=youtube`);
+    const res = NextResponse.redirect(`${base}/settings/linked-accounts?connected=youtube`);
+    res.headers.append("Set-Cookie", stateCookieClear());
+    return res;
   } catch (e: any) {
     console.error("YT callback fatal:", e);
     // En dev, renvoie l’erreur lisible, en prod redirige soft

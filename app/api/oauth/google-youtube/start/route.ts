@@ -1,9 +1,9 @@
 // app/api/oauth/google-youtube/start/route.ts
 import { NextResponse } from "next/server";
-import { randomBytes } from "crypto";
+import { buildState, stateCookieSet } from "@/lib/security";
 
 export async function GET() {
-  const state = randomBytes(16).toString("hex");
+  const state = buildState();
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!,
     redirect_uri: process.env.GOOGLE_REDIRECT_URI!,
@@ -17,5 +17,7 @@ export async function GET() {
     ].join(" "),
     state,
   });
-  return NextResponse.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
+  const res = NextResponse.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
+  res.headers.append("Set-Cookie", stateCookieSet(state));
+  return res;
 }
