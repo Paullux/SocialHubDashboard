@@ -1,9 +1,9 @@
-# Social Hub — Dashboard YouTube & TikTok
+# Social Hub — Dashboard YouTube, TikTok & Instagram
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.md)
 [![Deploy on Vercel](https://vercel.com/button)](https://vercel.com)
 
-**Social Hub** est un dashboard qui agrège et analyse tes vidéos YouTube et TikTok au même endroit.  
+**Social Hub** est un dashboard qui agrège et analyse tes vidéos YouTube, TikTok et Instagram au même endroit.  
 Il te permet de visualiser rapidement les performances (vues, likes, commentaires, partages) et de comparer l’impact de tes contenus sur chaque plateforme.
 
 ---
