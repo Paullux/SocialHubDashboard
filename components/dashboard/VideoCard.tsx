@@ -103,7 +103,14 @@ function isPortraitThumbnail(v: VideoItem): boolean {
   );
 }
 
-export default function VideoCard({ video: v }: { video: VideoItem }) {
+export default function VideoCard({
+  video: v,
+  demo = false,
+}: {
+  video: VideoItem;
+  /** Vidéo factice (page /demo) : id non réel, on n'appelle pas l'API de stats. */
+  demo?: boolean;
+}) {
   const tip = buildTip(v);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const portrait = isPortraitThumbnail(v);
@@ -194,15 +201,26 @@ export default function VideoCard({ video: v }: { video: VideoItem }) {
             <KpiLine v={v} />
           </div>
 
-          <Link
-            href={`/analytics/${v.id}?platform=${v.platform}`}
-            className="ml-2 text-[11px] sm:text-xs px-2 py-1 rounded bg-neutral-700 hover:bg-neutral-600 flex items-center gap-1 shrink-0"
-            aria-label={`Ouvrir les stats pour ${altText}`}
-            title="Stats"
-          >
-            <span aria-hidden>📈</span>
-            <span className="hidden sm:inline">Stats</span>
-          </Link>
+          {demo ? (
+            <span
+              className="ml-2 text-[11px] sm:text-xs px-2 py-1 rounded bg-neutral-800 text-neutral-500 flex items-center gap-1 shrink-0 cursor-not-allowed"
+              aria-hidden="true"
+              title="Stats détaillées disponibles une fois ton compte connecté"
+            >
+              <span aria-hidden>📈</span>
+              <span className="hidden sm:inline">Stats</span>
+            </span>
+          ) : (
+            <Link
+              href={`/analytics/${v.id}?platform=${v.platform}`}
+              className="ml-2 text-[11px] sm:text-xs px-2 py-1 rounded bg-neutral-700 hover:bg-neutral-600 flex items-center gap-1 shrink-0"
+              aria-label={`Ouvrir les stats pour ${altText}`}
+              title="Stats"
+            >
+              <span aria-hidden>📈</span>
+              <span className="hidden sm:inline">Stats</span>
+            </Link>
+          )}
         </div>
       </div>
 

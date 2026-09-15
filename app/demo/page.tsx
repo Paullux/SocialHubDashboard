@@ -47,7 +47,7 @@ export default function DemoPage() {
           </ul>
         )}
 
-        {videos && <VideoGrid videos={videos} />}
+        {videos && <VideoGrid videos={videos} demo />}
       </div>
     </main>
   );
