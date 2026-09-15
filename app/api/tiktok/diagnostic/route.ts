@@ -3,8 +3,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
-import { ensureFreshToken } from "@/lib/tiktok/auth.server";
-import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
+import { getFreshTikTokAccessToken } from "@/lib/tiktok/perUser";
 import { ipFromHeaders, isRateLimitedKey } from "@/lib/security";
 import { requireDashboardUser } from "@/lib/auth";
 
@@ -15,8 +14,9 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, error: "Debug disabled" }, { status: 403 });
   }
 
+  let kindeUser;
   try {
-    await requireDashboardUser();
+    kindeUser = await requireDashboardUser();
   } catch {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
@@ -27,7 +27,16 @@ export async function GET(req: Request) {
   }
 
   try {
-    const access = await ensureFreshToken(getTikTokToken, saveTikTokToken);
+    // Jeton propre à l'utilisateur connecté (AccountLink), jamais un jeton
+    // partagé — ce diagnostic ne doit voir que le compte TikTok de la
+    // personne qui appelle la route.
+    const access = await getFreshTikTokAccessToken(kindeUser.id);
+    if (!access) {
+      return NextResponse.json(
+        { ok: false, error: "no_tiktok_account_linked" },
+        { status: 404, headers: { "Cache-Control": "no-store" } }
+      );
+    }
 
     const [uRes, vRes] = await Promise.all([
       fetch("https://open.tiktokapis.com/v2/user/info/", {
