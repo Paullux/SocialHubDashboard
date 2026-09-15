@@ -134,6 +134,6 @@ export const config = {
     // OAuth providers are public
     "/api/oauth/:path*",
     // Public pages (CSP applied here too)
-    "/", "/login", "/terms", "/privacy", "/demo", "/delete-data",
+    "/", "/login", "/terms", "/privacy", "/demo", "/demo/:path*", "/delete-data",
   ],
 };

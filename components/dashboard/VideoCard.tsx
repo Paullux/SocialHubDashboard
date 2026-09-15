@@ -201,26 +201,15 @@ export default function VideoCard({
             <KpiLine v={v} />
           </div>
 
-          {demo ? (
-            <span
-              className="ml-2 text-[11px] sm:text-xs px-2 py-1 rounded bg-neutral-800 text-neutral-500 flex items-center gap-1 shrink-0 cursor-not-allowed"
-              aria-hidden="true"
-              title="Stats détaillées disponibles une fois ton compte connecté"
-            >
-              <span aria-hidden>📈</span>
-              <span className="hidden sm:inline">Stats</span>
-            </span>
-          ) : (
-            <Link
-              href={`/analytics/${v.id}?platform=${v.platform}`}
-              className="ml-2 text-[11px] sm:text-xs px-2 py-1 rounded bg-neutral-700 hover:bg-neutral-600 flex items-center gap-1 shrink-0"
-              aria-label={`Ouvrir les stats pour ${altText}`}
-              title="Stats"
-            >
-              <span aria-hidden>📈</span>
-              <span className="hidden sm:inline">Stats</span>
-            </Link>
-          )}
+          <Link
+            href={demo ? "/demo/analytics" : `/analytics/${v.id}?platform=${v.platform}`}
+            className="ml-2 text-[11px] sm:text-xs px-2 py-1 rounded bg-neutral-700 hover:bg-neutral-600 flex items-center gap-1 shrink-0"
+            aria-label={`Ouvrir les stats pour ${altText}`}
+            title="Stats"
+          >
+            <span aria-hidden>📈</span>
+            <span className="hidden sm:inline">Stats</span>
+          </Link>
         </div>
       </div>
 
