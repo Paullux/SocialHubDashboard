@@ -1,8 +1,15 @@
 // app/api/oauth/google-youtube/start/route.ts
 import { NextResponse } from "next/server";
 import { buildState, stateCookieSet } from "@/lib/security";
+import { requireDashboardUser } from "@/lib/auth";
 
 export async function GET() {
+  try {
+    await requireDashboardUser();
+  } catch {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
   const state = buildState();
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!,

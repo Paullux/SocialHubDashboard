@@ -143,20 +143,26 @@ export async function GET(req: Request) {
     // si l'utilisateur a lié SON PROPRE compte → chacun ne voit que ses vidéos,
     // et la déconnexion masque les siennes (jamais celles d'un autre).
     let kuserId: string | null = null;
+    let hasDashboardAccess = false;
     try {
-      kuserId = (await getKindeServerSession().getUser())?.id ?? null;
+      const session = getKindeServerSession();
+      kuserId = (await session.getUser())?.id ?? null;
+      if (kuserId) {
+        const access = await session.getPermission("read:dashboard");
+        hasDashboardAccess = !!access?.isGranted;
+      }
     } catch {
       /* pas de session */
     }
 
-    // 🔒 Données réservées : session Kinde requise. Exception : appel interne du
-    // cron (snapshot) qui présente ?key=CRON_SECRET.
+    // 🔒 Données réservées : session Kinde + permission read:dashboard requises.
+    // Exception : appel interne du cron (snapshot) qui présente ?key=CRON_SECRET.
     const cronKey = url.searchParams.get("key");
     const isCron =
       !!process.env.CRON_SECRET &&
       !!cronKey &&
       (await timingSafeEqualStr(cronKey, process.env.CRON_SECRET));
-    if (!kuserId && !isCron) {
+    if (!isCron && (!kuserId || !hasDashboardAccess)) {
       return NextResponse.json(
         { error: "unauthorized" },
         { status: 401, headers: { "Cache-Control": "no-store" } }

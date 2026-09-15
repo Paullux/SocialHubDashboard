@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import crypto from "node:crypto";
-import { requireUser } from "@/lib/auth";
+import { requireDashboardUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { fetchYouTubeLatest } from "@/lib/fetchVideos";
 import { getAccountLink } from "@/lib/accountLinks";
@@ -23,7 +23,7 @@ const CONFIRM_PHRASE = "tout effacer";
 export async function POST(req: Request) {
   let user;
   try {
-    user = await requireUser();
+    user = await requireDashboardUser();
   } catch {
     return jsonNoStore({ error: "unauthorized" }, { status: 401 });
   }

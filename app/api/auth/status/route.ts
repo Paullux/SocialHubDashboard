@@ -2,14 +2,14 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { requireUser } from "@/lib/auth";
+import { requireDashboardUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 type Status = { youtube: boolean; tiktok: boolean; instagram: boolean };
 
 export async function GET() {
   try {
-    const user = await requireUser();
+    const user = await requireDashboardUser();
 
     const links = await prisma.accountLink.findMany({
       where: {

@@ -1,10 +1,10 @@
 // app/api/oauth/disconnect/route.ts
 export const runtime = "nodejs";
-import { requireUser } from "@/lib/auth";
+import { requireDashboardUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {
-  const user = await requireUser();
+  const user = await requireDashboardUser();
   const { searchParams } = new URL(req.url);
   const provider = searchParams.get("provider")!;
 

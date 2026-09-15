@@ -3,7 +3,7 @@ export const runtime = "nodejs";
 
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { requireUser } from "@/lib/auth";
+import { requireDashboardUser } from "@/lib/auth";
 import { upsertAccountLink } from "@/lib/accountLinks";
 
 const ALLOWED_REDIRECTS = [
@@ -22,7 +22,7 @@ function getRedirectFromEnv() {
 
 export async function GET(req: Request) {
   try {
-    const user = await requireUser();
+    const user = await requireDashboardUser();
 
     const url = new URL(req.url);
     const code = url.searchParams.get("code");

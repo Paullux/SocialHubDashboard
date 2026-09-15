@@ -2,6 +2,7 @@
 export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { randomBytes, createHash } from "crypto";
+import { requireDashboardUser } from "@/lib/auth";
 
 const b64url = (b: Buffer) => b.toString("base64").replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");
 const ALLOWED = [
@@ -10,6 +11,12 @@ const ALLOWED = [
 ];
 
 export async function GET(req: Request) {
+  try {
+    await requireDashboardUser();
+  } catch {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
   let redirect = (process.env.TIKTOK_REDIRECT_URI || "").trim();
   // anti-quotes
   if (redirect.startsWith('"') || redirect.endsWith('"') || redirect.startsWith("'") || redirect.endsWith("'")) {

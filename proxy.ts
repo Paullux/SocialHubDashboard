@@ -6,10 +6,18 @@ type KindeToken = {
   permissions?: string[];
 };
 
-// 🔓 Chemins publics (aucune auth requise)
+// 🔓 Chemins publics (aucune auth requise). N'a d'effet que pour les chemins
+// qui entrent aussi dans le withAuth() ci-dessous (/dashboard, /analytics,
+// /settings/linked-accounts) — les routes listées ici ne matchent jamais ce
+// préfixe, donc ce tableau ne les rend pas publiques : leur protection réelle
+// est faite route par route via requireDashboardUser() (lib/auth.ts). Seuls
+// /api/oauth/disconnect, /api/meta/deauthorize (HMAC Meta) et
+// /api/cron/snapshot (CRON_SECRET) échappent à Kinde pour des raisons
+// structurelles — voir lib/auth.ts et les handlers correspondants.
 const PUBLIC_PATHS = [
   "/", "/login", "/terms", "/privacy", "/demo", "/delete-data",
-  // OAuth providers (start + callback)
+  // OAuth providers (start + callback) : reachables sans session au niveau du
+  // proxy, mais désormais gardés par requireDashboardUser() dans chaque route.
   "/api/oauth/google-youtube/start",
   "/api/oauth/google-youtube/callback",
   "/api/oauth/tiktok/start",

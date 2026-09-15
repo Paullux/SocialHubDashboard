@@ -4,8 +4,15 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { buildState, stateCookieSet } from "@/lib/security";
 import { IG_LOGIN_OAUTH_AUTHORIZE, IG_LOGIN_SCOPE_PARAM } from "@/lib/meta/config";
+import { requireDashboardUser } from "@/lib/auth";
 
 export async function GET(req: Request) {
+  try {
+    await requireDashboardUser();
+  } catch {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
   const clientId = process.env.IG_LOGIN_APP_ID;
   const redirectUri = process.env.IG_LOGIN_REDIRECT_URI;
   if (!clientId || !redirectUri) {

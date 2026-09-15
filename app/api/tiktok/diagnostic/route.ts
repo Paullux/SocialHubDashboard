@@ -6,12 +6,19 @@ import { NextResponse } from "next/server";
 import { ensureFreshToken } from "@/lib/tiktok/auth.server";
 import { getTikTokToken, saveTikTokToken } from "@/lib/tiktok/store";
 import { ipFromHeaders, isRateLimitedKey } from "@/lib/security";
+import { requireDashboardUser } from "@/lib/auth";
 
 const ALLOW = process.env.ALLOW_TIKTOK_DEBUG === "1";
 
 export async function GET(req: Request) {
   if (!ALLOW) {
     return NextResponse.json({ ok: false, error: "Debug disabled" }, { status: 403 });
+  }
+
+  try {
+    await requireDashboardUser();
+  } catch {
+    return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
 
   const ip = ipFromHeaders(req);

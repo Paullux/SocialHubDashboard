@@ -1,7 +1,7 @@
 // app/api/oauth/google-youtube/callback/route.ts
 export const runtime = "nodejs";
 import { NextResponse } from "next/server";
-import { requireUser } from "@/lib/auth";
+import { requireDashboardUser } from "@/lib/auth";
 import { upsertAccountLink } from "@/lib/accountLinks";
 import {
   ipFromHeaders,
@@ -24,7 +24,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    const user = await requireUser(); // assure-toi d'être connecté Kinde
+    const user = await requireDashboardUser(); // session Kinde + permission read:dashboard
     const { searchParams } = new URL(req.url);
     const code = searchParams.get("code");
     const err = searchParams.get("error");

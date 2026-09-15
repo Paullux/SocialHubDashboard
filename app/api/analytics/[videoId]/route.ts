@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { getHourlyMetrics, getDailyMetrics } from "@/lib/metrics";
 import { ipFromHeaders, isRateLimitedKey, jsonNoStore } from "@/lib/security";
-import { requireUser } from "@/lib/auth";
+import { requireDashboardUser } from "@/lib/auth";
 import { userOwnsVideo } from "@/lib/videoOwnership";
 
 export async function GET(
@@ -15,7 +15,7 @@ export async function GET(
     // Données réservées : accessibles uniquement après authentification Kinde.
     let user;
     try {
-      user = await requireUser();
+      user = await requireDashboardUser();
     } catch {
       return jsonNoStore({ error: "unauthorized" }, { status: 401 });
     }
