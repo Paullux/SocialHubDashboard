@@ -112,7 +112,7 @@ export default function HomeContent({ canSeeDashboard }: { canSeeDashboard: bool
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/demo"
-            className="inline-flex items-center gap-2 rounded-2xl bg-brand px-5 py-2.5 text-sm font-medium text-white shadow-md transition-transform duration-150 hover:scale-105 hover:bg-brand-dark"
+            className="inline-flex items-center gap-2 rounded-md bg-brand px-5 py-2.5 text-sm font-medium text-white shadow-md transition-transform duration-150 hover:scale-105 hover:bg-brand-dark"
           >
             {t.demo}
           </Link>
