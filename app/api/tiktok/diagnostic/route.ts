@@ -39,7 +39,7 @@ export async function GET(req: Request) {
     }
 
     const [uRes, vRes] = await Promise.all([
-      fetch("https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,username", {
+      fetch("https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name", {
         headers: { Authorization: `Bearer ${access}` },
         cache: "no-store",
       }),

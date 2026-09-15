@@ -78,15 +78,18 @@ export async function GET(req: Request) {
 
     // (Optionnel) profil basique pour un username affichable.
     // ⚠️ `fields` est obligatoire sur cet endpoint TikTok : sans lui, l'API ne
-    // renvoie aucun champ exploitable (display_name/username vides) — c'est ce
-    // qui faisait afficher "—" sur la page Comptes liés malgré une connexion OK.
+    // renvoie aucun champ exploitable — c'est ce qui faisait afficher "—" sur
+    // la page Comptes liés malgré une connexion OK. Et `username` n'est PAS
+    // couvert par le scope `user.info.basic` (contrairement à `display_name`) :
+    // le demander fait échouer toute la requête avec `scope_not_authorized`,
+    // donc on ne demande que ce que ce scope autorise réellement.
     let username: string | null = null;
     try {
       const u = await fetch(
-        "https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,username",
+        "https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name",
         { headers: { Authorization: `Bearer ${tok.access_token}` } }
       ).then((r) => r.json());
-      username = u?.data?.user?.display_name ?? u?.data?.user?.username ?? null;
+      username = u?.data?.user?.display_name ?? null;
     } catch {
       // laisse username = null si l'appel échoue
     }
