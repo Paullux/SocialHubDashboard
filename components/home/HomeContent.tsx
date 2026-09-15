@@ -27,8 +27,8 @@ const copy = {
         <code className="text-neutral-200">yt-analytics.readonly</code>, pour
         TikTok <code className="text-neutral-200">user.info.basic</code> et{" "}
         <code className="text-neutral-200">video.list</code>, pour Instagram{" "}
-        <code className="text-neutral-200">instagram_basic</code> et{" "}
-        <code className="text-neutral-200">instagram_manage_insights</code>.
+        <code className="text-neutral-200">instagram_business_basic</code> et{" "}
+        <code className="text-neutral-200">instagram_business_manage_insights</code>.
         Ces accès servent uniquement à afficher la liste de tes vidéos et
         leurs statistiques publiques. Ces données ne sont jamais utilisées à
         des fins publicitaires, ni vendues ni transmises à des tiers. Tu peux
@@ -71,8 +71,8 @@ const copy = {
         <code className="text-neutral-200">yt-analytics.readonly</code>, for
         TikTok <code className="text-neutral-200">user.info.basic</code> and{" "}
         <code className="text-neutral-200">video.list</code>, for Instagram{" "}
-        <code className="text-neutral-200">instagram_basic</code> and{" "}
-        <code className="text-neutral-200">instagram_manage_insights</code>.
+        <code className="text-neutral-200">instagram_business_basic</code> and{" "}
+        <code className="text-neutral-200">instagram_business_manage_insights</code>.
         These scopes are only used to display your video list and public
         statistics. This data is never used for advertising, sold, or shared
         with third parties. You can revoke this access at any time from the{" "}
