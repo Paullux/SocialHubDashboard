@@ -28,3 +28,5 @@ yarn-error.log*
 /generated/**
 /prisma/generated
 
+# Scan Claude Security
+/CLAUDE-SECURITY-*
