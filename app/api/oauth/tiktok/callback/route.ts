@@ -76,12 +76,16 @@ export async function GET(req: Request) {
     }
     const tok = JSON.parse(txt); // { access_token, refresh_token, expires_in, open_id, scope, ... }
 
-    // (Optionnel) profil basique pour un username affichable
+    // (Optionnel) profil basique pour un username affichable.
+    // ⚠️ `fields` est obligatoire sur cet endpoint TikTok : sans lui, l'API ne
+    // renvoie aucun champ exploitable (display_name/username vides) — c'est ce
+    // qui faisait afficher "—" sur la page Comptes liés malgré une connexion OK.
     let username: string | null = null;
     try {
-      const u = await fetch("https://open.tiktokapis.com/v2/user/info/", {
-        headers: { Authorization: `Bearer ${tok.access_token}` },
-      }).then((r) => r.json());
+      const u = await fetch(
+        "https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,username",
+        { headers: { Authorization: `Bearer ${tok.access_token}` } }
+      ).then((r) => r.json());
       username = u?.data?.user?.display_name ?? u?.data?.user?.username ?? null;
     } catch {
       // laisse username = null si l'appel échoue
