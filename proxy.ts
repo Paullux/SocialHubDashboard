@@ -71,13 +71,18 @@ async function coreProxy(req: NextRequest) {
   // récents mais reste utile pour les autres.
   const MATOMO_ORIGIN = "https://stats.social-hub.fr";
 
+  // Fast Refresh de Next évalue du code à la volée (react-refresh-utils), ce que
+  // 'unsafe-eval' seul autorise. On ne l'ouvre QUE hors production : en prod la
+  // directive reste stricte (nonce + strict-dynamic, sans eval).
+  const DEV_EVAL = process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'";
+
   const csp = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${MATOMO_ORIGIN}`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${DEV_EVAL} ${MATOMO_ORIGIN}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' https: data:",
     "font-src 'self' https: data:",
-    `connect-src 'self' https: ${MATOMO_ORIGIN}`,
+    `connect-src 'self' https:${DEV_EVAL ? " ws:" : ""} ${MATOMO_ORIGIN}`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

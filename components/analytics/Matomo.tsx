@@ -10,6 +10,11 @@ const MATOMO_URL = (process.env.NEXT_PUBLIC_MATOMO_URL || "https://stats.social-
   "",
 );
 const MATOMO_SITE_ID = process.env.NEXT_PUBLIC_MATOMO_SITE_ID || "1";
+// Hors production, on ne charge pas Matomo : les visites de localhost
+// pollueraient les statistiques du site, et le conteneur Tag Manager déclare
+// son URL en protocole-relatif ("//stats.social-hub.fr/"), qui se résout en
+// http:// sur une page servie en http et se fait bloquer par la CSP.
+const MATOMO_ENABLED = process.env.NODE_ENV === "production";
 // Conteneur Matomo Tag Manager (facultatif). Vide => non chargé.
 const MATOMO_CONTAINER =
   process.env.NEXT_PUBLIC_MATOMO_CONTAINER ||
@@ -48,9 +53,10 @@ export default function Matomo() {
   const trackingStarted = useRef(false);
   const lastUrl = useRef<string | null>(null);
 
-  const enabled = ready && consent.analytics;
+  const enabled = MATOMO_ENABLED && ready && consent.analytics;
 
   useEffect(() => {
+    if (!MATOMO_ENABLED) return;
     if (typeof window === "undefined") return;
 
     // Consentement retiré : purge côté Matomo.

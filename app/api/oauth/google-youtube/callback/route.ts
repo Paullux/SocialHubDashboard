@@ -1,8 +1,10 @@
 // app/api/oauth/google-youtube/callback/route.ts
 export const runtime = "nodejs";
+export const maxDuration = 60; // le backfill Analytics peut dépasser 10 s
 import { NextResponse } from "next/server";
 import { requireDashboardUser } from "@/lib/auth";
 import { upsertAccountLink } from "@/lib/accountLinks";
+import { backfillYouTubeHistory } from "@/lib/youtube/analytics.server";
 import {
   ipFromHeaders,
   isRateLimitedKey,
@@ -65,9 +67,9 @@ export async function GET(req: Request) {
     }
     const tok = JSON.parse(tokenText); // {access_token, refresh_token, expires_in, ...}
 
-    // 2) Récupérer la chaîne
+    // 2) Récupérer la chaîne (+ la playlist "uploads", pour l'historique)
     const chRes = await fetch(
-      "https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true",
+      "https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails&mine=true",
       { headers: { Authorization: `Bearer ${tok.access_token}` } }
     );
     const chText = await chRes.text();
@@ -79,6 +81,8 @@ export async function GET(req: Request) {
     const first = ch?.items?.[0];
     const channelId = first?.id ?? "unknown";
     const title = first?.snippet?.title ?? null;
+    const uploadsPlaylistId: string | null =
+      first?.contentDetails?.relatedPlaylists?.uploads ?? null;
 
     // 3) Persist
     await upsertAccountLink({
@@ -90,8 +94,21 @@ export async function GET(req: Request) {
       refreshToken: tok.refresh_token,
       scope: "youtube.readonly yt-analytics.readonly",
       expiresAtSec: tok.expires_in,
-      meta: { channelId },
+      meta: { channelId, uploadsPlaylistId },
     });
+
+    // 4) Historique : on remonte les courbes depuis la publication des vidéos,
+    // pour que le dashboard ait quelque chose à afficher dès la connexion.
+    // Jamais bloquant : si Analytics échoue, la connexion reste valide et le
+    // snapshot horaire prendra le relais à partir de maintenant.
+    if (uploadsPlaylistId) {
+      try {
+        const r = await backfillYouTubeHistory(user.id, uploadsPlaylistId);
+        if (dev()) console.log("YT backfill:", r);
+      } catch (e) {
+        console.error("YT backfill failed:", e);
+      }
+    }
 
     const base = process.env.NEXT_PUBLIC_BASE_URL!;
     const res = NextResponse.redirect(`${base}/settings/linked-accounts?connected=youtube`);
