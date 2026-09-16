@@ -29,7 +29,11 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
-  const user = await requireDashboardUser();
+  // Même remarque que dans /api/oauth/disconnect : l'exception remontait
+  // jusqu'à Next et donnait un 500 là où 401 est la bonne réponse.
+  const user = await requireDashboardUser().catch(() => null);
+  if (!user) return fail("unauthorized", 401);
+
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
   const error = searchParams.get("error");

@@ -4,7 +4,11 @@ import { requireDashboardUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {
-  const user = await requireDashboardUser();
+  // requireDashboardUser() lève une exception : sans ce filet, un appel sans
+  // session ressortait en 500 alors qu'il est simplement non authentifié.
+  const user = await requireDashboardUser().catch(() => null);
+  if (!user) return Response.json({ error: "unauthorized" }, { status: 401 });
+
   const { searchParams } = new URL(req.url);
   const provider = searchParams.get("provider")!;
 
