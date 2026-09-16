@@ -1,7 +1,7 @@
 // app/api/oauth/google-youtube/callback/route.ts
 export const runtime = "nodejs";
 export const maxDuration = 60; // le backfill Analytics peut dépasser 10 s
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { requireDashboardUser } from "@/lib/auth";
 import { upsertAccountLink } from "@/lib/accountLinks";
 import { backfillYouTubeHistory } from "@/lib/youtube/analytics.server";
@@ -99,15 +99,22 @@ export async function GET(req: Request) {
 
     // 4) Historique : on remonte les courbes depuis la publication des vidéos,
     // pour que le dashboard ait quelque chose à afficher dès la connexion.
+    //
+    // Hors du chemin critique : une cinquantaine d'appels à l'API Analytics
+    // prennent une vingtaine de secondes, que l'utilisateur passerait sinon
+    // devant une page blanche après avoir cliqué « Autoriser ». `after()`
+    // exécute le remplissage une fois la redirection envoyée.
     // Jamais bloquant : si Analytics échoue, la connexion reste valide et le
-    // snapshot horaire prendra le relais à partir de maintenant.
+    // snapshot horaire prend le relais à partir de maintenant.
     if (uploadsPlaylistId) {
-      try {
-        const r = await backfillYouTubeHistory(user.id, uploadsPlaylistId);
-        if (dev()) console.log("YT backfill:", r);
-      } catch (e) {
-        console.error("YT backfill failed:", e);
-      }
+      after(async () => {
+        try {
+          const r = await backfillYouTubeHistory(user.id, uploadsPlaylistId);
+          if (dev()) console.log("YT backfill:", r);
+        } catch (e) {
+          console.error("YT backfill failed:", e);
+        }
+      });
     }
 
     const base = process.env.NEXT_PUBLIC_BASE_URL!;

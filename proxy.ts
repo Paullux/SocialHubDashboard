@@ -103,7 +103,12 @@ export default async function proxy(req: NextRequest) {
   if (
     path.startsWith("/dashboard") ||
     path.startsWith("/analytics") ||
-    path.startsWith("/settings/linked-accounts")
+    path.startsWith("/settings/linked-accounts") ||
+    // Routes API : refus par défaut. Avant, le middleware ne filtrait que les
+    // pages — une nouvelle route sous /api était donc publique tant que son
+    // auteur n'y mettait pas lui-même une garde. Désormais l'inverse, sauf pour
+    // les chemins qui s'authentifient autrement (voir isPublicApi).
+    (path.startsWith("/api/") && !isPublicApi(path))
   ) {
 
     const handler = withAuth(
@@ -124,6 +129,10 @@ export default async function proxy(req: NextRequest) {
           // Linked accounts can use same permission or a dedicated one
           if (p.startsWith("/settings/linked-accounts")) return hasPerm(token, "read:dashboard");
 
+          // Toute autre route /api : une session suffit ici, la route elle-même
+          // vérifie ensuite la permission via requireDashboardUser().
+          if (p.startsWith("/api/")) return !!token;
+
           // Default deny
           return false;
         },
@@ -136,6 +145,21 @@ export default async function proxy(req: NextRequest) {
   // Everything else → only CSP
   return coreProxy(req);
 }
+/**
+ * Chemins /api joignables sans session Kinde. Chacun porte sa propre
+ * authentification : handler Kinde lui-même (sans quoi la connexion boucle),
+ * flux OAuth gardés par requireDashboardUser() dans le corps de la route,
+ * CRON_SECRET comparé en timing-safe, ou signature HMAC de Meta.
+ */
+function isPublicApi(path: string): boolean {
+  return (
+    path.startsWith("/api/auth/") ||        // handler Kinde (login, callback, logout…)
+    path.startsWith("/api/oauth/") ||       // start / callback / disconnect
+    path === "/api/cron/snapshot" ||        // CRON_SECRET
+    path === "/api/meta/deauthorize" ||     // signed_request HMAC
+    path === "/api/videos"                  // session OU clé de cron, tranché dans la route
+  );
+}
 
 // Matcher for proxy
 export const config = {
@@ -144,8 +168,8 @@ export const config = {
     "/dashboard/:path*",
     "/analytics/:path*",
     "/settings/linked-accounts/:path*",
-    // OAuth providers are public
-    "/api/oauth/:path*",
+    // Toutes les routes API passent par le middleware (refus par défaut)
+    "/api/:path*",
     // Public pages (CSP applied here too)
     "/", "/login", "/terms", "/privacy", "/demo", "/demo/:path*", "/delete-data",
   ],
