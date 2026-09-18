@@ -45,9 +45,17 @@ Une documentation complète (présentation, fonctionnement, architecture techniq
 
 ### Prérequis
 - Node.js **22.x** — et **seulement** 22.x (voir `engines` dans `package.json`)
-  > ⚠️ **Ne pas monter au-dessus de 22.22.0.** Node 24 casse la connexion Prisma → Neon :
-  > erreur sur les paquets de base de données, résolue seulement en redescendant en 22.
-  > La remontée est un chantier à part entière, pas un effet de bord d'une mise à jour.
+  > ⚠️ **Ne pas monter au-dessus de 22.x — la limite vient de Prisma, pas de Node.**
+  > **Prisma 6 ne supporte pas Node 24** (matrice officielle : 16.13 / 18.x / 20.x / 22.x).
+  > Node 24 n’arrive qu’avec **Prisma 7** (`^20.19.0`, `^22.12.0`, `^24.0.0`).
+  > Une tentative de passage en Node 24 a bien cassé la connexion Prisma → Neon.
+  > ⚠️ Le champ `engines` des paquets Prisma annonce `>=18.18`, **sans borne haute** :
+  > il exprime un plancher, pas la matrice de support. Ne pas s’y fier seul.
+  >
+  > **Ordre imposé pour lever le plafond** : migrer **Prisma 6 → 7 d’abord**
+  > (`@prisma/client` 7.x est disponible), **puis** Node 22 → 24. Jamais l’inverse,
+  > jamais les deux ensemble — une panne ne dirait pas laquelle des deux l’a causée.
+  >
   > Node 20, de son côté, est en fin de vie et ne doit plus servir.
 - pnpm (recommandé)
 - Une base PostgreSQL accessible (Neon en production)
@@ -138,8 +146,8 @@ L’application est déployée sur **Vercel** :
 
 - [x] Graphiques d’évolution (Recharts) — page `/analytics/[videoId]`
 - [x] Authentification multi-utilisateurs — Kinde, jetons par utilisateur
-- [ ] Filtre par plateforme (YouTube / TikTok / Instagram / Tous)
-- [ ] Ratio d’engagement automatique
+- [x] Filtre par plateforme (Toutes / YouTube / TikTok / Instagram) — dashboard **et** démo, avec le compte de vidéos par plateforme
+- [x] Ratio d’engagement automatique — `(likes + commentaires + partages) / vues`, en %, sur l’axe de droite des graphes Engagement
 - [ ] Export CSV/Excel des KPIs
 - [ ] Publication multi-plateformes depuis une interface unique — voir la [vision](https://github.com/Paullux/SocialHub/tree/Documents)
 
