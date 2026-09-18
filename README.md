@@ -44,7 +44,7 @@ Une documentation complète (présentation, fonctionnement, architecture techniq
 ## 🛠️ Installation locale
 
 ### Prérequis
-- Node.js **24.x** (voir `engines` dans `package.json`)
+- Node.js **22.x** (voir `engines` dans `package.json`) — Node 20 est en fin de vie, ne plus l'utiliser
 - pnpm (recommandé)
 - Une base PostgreSQL accessible (Neon en production)
 
