@@ -7,7 +7,7 @@ export type DemoVideo = {
   views: number;
   likes: number;
   comments: number;
-  platform: "youtube" | "tiktok";
+  platform: "youtube" | "tiktok" | "instagram";
 };
 
 const demoVideos: DemoVideo[] = [
@@ -32,26 +32,26 @@ const demoVideos: DemoVideo[] = [
     platform: "youtube",
   },
   {
-    id: "t1",
-    // TikTok : pas de titre distinct, `title` = la légende (souvent des \r seuls).
+    id: "i1",
+    // Instagram : pas de titre distinct, `title` = la légende (souvent des \r seuls).
     title:
-      "Petit test d'animation image par image.\r\rMusique : son original\r#animation #motion #behindthescenes #creatortools",
+      "Petit test d'animation image par image.\r\rMusique : son original\r#animation #motion #reels #creatortools",
     description:
-      "Petit test d'animation image par image.\r\rMusique : son original\r#animation #motion #behindthescenes #creatortools",
+      "Petit test d'animation image par image.\r\rMusique : son original\r#animation #motion #reels #creatortools",
     thumbnailUrl: "/thumbs/3.jpg",
     views: 2050,
     likes: 310,
     comments: 44,
-    platform: "tiktok",
+    platform: "instagram",
   },
   {
-    id: "t2",
-    title: "Short: 3 tips montage CapCut",
+    id: "i2",
+    title: "Reel : 3 tips montage CapCut",
     thumbnailUrl: "/thumbs/4.jpg",
     views: 1520,
     likes: 150,
     comments: 21,
-    platform: "tiktok",
+    platform: "instagram",
   },
   {
     id: "y3",

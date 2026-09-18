@@ -55,6 +55,25 @@ function formatHourLabel(iso: string) {
   const d = new Date(iso);
   return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 }
+/** Taux d'engagement : (likes + commentaires + partages) / vues, en %.
+ *  `null` si les vues manquent ou valent 0 — diviser par zéro donnerait
+ *  l'infini, et un point absent est plus honnête qu'un pic inventé. */
+function engagementRate(p: {
+  views: number | null;
+  likes: number | null;
+  comments: number | null;
+  shares: number | null;
+}): number | null {
+  if (p.views == null || p.views <= 0) return null;
+  const interactions = (p.likes ?? 0) + (p.comments ?? 0) + (p.shares ?? 0);
+  return Math.round((interactions / p.views) * 1000) / 10;
+}
+
+function formatPercent(n: number | null) {
+  if (n == null || Number.isNaN(n)) return "—";
+  return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(n)} %`;
+}
+
 function formatNumber(n: number | null) {
   if (n == null || Number.isNaN(n)) return "—";
   return new Intl.NumberFormat("fr-FR").format(n);
@@ -138,8 +157,14 @@ export default function VideoAnalytics({
     };
   }, [videoId, platform]);
 
-  const daily = useMemo(() => data?.daily ?? [], [data]);
-  const hourly = useMemo(() => data?.hourly ?? [], [data]);
+  const daily = useMemo(
+    () => (data?.daily ?? []).map((p) => ({ ...p, engagement: engagementRate(p) })),
+    [data]
+  );
+  const hourly = useMemo(
+    () => (data?.hourly ?? []).map((p) => ({ ...p, engagement: engagementRate(p) })),
+    [data]
+  );
 
   function truncateTitle(title: string, max: number) {
     if (!title) return "";
@@ -164,6 +189,7 @@ export default function VideoAnalytics({
   const COLOR_LIKES = "#dc2626"; // rouge
   const COLOR_COMMS = "#2563eb"; // bleu
   const COLOR_SHARES = "#f97316"; // orange
+  const COLOR_ENGAGE = "#a855f7"; // violet — axe de droite, en %
 
   return (
     <div className="space-y-6">
@@ -228,7 +254,7 @@ export default function VideoAnalytics({
 
       <section className="rounded-2xl border border-neutral-700 bg-neutral-800/60 backdrop-blur p-4 xs:p-2">
         <h3 className="font-medium mb-2 text-neutral-200">
-          Engagement / jour (Likes, Commentaires)
+          Engagement / jour — likes, commentaires et taux
         </h3>
         <div className="w-full h-72">
           <ResponsiveContainer
@@ -240,11 +266,23 @@ export default function VideoAnalytics({
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" tickFormatter={formatDayLabel} />
               <YAxis
+                yAxisId="left"
                 tickFormatter={(v) => formatNumber(Number(v))}
                 width={70}
               />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                tickFormatter={(v) => `${Number(v)} %`}
+                width={56}
+                stroke={COLOR_ENGAGE}
+              />
               <Tooltip
-                formatter={(value: any) => formatNumber(Number(value))}
+                formatter={(value: any, name: any) =>
+                  name === "Taux d’engagement"
+                    ? formatPercent(value == null ? null : Number(value))
+                    : formatNumber(Number(value))
+                }
                 labelFormatter={(l) =>
                   new Date(l as string).toLocaleDateString("fr-FR", {
                     weekday: "short",
@@ -256,6 +294,7 @@ export default function VideoAnalytics({
               />
               <Legend {...legendProps} />
               <Line
+                yAxisId="left"
                 type="monotone"
                 dataKey="likes"
                 name="Likes"
@@ -264,12 +303,24 @@ export default function VideoAnalytics({
                 stroke={COLOR_LIKES}
               />
               <Line
+                yAxisId="left"
                 type="monotone"
                 dataKey="comments"
                 name="Commentaires"
                 dot={false}
                 strokeWidth={2}
                 stroke={COLOR_COMMS}
+              />
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="engagement"
+                name="Taux d’engagement"
+                dot={false}
+                strokeWidth={2}
+                strokeDasharray="4 3"
+                connectNulls
+                stroke={COLOR_ENGAGE}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -331,7 +382,7 @@ export default function VideoAnalytics({
 
       <section className="rounded-2xl border border-neutral-700 bg-neutral-800/60 backdrop-blur p-4 xs:p-2">
         <h3 className="font-medium mb-2 text-neutral-200">
-          Engagement / heure (Likes, Commentaires)
+          Engagement / heure — likes, commentaires et taux
         </h3>
         <div className="w-full h-72">
           <ResponsiveContainer
@@ -343,11 +394,23 @@ export default function VideoAnalytics({
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="at" tickFormatter={formatHourLabel} />
               <YAxis
+                yAxisId="left"
                 tickFormatter={(v) => formatNumber(Number(v))}
                 width={70}
               />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                tickFormatter={(v) => `${Number(v)} %`}
+                width={56}
+                stroke={COLOR_ENGAGE}
+              />
               <Tooltip
-                formatter={(value: any) => formatNumber(Number(value))}
+                formatter={(value: any, name: any) =>
+                  name === "Taux d’engagement"
+                    ? formatPercent(value == null ? null : Number(value))
+                    : formatNumber(Number(value))
+                }
                 labelFormatter={(l) =>
                   new Date(l as string).toLocaleString("fr-FR", {
                     weekday: "short",
@@ -361,6 +424,7 @@ export default function VideoAnalytics({
               />
               <Legend {...legendProps} />
               <Line
+                yAxisId="left"
                 type="monotone"
                 dataKey="likes"
                 name="Likes"
@@ -369,12 +433,24 @@ export default function VideoAnalytics({
                 stroke={COLOR_LIKES}
               />
               <Line
+                yAxisId="left"
                 type="monotone"
                 dataKey="comments"
                 name="Commentaires"
                 dot={false}
                 strokeWidth={2}
                 stroke={COLOR_COMMS}
+              />
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="engagement"
+                name="Taux d’engagement"
+                dot={false}
+                strokeWidth={2}
+                strokeDasharray="4 3"
+                connectNulls
+                stroke={COLOR_ENGAGE}
               />
             </LineChart>
           </ResponsiveContainer>

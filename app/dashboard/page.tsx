@@ -1,14 +1,18 @@
 // app/dashboard/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { VideoItem } from "@/lib/types";
 import {
   ErrorBox,
   VideoCardSkeleton,
   SortButton,
+  PlatformFilter,
   VideoGrid,
 } from "@/components/dashboard";
+import type { PlatformFilterValue } from "@/components/dashboard";
+import type { Platform } from "@/lib/types";
+import { sortVideos, type SortKey, type SortDir } from "@/lib/videoSort";
 
 /* ================== Types réponse API ================== */
 interface ApiResponseOk {
@@ -19,48 +23,8 @@ interface ApiResponseErr {
 }
 type ApiResponse = ApiResponseOk | ApiResponseErr;
 
-type SortKey = "date" | "views" | "likes" | "comments" | "shares";
-type SortDir = "desc" | "asc";
-
 /* ================== Constantes ================== */
 const STEP = 60;
-
-/* ================== Helpers ================== */
-function metricOf(v: VideoItem, key: SortKey): number {
-  switch (key) {
-    case "date":
-      return v.publishedAt ? Date.parse(v.publishedAt) : Number.NaN;
-    case "views":
-      return v.viewCount ?? Number.NaN;
-    case "likes":
-      return v.likeCount ?? Number.NaN;
-    case "comments":
-      return v.commentCount ?? Number.NaN;
-    case "shares":
-      return v.shareCount ?? Number.NaN; // TikTok only
-  }
-}
-
-function sortVideos(
-  videos: VideoItem[],
-  key: SortKey,
-  dir: SortDir
-): VideoItem[] {
-  const arr = [...videos];
-  const sign = dir === "desc" ? -1 : 1;
-  arr.sort((a, b) => {
-    const A = metricOf(a, key);
-    const B = metricOf(b, key);
-    const aNaN = Number.isNaN(A);
-    const bNaN = Number.isNaN(B);
-    if (aNaN && bNaN) return 0;
-    if (aNaN) return 1;
-    if (bNaN) return -1;
-    if (A === B) return 0;
-    return A > B ? sign : -sign;
-  });
-  return arr;
-}
 
 /* ================== Page ================== */
 export default function DashboardPage(): JSX.Element {
@@ -72,6 +36,16 @@ export default function DashboardPage(): JSX.Element {
   // Tri
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  // Filtre par plateforme
+  const [platform, setPlatform] = useState<PlatformFilterValue>("all");
+
+  // La barre d'outils est en `fixed` : sa hauteur varie avec le nombre de
+  // lignes (filtre + tri passent a la ligne en dessous de ~640px). On la mesure
+  // au lieu de coder la marge en dur, sinon les premieres cartes passent
+  // dessous des qu'une ligne s'ajoute.
+  const barRef = useRef<HTMLDivElement | null>(null);
+  const [barH, setBarH] = useState<number | null>(null);
 
   async function load(newLimit: number): Promise<void> {
     try {
@@ -95,15 +69,46 @@ export default function DashboardPage(): JSX.Element {
     void load(limit);
   }, [limit]);
 
+  useEffect(() => {
+    const el = barRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const measure = () => setBarH(el.offsetHeight);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const counts = useMemo<Record<Platform, number>>(() => {
+    const c: Record<Platform, number> = { youtube: 0, tiktok: 0, instagram: 0 };
+    for (const v of videos ?? []) c[v.platform] += 1;
+    return c;
+  }, [videos]);
+
+  // Un lot rechargé peut ne plus contenir la plateforme filtrée (déconnexion
+  // d'un compte, par exemple) : on revient sur « Toutes » plutôt que d'afficher
+  // une grille vide sans explication.
+  useEffect(() => {
+    if (platform !== "all" && videos && counts[platform] === 0) {
+      setPlatform("all");
+    }
+  }, [counts, platform, videos]);
+
+  const filtered = useMemo(() => {
+    if (!videos) return null;
+    if (platform === "all") return videos;
+    return videos.filter((v) => v.platform === platform);
+  }, [videos, platform]);
+
   const hasTikTok = useMemo(
-    () => (videos ?? []).some((v) => v.platform === "tiktok"),
-    [videos]
+    () => (filtered ?? []).some((v) => v.platform === "tiktok"),
+    [filtered]
   );
 
   const sorted = useMemo(() => {
-    if (!videos) return null;
-    return sortVideos(videos, sortKey, sortDir);
-  }, [videos, sortKey, sortDir]);
+    if (!filtered) return null;
+    return sortVideos(filtered, sortKey, sortDir);
+  }, [filtered, sortKey, sortDir]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir((d) => (d === "desc" ? "asc" : "desc"));
@@ -116,7 +121,7 @@ export default function DashboardPage(): JSX.Element {
   return (
     <>
       {/* BARRE FIXE sous la navbar (navbar ~ h-14) */}
-      <div className="fixed top-14 left-0 right-0 z-20 w-screen">
+      <div ref={barRef} className="fixed top-14 left-0 right-0 z-20 w-screen">
         <div className="w-full bg-neutral-900/90 backdrop-blur border-b border-neutral-700">
           <div className="mx-auto max-w-7xl px-3 sm:px-6">
             <div className="flex flex-wrap items-center gap-2 py-2 sm:py-3">
@@ -172,6 +177,15 @@ export default function DashboardPage(): JSX.Element {
               </div>
             </div>
 
+            <div className="flex items-center gap-2 pb-2 sm:pb-3">
+              <PlatformFilter
+                value={platform}
+                counts={counts}
+                onChange={setPlatform}
+                pending={!videos}
+              />
+            </div>
+
             {/* Skeleton de toolbar au tout premier chargement */}
             {/* {!sorted && !err && (
               <div className="flex gap-2 pb-3">
@@ -188,7 +202,10 @@ export default function DashboardPage(): JSX.Element {
       </div>
 
       {/* marge haute = navbar (56px) + barre (~48px) ≈ 24/28 */}
-      <main className="xs:pt-[180px] pt-24 sm:pt-28 px-3 sm:px-6 max-w-7xl mx-auto">
+      <main
+        className="xs:pt-[180px] pt-24 sm:pt-28 px-3 sm:px-6 max-w-7xl mx-auto"
+        style={barH ? { paddingTop: barH + 56 + 16 } : undefined}
+      >
         {err && <ErrorBox message={err} />}
 
         {/* GRID DE SKELETONS pendant le fetch initial */}
@@ -202,7 +219,20 @@ export default function DashboardPage(): JSX.Element {
 
         {sorted && sorted.length === 0 && (
           <div className="text-sm text-neutral-500">
-            Aucune vidéo trouvée. Vérifie tes clés/permissions.
+            {platform === "all" ? (
+              "Aucune vidéo trouvée. Vérifie tes clés/permissions."
+            ) : (
+              <>
+                Aucune vidéo pour cette plateforme dans ce lot.{" "}
+                <button
+                  type="button"
+                  onClick={() => setPlatform("all")}
+                  className="underline hover:text-neutral-300"
+                >
+                  Afficher toutes les plateformes
+                </button>
+              </>
+            )}
           </div>
         )}
 
