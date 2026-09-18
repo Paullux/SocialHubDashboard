@@ -156,7 +156,22 @@ function Fr() {
           autorisé.
         </li>
         <li>
-          <strong>Matomo</strong>&nbsp;: hébergé par nos soins, aucun tiers.
+          <strong>Hostinger</strong>{" "}
+          — serveur privé virtuel que nous louons et
+          administrons nous-mêmes. Il intervient à deux titres, et à ces deux titres
+          seulement. D’une part il <strong>déclenche</strong>{" "}
+          le relevé horaire&nbsp;:
+          il appelle notre API avec un secret partagé, et c’est l’application qui
+          interroge ensuite les plateformes puis écrit dans la base Neon — vos
+          statistiques ne transitent pas par ce serveur et n’y séjournent pas. D’autre
+          part il <strong>héberge notre instance Matomo</strong>, dont les données de
+          mesure d’audience (§&nbsp;2.5) résident donc sur cette machine. Aucun jeton
+          d’accès à vos comptes n’y est stocké —{" "}
+          <a href="https://www.hostinger.fr/politique-de-confidentialite">politique</a>.
+        </li>
+        <li>
+          <strong>Matomo</strong>&nbsp;: logiciel que nous administrons nous-mêmes,
+          sans éditeur tiers. Il s’exécute sur le serveur Hostinger ci-dessus.
         </li>
       </ul>
       <p>
@@ -460,7 +475,21 @@ function En() {
           are sent to these platforms on every API call you have authorized.
         </li>
         <li>
-          <strong>Matomo</strong>: hosted by us, no third party.
+          <strong>Hostinger</strong>{" "}
+          — a virtual private server that we rent and
+          administer ourselves. It acts in two capacities, and in those two only.
+          First, it <strong>triggers</strong>{" "}
+          the hourly snapshot: it calls our API
+          with a shared secret, and it is the application that then queries the
+          platforms and writes to the Neon database — your statistics neither pass
+          through nor rest on this server. Second, it <strong>hosts our Matomo
+          instance</strong>, whose audience measurement data (§&nbsp;2.5) therefore
+          resides on that machine. No access token to your accounts is stored on it —{" "}
+          <a href="https://www.hostinger.com/privacy-policy">policy</a>.
+        </li>
+        <li>
+          <strong>Matomo</strong>: software we administer ourselves, with no third-party
+          vendor. It runs on the Hostinger server listed above.
         </li>
       </ul>
       <p>We do not sell your data and do not use it for advertising.</p>

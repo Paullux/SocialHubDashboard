@@ -6,6 +6,8 @@
 **Social Hub** est un dashboard qui agrège et analyse tes vidéos YouTube, TikTok et Instagram au même endroit.  
 Il te permet de visualiser rapidement les performances (vues, likes, commentaires, partages) et de comparer l’impact de tes contenus sur chaque plateforme.
 
+> **Strictement en lecture seule.** Les autorisations demandées se limitent à la consultation : Social Hub ne publie, ne modifie et ne supprime rien sur tes comptes.
+
 ---
 
 ## 📚 Documentation
@@ -20,7 +22,7 @@ Une documentation complète (présentation, fonctionnement, architecture techniq
 
 ## 🚀 Fonctionnalités
 
-- 🔗 **Connexion API YouTube & TikTok**
+- 🔗 **Connexion OAuth à YouTube, TikTok et Instagram** — les trois vérifications plateformes ont abouti (TikTok et Meta le 15/09/2026, Google le 16/09/2026)
 - 📊 **KPIs visibles sous chaque vidéo** :
   - Vues
   - Likes
@@ -28,8 +30,13 @@ Une documentation complète (présentation, fonctionnement, architecture techniq
   - Partages (TikTok uniquement)
 - ⚡ **Barre de tri fixe** :  
   trie les vidéos par **Date, Vues, Likes, Commentaires, Partages**
+- 📈 **Page de statistiques par vidéo** : courbes d’évolution horaire et journalière (Recharts)
+- ⏰ **Historique automatique** : un relevé horaire enregistre l’état des compteurs, même quand tu ne consultes pas le dashboard — c’est ce qui permet d’afficher une tendance et pas un chiffre figé
+- 🕓 **Historique YouTube rétroactif** : à la connexion d’un compte Google, l’API YouTube Analytics remonte les données depuis la publication des vidéos, sans attendre l’accumulation des relevés
+- 👥 **Multi-utilisateurs** : authentification Kinde, chaque utilisateur ne voit que ses propres comptes et statistiques
 - 🎨 **UI responsive** : cartes vidéos avec vignettes, titres, KPI toujours visibles
 - 🔄 **Chargement par lots** (+60 vidéos à la fois)
+- 🔒 **RGPD** : jetons chiffrés AES-256-GCM, bandeau de consentement, effacement en self-service, rétention de l’historique limitée à 25 mois
 - ☁️ **Déploiement automatique sur Vercel**
 
 ---
@@ -37,21 +44,18 @@ Une documentation complète (présentation, fonctionnement, architecture techniq
 ## 🛠️ Installation locale
 
 ### Prérequis
-- Node.js 18+
-- Yarn ou pnpm (recommandé)
+- Node.js **24.x** (voir `engines` dans `package.json`)
+- pnpm (recommandé)
+- Une base PostgreSQL accessible (Neon en production)
 
 ### Étapes
 ```bash
 # Cloner le projet
-git clone https://github.com/ton-username/social-hub.git
-cd social-hub
+git clone https://github.com/Paullux/SocialHub.git
+cd SocialHub
 
-# Installer les dépendances
+# Installer les dépendances (déclenche prisma generate)
 pnpm install
-# ou
-yarn install
-# ou
-npm install
 
 # Lancer en local
 pnpm dev
@@ -62,41 +66,78 @@ Le site est accessible sur [http://localhost:3000](http://localhost:3000).
 
 ## 🔑 Variables d’environnement
 
-À définir dans `.env.local` (non versionné) :
+À définir dans `.env.local` (non versionné).
+
+> ⚠️ `env.example` est **désynchronisé** du code : il déclare encore `YOUTUBE_CLIENT_ID` / `YOUTUBE_CLIENT_SECRET` (le code lit `GOOGLE_*`), `YT_CHANNEL_ID` qui n’est plus utilisé, et il ignore `DATABASE_URL`, les variables Kinde et `CRON_SECRET`. La liste ci-dessous est celle réellement lue par le code.
 
 ```env
-# YouTube
-YT_API_KEY=ta_clef_api_youtube
-YT_CHANNEL_ID=ton_channel_id
+# Base de données
+DATABASE_URL=              # pooled
+DATABASE_URL_UNPOOLED=     # direct (migrations Prisma)
 
-# TikTok (via OAuth 2.0, token stocké en BDD)
-DATABASE_URL=postgres://...
+# Authentification applicative (Kinde)
+KINDE_CLIENT_ID=
+KINDE_CLIENT_SECRET=
+KINDE_ISSUER_URL=
+KINDE_SITE_URL=
+KINDE_POST_LOGIN_REDIRECT_URL=
+KINDE_POST_LOGOUT_REDIRECT_URL=
+
+# YouTube / Google
+YT_API_KEY=                # clé serveur, API YouTube Data v3
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=
+
+# TikTok
+TIKTOK_CLIENT_KEY=
+TIKTOK_CLIENT_SECRET=
+TIKTOK_REDIRECT_URI=
+
+# Instagram (Instagram Login, sans Page Facebook)
+IG_LOGIN_APP_ID=
+IG_LOGIN_APP_SECRET=
+IG_LOGIN_REDIRECT_URI=
+
+# Chiffrement des jetons OAuth stockés (32 octets en base64)
+TOKENS_AES_KEY=
+
+# Relevé horaire
+CRON_SECRET=
+
+# Divers
+NEXT_PUBLIC_BASE_URL=
+NEXT_PUBLIC_MATOMO_URL=
+NEXT_PUBLIC_MATOMO_SITE_ID=
+NEXT_PUBLIC_MATOMO_CONTAINER=
+ALLOW_TIKTOK_DEBUG=        # "1" pour ouvrir /api/tiktok/diagnostic
 ```
 
-- `YT_API_KEY` : clé API générée sur Google Cloud Console  
-- `YT_CHANNEL_ID` : l’ID du channel YouTube à analyser  
-- `DATABASE_URL` : connexion à ta BDD pour stocker le token TikTok
+`TOKENS_AES_KEY` doit être défini **partout où l’application tourne**, y compris là où s’exécute le relevé horaire : sans elle, les jetons stockés sont indéchiffrables.
 
 ---
 
 ## 📦 Déploiement
 
-Le projet est configuré pour **Vercel** :
+L’application est déployée sur **Vercel** :
 
 1. Connecte ton repo GitHub à Vercel
 2. Ajoute les variables d’environnement dans *Project → Settings → Environment Variables*
 3. Ajoute ton domaine custom (ex. `https://social-hub.fr`)
-4. Chaque `git push main` déploie automatiquement en production
+4. Chaque `git push` sur `main` déploie automatiquement en production
+
+**Le relevé horaire n’est pas un cron Vercel.** `vercel.json` déclare `{"crons": []}` : c’est le crontab d’un VPS séparé (Hostinger, orchestré par Coolify) qui appelle `/api/cron/snapshot?key=$CRON_SECRET` toutes les heures. Ce même VPS héberge l’instance Matomo. Le workflow GitHub Actions `hourly-snapshot.yml` est désactivé et conservé comme secours manuel.
 
 ---
 
 ## 📈 Roadmap
 
-- [ ] Graphiques d’évolution (Recharts)
-- [ ] Filtre par plateforme (YouTube / TikTok / Tous)
+- [x] Graphiques d’évolution (Recharts) — page `/analytics/[videoId]`
+- [x] Authentification multi-utilisateurs — Kinde, jetons par utilisateur
+- [ ] Filtre par plateforme (YouTube / TikTok / Instagram / Tous)
 - [ ] Ratio d’engagement automatique
 - [ ] Export CSV/Excel des KPIs
-- [ ] Authentification multi-utilisateurs
+- [ ] Publication multi-plateformes depuis une interface unique — voir la [vision](https://github.com/Paullux/SocialHub/tree/Documents)
 
 ---
 
