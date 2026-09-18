@@ -44,7 +44,11 @@ Une documentation complète (présentation, fonctionnement, architecture techniq
 ## 🛠️ Installation locale
 
 ### Prérequis
-- Node.js **22.x** (voir `engines` dans `package.json`) — Node 20 est en fin de vie, ne plus l'utiliser
+- Node.js **22.x** — et **seulement** 22.x (voir `engines` dans `package.json`)
+  > ⚠️ **Ne pas monter au-dessus de 22.22.0.** Node 24 casse la connexion Prisma → Neon :
+  > erreur sur les paquets de base de données, résolue seulement en redescendant en 22.
+  > La remontée est un chantier à part entière, pas un effet de bord d'une mise à jour.
+  > Node 20, de son côté, est en fin de vie et ne doit plus servir.
 - pnpm (recommandé)
 - Une base PostgreSQL accessible (Neon en production)
 
