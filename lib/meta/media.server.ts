@@ -39,8 +39,6 @@ export async function fetchInstagramMedia(
     const data: any = await r.json();
 
     for (const m of data?.data ?? []) {
-      const isVideo =
-        m.media_type === "VIDEO" || m.media_product_type === "REELS";
       items.push({
         id: String(m.id),
         platform: "instagram",
@@ -53,19 +51,20 @@ export async function fetchInstagramMedia(
           typeof m.like_count === "number" ? m.like_count : undefined,
         commentCount:
           typeof m.comments_count === "number" ? m.comments_count : undefined,
-        // viewCount rempli plus bas pour les vidéos
-        _isVideo: isVideo,
-      } as VideoItem & { _isVideo?: boolean });
+        // viewCount rempli plus bas
+      } as VideoItem);
       if (items.length >= limit) break;
     }
 
     next = data?.paging?.next ?? null;
   }
 
-  // Vues : /insights par média vidéo, borné à 25 appels, best-effort.
-  const videos = items.filter((v) => (v as any)._isVideo).slice(0, 25);
+  // Vues : /insights par média, borné à 25 appels, best-effort.
+  // Pas de filtre sur le type de média : depuis l'API v22, `views` est servi
+  // pour tout (REELS, VIDEO, IMAGE, CAROUSEL_ALBUM). Ne demander les insights
+  // que pour les vidéos laissait les carrousels et les photos à « — ».
   await Promise.all(
-    videos.map(async (v) => {
+    items.slice(0, 25).map(async (v) => {
       try {
         const r = await fetch(
           `${IG_LOGIN_GRAPH}/${v.id}/insights?metric=views&access_token=${at}`,
@@ -82,6 +81,5 @@ export async function fetchInstagramMedia(
     })
   );
 
-  for (const v of items) delete (v as any)._isVideo;
   return items;
 }
