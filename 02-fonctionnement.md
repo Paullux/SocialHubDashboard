@@ -49,10 +49,10 @@ En cliquant sur "Stats" sur une vidéo, tu accèdes à une page dédiée avec de
 
 <br>
 
-- **Récupération des vidéos** : `GET /api/videos` interroge en direct chaque plateforme connectée (YouTube Data API v3 par clé API, TikTok `video/list` via OAuth, Instagram Graph API via OAuth), fusionne, déduplique et trie les résultats. Aucune mise en cache longue durée côté serveur — c'est toujours l'état actuel des plateformes qui est reflété (voir [Intégrations API](05-integrations-api.md)).
+- **Récupération des vidéos** : `GET /api/videos` interroge en direct chaque plateforme connectée (YouTube Data API v3 par clé API, TikTok `video/list` via OAuth, Instagram API with Instagram Login via OAuth), fusionne, déduplique et trie les résultats. Aucune mise en cache longue durée côté serveur — c'est toujours l'état actuel des plateformes qui est reflété (voir [Intégrations API](05-integrations-api.md)).
 - **Historique des métriques** : un job planifié (cron horaire) rappelle `/api/cron/snapshot` toutes les heures, qui écrit une ligne `VideoMetric` par vidéo (`platform`, `videoId`, `snapshotAt`, `views`, `likes`, `comments`, `shares`) dans la base PostgreSQL. C'est cette table qui alimente les graphiques d'évolution — sans ce snapshot horaire, on n'aurait qu'un instantané, jamais une courbe.
 - **Rétention** : l'historique de métriques est conservé 25 mois puis purgé automatiquement.
-- **Authentification** : middleware `proxy.ts` (Next.js) exige la permission Kinde `read:dashboard` sur `/dashboard/*` et `/settings/linked-accounts/*` ; les routes API se protègent elles-mêmes (`requireUser()`, rate-limiting par IP).
+- **Authentification** : le middleware `proxy.ts` exige la permission Kinde `read:dashboard` sur `/dashboard/*`, `/analytics/*` et `/settings/linked-accounts/*`, et refuse par défaut toute route sous `/api/` à qui n'a pas de session. Les routes ajoutent leur propre garde (`requireDashboardUser()`) et un rate-limiting par IP.
 
 Détails complets : [Architecture](03-architecture.md).
 

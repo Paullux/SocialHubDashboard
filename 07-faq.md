@@ -39,10 +39,10 @@ Le dépôt est public sur GitHub. Une licence et un modèle "open source + servi
 C'est encouragé une fois le projet suffisamment mûr pour accueillir des contributions externes. En attendant, une issue ou une suggestion sur le dépôt GitHub est toujours bienvenue.
 
 **Où est hébergé Social Hub ?**
-L'application tourne sur Vercel, la base de données sur Neon (PostgreSQL), dans un centre de données européen. Détails dans [Architecture](03-architecture.md).
+L'application tourne sur **Vercel** et la base de données sur **Neon** (PostgreSQL, région de Francfort). Le relèvement horaire des statistiques et l'instance Matomo tournent à part, sur un **VPS Hostinger** géré avec Coolify. Détails dans [Architecture](03-architecture.md).
 
-**Pourquoi certaines connexions (YouTube/TikTok/Instagram) affichent un avertissement "application non validée" ?**
-C'est normal pendant la phase de vérification par chaque plateforme — voir [Intégrations API](05-integrations-api.md). Ça n'affecte ni la sécurité ni le fonctionnement pour un usage personnel.
+**Est-ce que Social Hub est validé par YouTube, TikTok et Instagram ?**
+Oui, les trois, en septembre 2026 — TikTok et Instagram le 15, YouTube le 16. L'avertissement « application non validée » que certains ont pu voir pendant la phase de vérification a disparu. Voir [Intégrations API](05-integrations-api.md).
 
 ---
 

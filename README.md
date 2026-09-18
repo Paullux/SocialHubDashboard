@@ -70,4 +70,6 @@ Pour la mettre à jour : `git checkout Documents` (ou un `git worktree` dédié)
 
 *Social Hub est un projet en développement actif. Cette documentation évolue avec le code.*
 
+*Dernière vérification face au code : **18 septembre 2026**.*
+
 </div>

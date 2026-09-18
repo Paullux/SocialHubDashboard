@@ -23,16 +23,22 @@ Social Hub se connecte à trois plateformes via leurs API **officielles**, chacu
 |---|---|---|
 | ▶️ **YouTube** | YouTube Data API v3 + YouTube Analytics API | Liste des vidéos, vues, statistiques de la chaîne |
 | 🎵 **TikTok** | TikTok for Developers (Login Kit) | Liste des vidéos, vues, likes, commentaires, partages |
-| 📸 **Instagram** | Instagram Graph API (Instagram Login) | Publications, vues, portée |
+| 📸 **Instagram** | Instagram API with Instagram Login (`graph.instagram.com`) | Publications, vues, portée |
 
 Pour les trois, l'autorisation demandée est strictement de **lecture** — voir [Sécurité & vie privée](04-securite-vie-privee.md).
 
 ## Statut de validation
 
-Chaque plateforme impose un processus de vérification avant d'autoriser une application à être utilisée par des utilisateurs autres que son développeur. Ce n'est **pas un obstacle à l'usage personnel** — YouTube, TikTok et Instagram fonctionnent déjà pour le compte du développeur pendant que la vérification suit son cours en arrière-plan, nécessaire uniquement pour ouvrir Social Hub à d'autres créateurs.
+Chaque plateforme impose un processus de vérification avant d'autoriser une application à être utilisée par des utilisateurs autres que son développeur.
 
 > [!NOTE]
-> Les trois vérifications (YouTube, TikTok, Instagram) sont en cours d'examen par leurs équipes respectives. Cette page sera mise à jour à mesure qu'elles aboutissent.
+> **Les trois vérifications ont abouti.** Plus aucun blocage côté plateforme pour ouvrir Social Hub à d'autres créateurs.
+
+| Plateforme | Vérification | Obtenue le |
+|---|---|---|
+| 🎵 TikTok | Passage Sandbox → Production | 15 septembre 2026 |
+| 📸 Instagram | App Review Meta | 15 septembre 2026 |
+| ▶️ YouTube | Vérification OAuth Google (branding + accès aux données) | 16 septembre 2026 |
 
 <details>
 <summary>🔧 Pour les développeurs — comment ça marche techniquement</summary>
@@ -53,7 +59,9 @@ Chaque intégration suit le même schéma :
 - TikTok : `user.info.basic`, `video.list`
 - Instagram : `instagram_business_basic`, `instagram_business_manage_insights`
 
-**Renouvellement des jetons** : les jetons expirent après une durée fixée par chaque plateforme ; un rafraîchissement automatique a lieu avant expiration pour éviter toute coupure côté utilisateur.
+**Renouvellement des jetons** : les jetons expirent après une durée fixée par chaque plateforme ; un rafraîchissement automatique a lieu avant expiration pour éviter toute coupure côté utilisateur. Côté Instagram, le jeton longue durée est renouvelé par le snapshot horaire dès qu'il arrive à moins de dix jours de son expiration.
+
+**Historique antérieur à la connexion** : côté YouTube, le scope `yt-analytics.readonly` permet de remonter l'historique des vidéos **depuis leur publication** au moment où le compte est relié, au lieu d'attendre que le snapshot horaire accumule des points. Les autres plateformes n'offrent pas d'équivalent : leur historique démarre à la connexion.
 
 </details>
 

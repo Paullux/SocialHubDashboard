@@ -48,7 +48,7 @@ Chaque appli a son propre tableau de bord, ses propres graphiques, sa propre fa�
 
 <br>
 
-Social Hub est une application **Next.js** (App Router) hébergée sur **Vercel**, qui interroge les APIs officielles de YouTube Data API v3, TikTok for Developers et Instagram Graph API via OAuth, stocke les jetons chiffrés et un historique de métriques dans une base **PostgreSQL (Neon)**, et affiche le tout derrière une authentification **Kinde**.
+Social Hub est une application **Next.js** (App Router) hébergée sur **Vercel**, qui interroge les APIs officielles de YouTube (Data API v3 et Analytics), TikTok for Developers et Instagram API with Instagram Login via OAuth, stocke les jetons chiffrés et un historique de métriques dans une base **PostgreSQL (Neon)**, et affiche le tout derrière une authentification **Kinde**.
 
 Détails complets : [Architecture](03-architecture.md).
 

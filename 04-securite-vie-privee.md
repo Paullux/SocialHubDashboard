@@ -51,12 +51,13 @@ Social Hub utilise **Matomo**, un outil de mesure d'audience auto-hébergé (pas
 
 <br>
 
-- **Chiffrement** : AES-256-GCM, clé applicative (`TOKENS_AES_KEY`), implémenté dans `lib/accountLinks.ts` — appliqué aux jetons OAuth de toutes les plateformes (table `AccountLink`) ainsi qu'aux jetons TikTok historiques de la table `OAuthToken`.
-- **Autorisation applicative** : middleware Next.js (`proxy.ts`) vérifie la permission Kinde `read:dashboard` sur les routes protégées (`/dashboard/*`, `/settings/linked-accounts/*`) ; les routes API sensibles (`/api/videos`, `/api/analytics/*`) exigent une session valide côté serveur (`requireUser()`), avec un contournement dédié et signé pour le job de snapshot horaire uniquement (`?key=CRON_SECRET`, comparaison en temps constant).
+- **Chiffrement** : AES-256-GCM, clé applicative (`TOKENS_AES_KEY`), implémenté dans `lib/accountLinks.ts` — appliqué aux jetons OAuth de toutes les plateformes, dans l'unique table `AccountLink`. Chaque jeton est rattaché à un utilisateur : il n'existe plus de jeton partagé au niveau de l'application.
+- **Autorisation applicative** : le middleware Next.js (`proxy.ts`) vérifie la permission Kinde `read:dashboard` sur les pages protégées (`/dashboard/*`, `/analytics/*`, `/settings/linked-accounts/*`) et applique un **refus par défaut à toute route sous `/api/`** : sans session, la requête n'atteint pas le handler. Font exception les chemins qui s'authentifient autrement — handler Kinde, flux OAuth (gardés route par route par `requireDashboardUser()`), snapshot horaire (`?key=CRON_SECRET`, comparaison en temps constant) et rappel de désautorisation Meta (signature HMAC).
+- **Cloisonnement entre utilisateurs** : au-delà de la session, `/api/analytics/*` vérifie que la vidéo demandée appartient bien à un compte que l'utilisateur a lui-même relié, en réinterrogeant l'API de la plateforme — connaître l'identifiant d'une vidéo ne suffit pas à en obtenir les statistiques.
 - **En-têtes de sécurité** : Content-Security-Policy stricte avec nonce par requête, `X-Frame-Options: DENY`, `Referrer-Policy`, HSTS en production.
 - **Rate limiting** : les routes API publiques sont limitées par IP pour limiter les abus.
 - **Scopes OAuth minimaux** : chaque plateforme n'accorde que les autorisations strictement nécessaires à l'affichage des statistiques (ex. `youtube.readonly`, `yt-analytics.readonly` côté YouTube) — jamais de scope d'écriture ou de publication.
-- **Sous-traitants** : hébergement base de données (Neon, UE) et hébergement applicatif (Vercel) — détaillés dans la politique de confidentialité publique.
+- **Sous-traitants** : hébergement applicatif (Vercel), base de données (Neon, région de Francfort), authentification (Kinde), et un VPS loué chez **Hostinger** qui déclenche le relevé horaire et héberge l'instance Matomo. La liste de référence reste celle de la politique de confidentialité publique.
 
 </details>
 
