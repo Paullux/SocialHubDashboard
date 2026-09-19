@@ -9,9 +9,48 @@ import { CookieConsentProvider } from "@/components/consent/CookieConsentProvide
 import CookieBanner from "@/components/consent/CookieBanner";
 import Matomo from "@/components/analytics/Matomo";
 
+// Aperçus de lien (Facebook, LinkedIn, WhatsApp, X…). L'image doit être servie
+// en absolu : `metadataBase` préfixe les chemins relatifs ci-dessous. Le
+// middleware (proxy.ts) laisse passer les fichiers image sans authentification,
+// les crawlers peuvent donc récupérer /og.jpg.
+// Volontairement en dur, et non `NEXT_PUBLIC_BASE_URL` : cette variable vaut
+// l'URL Vercel de préproduction (social-hub-seven.vercel.app) et ferait annoncer
+// ce domaine dans les aperçus et la balise canonique.
+const SITE_URL = "https://social-hub.fr";
+
+const SITE_TAGLINE =
+  "Social Hub — toutes tes stats YouTube, TikTok et Instagram sur un seul écran";
+
+const SITE_DESCRIPTION =
+  "Tes vidéos YouTube, TikTok et Instagram dans un seul tableau de bord : vues, likes, commentaires et leur évolution dans le temps. Strictement en lecture seule.";
+
 export const metadata: Metadata = {
-  title: "Social-Hub",
-  description: "Dashboard vidéos & KPIs",
+  metadataBase: new URL(SITE_URL),
+  title: "Social Hub",
+  description: SITE_DESCRIPTION,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    url: "/",
+    siteName: "Social Hub",
+    title: SITE_TAGLINE,
+    description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: "/og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Le tableau de bord Social Hub : des vidéos YouTube et TikTok côte à côte avec leurs vues, likes et commentaires.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TAGLINE,
+    description: SITE_DESCRIPTION,
+    images: ["/og.jpg"],
+  },
 };
 
 // La CSP (proxy.ts) utilise un nonce + 'strict-dynamic' : Next doit poser ce
