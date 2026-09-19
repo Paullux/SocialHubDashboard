@@ -15,13 +15,13 @@ const copy = {
     hero: "Le tableau de bord unique pour suivre les statistiques de tes vidéos YouTube, TikTok et Instagram — vues, likes, commentaires, partages — sans jongler entre les apps.",
     howTitle: "Comment ça marche",
     howBody:
-      "Un créateur qui publie sur plusieurs plateformes doit habituellement ouvrir chaque application pour connaître ses chiffres. Social-Hub rassemble tout au même endroit : un seul tableau de bord listant toutes tes vidéos, triable par date, vues, likes, commentaires et partages, avec un historique conservé automatiquement.",
+      "Un créateur qui publie sur plusieurs plateformes doit habituellement ouvrir chaque application pour connaître ses chiffres. Social Hub rassemble tout au même endroit : un seul tableau de bord listant toutes tes vidéos, triable par date, vues, likes, commentaires et partages, avec un historique conservé automatiquement.",
     howReadOnly:
-      "Social-Hub est strictement en lecture seule : le service consulte tes statistiques, il ne publie, ne modifie et ne supprime jamais rien sur tes comptes.",
+      "Social Hub est strictement en lecture seule : le service consulte tes statistiques, il ne publie, ne modifie et ne supprime jamais rien sur tes comptes.",
     dataTitle: "Utilisation de tes données YouTube/TikTok/Instagram",
     dataBody: (
       <>
-        Lorsque tu connectes un compte, Social-Hub demande uniquement des
+        Lorsque tu connectes un compte, Social Hub demande uniquement des
         accès en lecture seule&nbsp;: pour YouTube{" "}
         <code className="text-neutral-200">youtube.readonly</code> et{" "}
         <code className="text-neutral-200">yt-analytics.readonly</code>, pour
@@ -59,13 +59,13 @@ const copy = {
     hero: "The single dashboard to track your YouTube, TikTok and Instagram video stats — views, likes, comments, shares — without juggling between apps.",
     howTitle: "How it works",
     howBody:
-      "Creators who publish across several platforms usually have to open each app separately to check their numbers. Social-Hub brings it all together in one place: a single dashboard listing all your videos, sortable by date, views, likes, comments and shares, with history kept automatically.",
+      "Creators who publish across several platforms usually have to open each app separately to check their numbers. Social Hub brings it all together in one place: a single dashboard listing all your videos, sortable by date, views, likes, comments and shares, with history kept automatically.",
     howReadOnly:
-      "Social-Hub is strictly read-only: the service reads your statistics, it never posts, edits or deletes anything on your accounts.",
+      "Social Hub is strictly read-only: the service reads your statistics, it never posts, edits or deletes anything on your accounts.",
     dataTitle: "Use of your YouTube/TikTok/Instagram data",
     dataBody: (
       <>
-        When you connect an account, Social-Hub only requests read-only
+        When you connect an account, Social Hub only requests read-only
         scopes: for YouTube{" "}
         <code className="text-neutral-200">youtube.readonly</code> and{" "}
         <code className="text-neutral-200">yt-analytics.readonly</code>, for
@@ -104,7 +104,7 @@ export default function HomeContent({ canSeeDashboard }: { canSeeDashboard: bool
       {/* Hero */}
       <div className="rounded-2xl p-8 border border-neutral-800 bg-neutral-900/60 backdrop-blur">
         <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <h1 className="text-2xl font-semibold text-neutral-100">Social-Hub</h1>
+          <h1 className="text-2xl font-semibold text-neutral-100">Social Hub</h1>
           <LangToggle lang={lang} onChange={setLang} label={t.langLabel} />
         </div>
         <p className="opacity-80 text-neutral-300 mb-6">{t.hero}</p>

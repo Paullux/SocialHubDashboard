@@ -18,37 +18,44 @@ import Matomo from "@/components/analytics/Matomo";
 // ce domaine dans les aperçus et la balise canonique.
 const SITE_URL = "https://social-hub.fr";
 
-const SITE_TAGLINE =
-  "Social Hub — toutes tes stats YouTube, TikTok et Instagram sur un seul écran";
+// Deux longueurs, deux usages. Le titre du document vise les 50-60 caractères
+// utiles dans les résultats de recherche ; les titres sociaux restent sous 60
+// (Facebook, LinkedIn) et sous 70 (X), seuils au-delà desquels ils tronquent.
+const PAGE_TITLE = "Social Hub — stats YouTube, TikTok et Instagram réunies";
+const SOCIAL_TITLE = "Tes stats YouTube, TikTok et Instagram sur un écran";
 
-const SITE_DESCRIPTION =
-  "Tes vidéos YouTube, TikTok et Instagram dans un seul tableau de bord : vues, likes, commentaires et leur évolution dans le temps. Strictement en lecture seule.";
+// Même logique : la meta description exploite ses ~155 caractères, alors que
+// les aperçus sociaux n'en affichent souvent que ~125 sur mobile.
+const SEO_DESCRIPTION =
+  "Réunis tes vidéos YouTube, TikTok et Instagram dans un seul tableau de bord : vues, likes, commentaires et leur évolution. En lecture seule.";
+const SOCIAL_DESCRIPTION =
+  "Toutes tes vidéos et leurs statistiques au même endroit. Lecture seule : rien n'est publié ni modifié.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Social Hub",
-  description: SITE_DESCRIPTION,
+  title: PAGE_TITLE,
+  description: SEO_DESCRIPTION,
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "fr_FR",
     url: "/",
     siteName: "Social Hub",
-    title: SITE_TAGLINE,
-    description: SITE_DESCRIPTION,
+    title: SOCIAL_TITLE,
+    description: SOCIAL_DESCRIPTION,
     images: [
       {
         url: "/og.jpg",
         width: 1200,
         height: 630,
-        alt: "Le tableau de bord Social Hub : des vidéos YouTube et TikTok côte à côte avec leurs vues, likes et commentaires.",
+        alt: "Le tableau de bord Social Hub : des vidéos YouTube et TikTok côte à côte avec leurs vues, likes et commentaires, et le bouton « Essayer la démo ».",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: SITE_TAGLINE,
-    description: SITE_DESCRIPTION,
+    title: SOCIAL_TITLE,
+    description: SOCIAL_DESCRIPTION,
     images: ["/og.jpg"],
   },
 };

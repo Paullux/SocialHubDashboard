@@ -13,7 +13,7 @@ export type DemoVideo = {
 const demoVideos: DemoVideo[] = [
   {
     id: "y1",
-    title: "Intro au projet Social-Hub",
+    title: "Intro au projet Social Hub",
     description:
       "Présentation du tableau de bord : agréger vidéos YouTube, TikTok et Instagram au même endroit et suivre les KPI dans le temps.\n\nChapitres, liens et sources dans la description complète — visible ici au survol de la carte.",
     thumbnailUrl: "/thumbs/1.jpg",
