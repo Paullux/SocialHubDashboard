@@ -36,9 +36,9 @@ const SOCIAL_DESCRIPTION =
 // à rattacher les partages aux statistiques de domaine de l'app Meta. La balise
 // n'est émise que si la variable est renseignée, pour ne pas publier un
 // identifiant vide — ce que le débogueur signalerait tout autant.
-// Attention : c'est l'identifiant de l'app Facebook, qui n'est pas toujours
-// celui d'`IG_LOGIN_APP_ID` selon la méthode de connexion Instagram retenue.
-const FB_APP_ID = process.env.FB_APP_ID;
+// `META_APP_ID` désigne l'app Meta « Social Hub », à ne pas confondre avec
+// `IG_LOGIN_APP_ID` qui désigne l'app Instagram, distincte.
+const META_APP_ID = process.env.META_APP_ID;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     description: SOCIAL_DESCRIPTION,
     images: ["/og.jpg"],
   },
-  ...(FB_APP_ID ? { other: { "fb:app_id": FB_APP_ID } } : {}),
+  ...(META_APP_ID ? { other: { "fb:app_id": META_APP_ID } } : {}),
 };
 
 // La CSP (proxy.ts) utilise un nonce + 'strict-dynamic' : Next doit poser ce
