@@ -21,7 +21,7 @@ const SITE_URL = "https://social-hub.fr";
 // Deux longueurs, deux usages. Le titre du document vise les 50-60 caractères
 // utiles dans les résultats de recherche ; les titres sociaux restent sous 60
 // (Facebook, LinkedIn) et sous 70 (X), seuils au-delà desquels ils tronquent.
-const PAGE_TITLE = "Social Hub — stats YouTube, TikTok et Instagram réunies";
+const PAGE_TITLE = "Social Hub Dashboard — stats YouTube, TikTok et Instagram";
 const SOCIAL_TITLE = "Tes stats YouTube, TikTok et Instagram sur un écran";
 
 // Même logique : la meta description exploite ses ~155 caractères, alors que
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fr_FR",
     url: "/",
-    siteName: "Social Hub",
+    siteName: "Social Hub Dashboard",
     title: SOCIAL_TITLE,
     description: SOCIAL_DESCRIPTION,
     images: [

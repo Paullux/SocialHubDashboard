@@ -48,8 +48,10 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex h-14 items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <Image src="/social_hub_icon.svg" alt="Social Hub" width={28} height={28} className="rounded-md" priority />
-            <span className="font-semibold text-neutral-100">Social Hub</span>
+            <Image src="/social_hub_icon.svg" alt="Social Hub Dashboard" width={28} height={28} className="rounded-md" priority />
+            <span className="font-semibold text-neutral-100">
+              Social Hub<span className="hidden sm:inline">&nbsp;Dashboard</span>
+            </span>
           </Link>
 
           <div className="flex items-center gap-5">

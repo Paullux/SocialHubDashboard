@@ -104,7 +104,7 @@ export default function HomeContent({ canSeeDashboard }: { canSeeDashboard: bool
       {/* Hero */}
       <div className="rounded-2xl p-8 border border-neutral-800 bg-neutral-900/60 backdrop-blur">
         <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <h1 className="text-2xl font-semibold text-neutral-100">Social Hub</h1>
+          <h1 className="text-2xl font-semibold text-neutral-100">Social Hub Dashboard</h1>
           <LangToggle lang={lang} onChange={setLang} label={t.langLabel} />
         </div>
         <p className="opacity-80 text-neutral-300 mb-6">{t.hero}</p>
