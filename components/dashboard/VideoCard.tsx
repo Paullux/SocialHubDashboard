@@ -106,10 +106,15 @@ function isPortraitThumbnail(v: VideoItem): boolean {
 export default function VideoCard({
   video: v,
   demo = false,
+  priority = false,
 }: {
   video: VideoItem;
   /** Vidéo factice (page /demo) : id non réel, on n'appelle pas l'API de stats. */
   demo?: boolean;
+  /** Carte visible dès le chargement (premières lignes de la grille). Sa
+   *  miniature est candidate au LCP : elle se charge donc sans attendre, et
+   *  la carte échappe au `content-visibility` qui allège les suivantes. */
+  priority?: boolean;
 }) {
   const tip = buildTip(v);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
@@ -128,7 +133,15 @@ export default function VideoCard({
 
   return (
     <li
-      className="group relative bg-neutral-800/70 backdrop-blur rounded-2xl overflow-hidden border border-neutral-700 shadow-sm hover:shadow transition flex flex-col"
+      className={
+        "group relative bg-neutral-800/70 backdrop-blur rounded-2xl overflow-hidden border border-neutral-700 shadow-sm hover:shadow transition flex flex-col" +
+        // Hors des premières lignes, le navigateur saute entièrement le rendu
+        // tant que la carte n'approche pas de l'écran. Sur une grille de 60
+        // vignettes — dont beaucoup de verticales, avec leur fond flouté à
+        // composer — c'est le poste de peinture le plus lourd. La taille
+        // annoncée évite que la barre de défilement saute pendant le rendu.
+        (priority ? "" : " [content-visibility:auto] [contain-intrinsic-size:auto_320px]")
+      }
       onMouseMove={tip ? track : undefined}
       onMouseLeave={hide}
       onFocusCapture={tip ? anchor : undefined}
@@ -154,7 +167,8 @@ export default function VideoCard({
                   alt=""
                   aria-hidden="true"
                   className="absolute inset-0 w-full h-full object-cover blur-[3px] scale-110 opacity-40"
-                  loading="lazy"
+                  loading={priority ? "eager" : "lazy"}
+                  decoding="async"
                 />
                 {/* Assombrit le flou pour rester dans le thème sombre, quelle que soit la luminosité de l'image */}
                 <div className="absolute inset-0 bg-neutral-900/55" />
@@ -162,7 +176,9 @@ export default function VideoCard({
                   src={v.thumbnail}
                   alt={altText}
                   className="relative w-full h-full object-contain"
-                  loading="lazy"
+                  loading={priority ? "eager" : "lazy"}
+                  fetchPriority={priority ? "high" : undefined}
+                  decoding="async"
                 />
               </>
             ) : (
@@ -170,7 +186,9 @@ export default function VideoCard({
                 src={v.thumbnail}
                 alt={altText}
                 className="w-full h-full object-cover"
-                loading="lazy"
+                loading={priority ? "eager" : "lazy"}
+                fetchPriority={priority ? "high" : undefined}
+                decoding="async"
               />
             )
           ) : (
