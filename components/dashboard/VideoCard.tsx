@@ -90,11 +90,18 @@ function buildTip(v: VideoItem): TipContent | null {
 }
 
 /** Miniature verticale (Reels/TikTok...) : le cadre 16:9 reste identique pour
- *  toutes les cartes (grille alignée), mais l'image est ajustée à la hauteur
- *  du cadre (rien n'est rogné) et les bandes latérales sont comblées par un
- *  flou du même visuel plutôt que rognées ou vides. Horizontale ou carrée :
- *  comportement actuel inchangé (l'image remplit le cadre, léger rognage
- *  possible sur les bords si le ratio diffère un peu de 16:9). */
+ *  toutes les cartes (grille alignée), l'image est ajustée à la hauteur du
+ *  cadre — rien n'est rogné — et les bandes latérales restent noires.
+ *
+ *  Ce noir n'est pas un choix arbitraire : YouTube livre ses miniatures dans
+ *  un cadre 16:9 avec les bandes déjà incrustées en noir dans le fichier. Une
+ *  même vidéo publiée sur les trois plateformes se présentait donc de deux
+ *  façons — bandes noires côté YouTube, fond flouté côté TikTok et Instagram.
+ *  Le fond uni aligne les trois, et évite au passage de décoder puis flouter
+ *  une seconde fois la même image sur chaque carte verticale.
+ *
+ *  Horizontale ou carrée : l'image remplit le cadre, léger rognage possible
+ *  sur les bords si le ratio diffère un peu de 16:9. */
 function isPortraitThumbnail(v: VideoItem): boolean {
   return (
     typeof v.thumbnailWidth === "number" &&
@@ -156,31 +163,18 @@ export default function VideoCard({
         className="block"
       >
         <div
-          className={`relative aspect-video overflow-hidden ${portrait ? "bg-neutral-900" : "bg-neutral-100"}`}
+          className={`relative aspect-video overflow-hidden ${portrait ? "bg-black" : "bg-neutral-100"}`}
         >
           {v.thumbnail ? (
             portrait ? (
-              <>
-                {/* Fond flouté : comble les bandes latérales sans rogner ni laisser de vide */}
-                <img
-                  src={v.thumbnail}
-                  alt=""
-                  aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-cover blur-[3px] scale-110 opacity-40"
-                  loading={priority ? "eager" : "lazy"}
-                  decoding="async"
-                />
-                {/* Assombrit le flou pour rester dans le thème sombre, quelle que soit la luminosité de l'image */}
-                <div className="absolute inset-0 bg-neutral-900/55" />
-                <img
-                  src={v.thumbnail}
-                  alt={altText}
-                  className="relative w-full h-full object-contain"
-                  loading={priority ? "eager" : "lazy"}
-                  fetchPriority={priority ? "high" : undefined}
-                  decoding="async"
-                />
-              </>
+              <img
+                src={v.thumbnail}
+                alt={altText}
+                className="w-full h-full object-contain"
+                loading={priority ? "eager" : "lazy"}
+                fetchPriority={priority ? "high" : undefined}
+                decoding="async"
+              />
             ) : (
               <img
                 src={v.thumbnail}
