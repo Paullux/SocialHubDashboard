@@ -72,13 +72,19 @@ export async function fetchYouTubeLatest(
       const sn = v?.snippet ?? {};
       const st = v?.statistics ?? {};
 
-      // thumbnails : on prend le meilleur dispo (YouTube fournit width/height
-      // pour chaque taille, pas besoin de les sonder nous-mêmes)
+      // Miniatures : `medium` (320×180) plutôt que `maxres` (1280×720). Les
+      // cartes de la grille font environ 386 px de large : `maxres` envoyait
+      // onze fois les pixels nécessaires, pour rien.
+      //
+      // `medium` est retenu parce que c'est, avec `maxres`, la seule taille en
+      // vrai 16:9 — `high` et `standard` sont en 4:3 avec des bandes noires,
+      // qui apparaîtraient dans le cadre. YouTube fournit width/height pour
+      // chaque taille, inutile de les sonder nous-mêmes.
       const thumbObj =
-        sn?.thumbnails?.maxres ||
-        sn?.thumbnails?.high ||
         sn?.thumbnails?.medium ||
-        sn?.thumbnails?.default;
+        sn?.thumbnails?.high ||
+        sn?.thumbnails?.default ||
+        sn?.thumbnails?.maxres;
       const thumb = thumbObj?.url || "";
 
       // IMPORTANT: on **renseigne les KPI** (0 si absent pour éviter "—")
