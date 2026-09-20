@@ -49,7 +49,7 @@ export default function Navbar() {
         <div className="flex h-14 items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
             <Image src="/social_hub_icon.svg" alt="Social Hub Dashboard" width={28} height={28} className="rounded-md" priority />
-            <span className="font-semibold text-neutral-100">
+            <span className="font-semibold text-neutral-100 sm:text-lg">
               Social Hub<span className="hidden sm:inline">&nbsp;Dashboard</span>
             </span>
           </Link>
