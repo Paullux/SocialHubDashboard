@@ -8,15 +8,14 @@ import { AuthProvider } from "./providers/AuthProviders";
 import { CookieConsentProvider } from "@/components/consent/CookieConsentProvider";
 import CookieBanner from "@/components/consent/CookieBanner";
 import Matomo from "@/components/analytics/Matomo";
+import { SITE_URL } from "@/lib/site";
 
 // Aperçus de lien (Facebook, LinkedIn, WhatsApp, X…). L'image doit être servie
 // en absolu : `metadataBase` préfixe les chemins relatifs ci-dessous. Le
 // middleware (proxy.ts) laisse passer les fichiers image sans authentification,
 // les crawlers peuvent donc récupérer /og.jpg.
-// Volontairement en dur, et non `NEXT_PUBLIC_BASE_URL` : cette variable vaut
-// l'URL Vercel de préproduction (social-hub-seven.vercel.app) et ferait annoncer
-// ce domaine dans les aperçus et la balise canonique.
-const SITE_URL = "https://social-hub.fr";
+// Le domaine canonique vit dans `lib/site.ts` : le sitemap et le robots.txt
+// l'utilisent aussi, et trois copies d'une URL finissent toujours par diverger.
 
 // Deux longueurs, deux usages. Le titre du document vise les 50-60 caractères
 // utiles dans les résultats de recherche ; les titres sociaux restent sous 60
