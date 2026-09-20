@@ -108,8 +108,14 @@ export default function DemoPage() {
             </div>
           )}
         </div>
+        {/* La mention remplace une note de développement qui affichait le
+            chemin des fichiers de vignettes : sans intérêt pour un visiteur,
+            et trompeuse sur une capture d'écran. Ce qu'il faut dire, c'est
+            que les chiffres ne sont pas réels. */}
         <p className="mb-4 text-sm text-neutral-400">
-          Miniatures depuis <code>/public/thumbs/1.jpg … 9.jpg</code>
+          Données d’exemple : les vignettes et les statistiques affichées ici
+          sont fictives. L’interface, elle, est identique à celle du tableau de
+          bord.
         </p>
 
         {videos && (
