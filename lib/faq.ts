@@ -1,5 +1,15 @@
 // lib/faq.ts
 
+/** `a` reste du texte brut : c'est lui qui part dans le balisage FAQPage, où
+ *  le HTML n'a pas sa place. Les liens éventuels s'ajoutent à côté, sous la
+ *  réponse — Google demande que la réponse balisée soit visible, il n'interdit
+ *  pas d'en afficher davantage. */
+export type FaqEntry = {
+  q: string;
+  a: string;
+  links?: readonly { label: string; href: string }[];
+};
+
 /** Questions fréquentes, formulées comme les gens les tapent plutôt qu'avec
  *  le vocabulaire du produit — personne ne cherche « Social Hub Dashboard »,
  *  on cherche « voir mes stats YouTube et TikTok au même endroit ».
@@ -8,8 +18,6 @@
  *  FAQPage (app/page.tsx). Google exige que les deux coïncident, d'où la
  *  source unique. Toute modification d'une réponse vaut donc pour les deux.
  */
-export type FaqEntry = { q: string; a: string };
-
 export const faq: Record<"fr" | "en", readonly FaqEntry[]> = {
   fr: [
     {
@@ -31,6 +39,7 @@ export const faq: Record<"fr" | "en", readonly FaqEntry[]> = {
     {
       q: "Comment déconnecter un compte ou faire supprimer mes données ?",
       a: "Depuis la page Comptes liés, à tout moment et sans justification. Pour Google, l'accès se révoque aussi depuis myaccount.google.com/permissions. La page Suppression des données détaille la marche à suivre.",
+      links: [{ label: "Suppression des données", href: "/delete-data" }],
     },
   ],
   en: [
@@ -53,6 +62,7 @@ export const faq: Record<"fr" | "en", readonly FaqEntry[]> = {
     {
       q: "How do I disconnect an account or have my data deleted?",
       a: "From the Linked accounts page, at any time and without justification. For Google, access can also be revoked from myaccount.google.com/permissions. The Data deletion page explains the procedure.",
+      links: [{ label: "Data deletion", href: "/delete-data" }],
     },
   ],
 };

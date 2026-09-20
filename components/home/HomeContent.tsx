@@ -152,10 +152,21 @@ export default function HomeContent({ canSeeDashboard }: { canSeeDashboard: bool
       <div className="rounded-2xl p-8 border border-neutral-800 bg-neutral-900/60 backdrop-blur">
         <h2 className="text-lg font-semibold mb-4 text-neutral-100">{t.faqTitle}</h2>
         <dl className="space-y-5">
-          {faq[lang].map(({ q, a }) => (
+          {faq[lang].map(({ q, a, links }) => (
             <div key={q}>
               <dt className="font-medium text-neutral-100">{q}</dt>
-              <dd className="mt-1 text-neutral-300">{a}</dd>
+              <dd className="mt-1 text-neutral-300">
+                {a}
+                {links?.map(({ label, href }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className="ml-2 underline whitespace-nowrap hover:text-neutral-100"
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </dd>
             </div>
           ))}
         </dl>
