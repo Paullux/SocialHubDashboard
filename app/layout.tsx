@@ -56,7 +56,7 @@ export const metadata: Metadata = {
         url: "/og.jpg",
         width: 1200,
         height: 630,
-        alt: "Le tableau de bord Social Hub : des vidéos YouTube et TikTok côte à côte avec leurs vues, likes et commentaires, et le bouton « Essayer la démo ».",
+        alt: "Le tableau de bord Social Hub Dashboard : des vidéos YouTube, TikTok et Instagram côte à côte avec leurs vues, likes et commentaires, et la mention « Bêta gratuite ».",
       },
     ],
   },
