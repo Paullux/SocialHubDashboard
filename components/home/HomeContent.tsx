@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useUiLang } from "@/lib/uiLang";
 import LangToggle from "@/components/legal/LangToggle";
+import { faq } from "@/lib/faq";
 
 const copy = {
   fr: {
@@ -46,6 +47,7 @@ const copy = {
         .
       </>
     ),
+    faqTitle: "Questions fréquentes",
     privacy: "Politique de confidentialité",
     terms: "Mentions légales & CGU",
     langLabel: "Langue de la page",
@@ -89,6 +91,7 @@ const copy = {
         .
       </>
     ),
+    faqTitle: "Frequently asked questions",
     privacy: "Privacy Policy",
     terms: "Legal notice & Terms",
     langLabel: "Page language",
@@ -141,6 +144,21 @@ export default function HomeContent({ canSeeDashboard }: { canSeeDashboard: bool
         <h2 className="text-lg font-semibold mb-3 text-neutral-100">{t.howTitle}</h2>
         <p className="text-neutral-300 mb-4">{t.howBody}</p>
         <p className="text-neutral-300 font-medium">{t.howReadOnly}</p>
+      </div>
+
+      {/* FAQ — le balisage FAQPage (components/seo/JsonLd.tsx) reprend ces
+          mêmes questions : Google exige que la réponse balisée soit visible
+          sur la page. Les deux lisent lib/faq.ts, ils ne peuvent pas diverger. */}
+      <div className="rounded-2xl p-8 border border-neutral-800 bg-neutral-900/60 backdrop-blur">
+        <h2 className="text-lg font-semibold mb-4 text-neutral-100">{t.faqTitle}</h2>
+        <dl className="space-y-5">
+          {faq[lang].map(({ q, a }) => (
+            <div key={q}>
+              <dt className="font-medium text-neutral-100">{q}</dt>
+              <dd className="mt-1 text-neutral-300">{a}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
 
       {/* Usage des données Google */}
