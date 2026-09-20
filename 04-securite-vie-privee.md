@@ -20,13 +20,13 @@
 ## Le principe de base : lecture seule
 
 > [!IMPORTANT]
-> Social Hub ne peut **ni publier, ni modifier, ni supprimer** quoi que ce soit sur tes comptes YouTube, TikTok ou Instagram. Les autorisations demandées lors de la connexion sont volontairement limitées à la **consultation** : liste des vidéos, statistiques (vues, likes, commentaires).
+> Social Hub Dashboard ne peut **ni publier, ni modifier, ni supprimer** quoi que ce soit sur tes comptes YouTube, TikTok ou Instagram. Les autorisations demandées lors de la connexion sont volontairement limitées à la **consultation** : liste des vidéos, statistiques (vues, likes, commentaires).
 
 ## Comment tes données sont protégées
 
-- **Jetons de connexion chiffrés** : quand tu autorises Social Hub à accéder à un compte, la clé d'accès qui en résulte (le "jeton OAuth") est chiffrée (AES-256-GCM) avant d'être stockée en base de données — jamais en clair.
+- **Jetons de connexion chiffrés** : quand tu autorises Social Hub Dashboard à accéder à un compte, la clé d'accès qui en résulte (le "jeton OAuth") est chiffrée (AES-256-GCM) avant d'être stockée en base de données — jamais en clair.
 - **Base de données hébergée en Europe** : les données sont stockées chez Neon, dans un centre de données situé en Union Européenne (Francfort).
-- **Aucun mot de passe géré par Social Hub** : l'authentification à l'application passe entièrement par Kinde, un prestataire spécialisé.
+- **Aucun mot de passe géré par Social Hub Dashboard** : l'authentification à l'application passe entièrement par Kinde, un prestataire spécialisé.
 - **Historique limité dans le temps** : les statistiques historisées (vues/likes/commentaires par heure) sont conservées **25 mois maximum**, puis supprimées automatiquement.
 
 ## Tes droits, en un clic
@@ -44,7 +44,7 @@ Le détail complet de ce qui est collecté, pourquoi, et pendant combien de temp
 
 ## Cookies et mesure d'audience
 
-Social Hub utilise **Matomo**, un outil de mesure d'audience auto-hébergé (pas Google Analytics, pas de partage de données avec un tiers publicitaire). Il ne se charge **qu'après ton consentement explicite**, via le bandeau affiché à la première visite — refusable et modifiable à tout moment depuis le pied de page ("Gérer les cookies").
+Social Hub Dashboard utilise **Matomo**, un outil de mesure d'audience auto-hébergé (pas Google Analytics, pas de partage de données avec un tiers publicitaire). Il ne se charge **qu'après ton consentement explicite**, via le bandeau affiché à la première visite — refusable et modifiable à tout moment depuis le pied de page ("Gérer les cookies").
 
 <details>
 <summary>🔧 Pour les développeurs — détails techniques</summary>

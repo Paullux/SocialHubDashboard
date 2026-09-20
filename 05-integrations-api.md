@@ -17,7 +17,7 @@
 
 ![Niveau](https://img.shields.io/badge/niveau-curieux%20%2B%20d%C3%A9veloppeurs-orange)
 
-Social Hub se connecte à trois plateformes via leurs API **officielles**, chacune avec son propre système d'autorisation (OAuth) et ses propres règles.
+Social Hub Dashboard se connecte à trois plateformes via leurs API **officielles**, chacune avec son propre système d'autorisation (OAuth) et ses propres règles.
 
 | Plateforme | Ce qui est utilisé | Données affichées |
 |---|---|---|
@@ -32,7 +32,7 @@ Pour les trois, l'autorisation demandée est strictement de **lecture** — voir
 Chaque plateforme impose un processus de vérification avant d'autoriser une application à être utilisée par des utilisateurs autres que son développeur.
 
 > [!NOTE]
-> **Les trois vérifications ont abouti.** Plus aucun blocage côté plateforme pour ouvrir Social Hub à d'autres créateurs.
+> **Les trois vérifications ont abouti.** Plus aucun blocage côté plateforme pour ouvrir Social Hub Dashboard à d'autres créateurs.
 
 | Plateforme | Vérification | Obtenue le |
 |---|---|---|
@@ -48,9 +48,9 @@ Chaque plateforme impose un processus de vérification avant d'autoriser une app
 Chaque intégration suit le même schéma :
 
 1. **Redirection OAuth** : l'utilisateur clique "Connecter", est redirigé vers la page d'autorisation officielle de la plateforme (`accounts.google.com`, `tiktok.com`, `instagram.com`).
-2. **Callback signé** : la plateforme redirige vers une route dédiée de Social Hub avec un code d'échange à usage unique.
-3. **Échange de jeton** : le code est échangé contre un jeton d'accès (et, selon la plateforme, un jeton de rafraîchissement) directement entre le serveur de Social Hub et la plateforme.
-4. **Stockage chiffré** : le jeton est chiffré et associé au compte Social Hub de l'utilisateur (table `AccountLink`).
+2. **Callback signé** : la plateforme redirige vers une route dédiée de Social Hub Dashboard avec un code d'échange à usage unique.
+3. **Échange de jeton** : le code est échangé contre un jeton d'accès (et, selon la plateforme, un jeton de rafraîchissement) directement entre le serveur de Social Hub Dashboard et la plateforme.
+4. **Stockage chiffré** : le jeton est chiffré et associé au compte Social Hub Dashboard de l'utilisateur (table `AccountLink`).
 5. **Appels API** : les vidéos et statistiques sont ensuite récupérées à la demande (chargement du dashboard) et à intervalle régulier (snapshot horaire pour l'historique).
 
 **Scopes demandés** (le strict nécessaire, jamais d'écriture) :

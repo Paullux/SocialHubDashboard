@@ -22,7 +22,7 @@
 
 ## Où on en est
 
-Aujourd'hui, Social Hub est un **outil de consultation** : il rassemble et affiche les statistiques de tes vidéos YouTube, TikTok et Instagram. Le socle (connexion, sécurité, fiabilité des données) passe avant tout le reste — un produit qui fonctionne bien pour un usage simple avant d'ajouter des fonctionnalités plus ambitieuses.
+Aujourd'hui, Social Hub Dashboard est un **outil de consultation** : il rassemble et affiche les statistiques de tes vidéos YouTube, TikTok et Instagram. Le socle (connexion, sécurité, fiabilité des données) passe avant tout le reste — un produit qui fonctionne bien pour un usage simple avant d'ajouter des fonctionnalités plus ambitieuses.
 
 ## Où ça pourrait aller
 
@@ -38,8 +38,8 @@ Créer → Publier → Mesurer → Comparer → Comprendre → Publier à nouvea
 
 Une piste envisagée est de rendre le **code source libre**, et de vendre non pas le logiciel, mais la **simplicité de l'exploiter** :
 
-- **Auto-hébergement** : qui veut tout maîtriser peut installer et héberger Social Hub lui-même, gratuitement.
-- **Social Hub Cloud** : une version hébergée clé en main, sans configuration technique, pour qui veut que ça marche sans devenir administrateur système.
+- **Auto-hébergement** : qui veut tout maîtriser peut installer et héberger Social Hub Dashboard lui-même, gratuitement.
+- **Social Hub Dashboard Cloud** : une version hébergée clé en main, sans configuration technique, pour qui veut que ça marche sans devenir administrateur système.
 
 ### Segmentation envisagée (non définitive)
 
@@ -68,7 +68,7 @@ Une piste envisagée est de rendre le **code source libre**, et de vendre non pa
 | 4 — Publication | Upload vidéo, sélection des plateformes, formulaires spécifiques, suivi de statut |
 | 5 — Productivité | Calendrier éditorial, programmation, modèles, exports, rapports |
 | 6 — Collaboration | Multi-utilisateurs, multi-créateurs, rôles, permissions |
-| 7 — Écosystème | API publique Social Hub, webhooks, intégrations (n8n, Make, Zapier) |
+| 7 — Écosystème | API publique Social Hub Dashboard, webhooks, intégrations (n8n, Make, Zapier) |
 
 Une architecture de publication envisagée séparerait le stockage des métadonnées (base de données) du fichier vidéo lui-même (stockage objet type S3/R2), avec un adaptateur dédié par plateforme (`youtube/`, `tiktok/`, `instagram/`) implémentant une interface commune de publication.
 

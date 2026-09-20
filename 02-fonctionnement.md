@@ -19,13 +19,13 @@
 
 ## Le parcours, étape par étape
 
-### 1. Créer un compte Social Hub
+### 1. Créer un compte Social Hub Dashboard
 
-La connexion à l'application elle-même passe par **Kinde**, un service d'authentification tiers. Il vérifie ton identité et protège l'accès à ton espace personnel — Social Hub ne gère jamais directement de mot de passe.
+La connexion à l'application elle-même passe par **Kinde**, un service d'authentification tiers. Il vérifie ton identité et protège l'accès à ton espace personnel — Social Hub Dashboard ne gère jamais directement de mot de passe.
 
 ### 2. Connecter tes plateformes
 
-Depuis les paramètres de ton compte, tu choisis quelles plateformes relier : YouTube, TikTok, Instagram — une par une, en un clic. Chaque connexion passe par le système d'autorisation officiel de la plateforme (OAuth) : tu es redirigé vers YouTube/TikTok/Instagram, tu acceptes (ou refuses) les autorisations demandées, et tu reviens sur Social Hub.
+Depuis les paramètres de ton compte, tu choisis quelles plateformes relier : YouTube, TikTok, Instagram — une par une, en un clic. Chaque connexion passe par le système d'autorisation officiel de la plateforme (OAuth) : tu es redirigé vers YouTube/TikTok/Instagram, tu acceptes (ou refuses) les autorisations demandées, et tu reviens sur Social Hub Dashboard.
 
 > [!NOTE]
 > Tu peux relier une, deux ou les trois plateformes — rien n'est obligatoire. Tu peux aussi déconnecter un compte à tout moment.
@@ -36,13 +36,13 @@ Une fois au moins un compte relié, le tableau de bord affiche toutes tes vidéo
 
 ### 4. Regarder l'évolution dans le temps
 
-En cliquant sur "Stats" sur une vidéo, tu accèdes à une page dédiée avec des graphiques d'évolution : vues par heure, vues par jour, engagement. Ces courbes existent parce que Social Hub **prend une photo de tes statistiques toutes les heures**, en arrière-plan, même quand tu n'es pas connecté — c'est ce qui permet de voir une tendance et pas juste un chiffre figé.
+En cliquant sur "Stats" sur une vidéo, tu accèdes à une page dédiée avec des graphiques d'évolution : vues par heure, vues par jour, engagement. Ces courbes existent parce que Social Hub Dashboard **prend une photo de tes statistiques toutes les heures**, en arrière-plan, même quand tu n'es pas connecté — c'est ce qui permet de voir une tendance et pas juste un chiffre figé.
 
-## Ce que Social Hub ne fait jamais
+## Ce que Social Hub Dashboard ne fait jamais
 
 - Il ne publie jamais de contenu à ta place.
 - Il ne modifie ni ne supprime jamais une de tes vidéos, légendes ou commentaires.
-- Il ne partage jamais tes données avec d'autres utilisateurs de Social Hub.
+- Il ne partage jamais tes données avec d'autres utilisateurs de Social Hub Dashboard.
 
 <details>
 <summary>🔧 Pour les développeurs — sous le capot</summary>

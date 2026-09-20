@@ -38,7 +38,7 @@ Cette page est technique. Si tu es juste curieux du produit, la [présentation](
 ```mermaid
 flowchart TD
     User(["👤 Créateur"]) -->|connexion| Kinde["🔑 Kinde\n(authentification)"]
-    Kinde --> App["🖥️ Social Hub\n(Next.js sur Vercel)"]
+    Kinde --> App["🖥️ Social Hub Dashboard\n(Next.js sur Vercel)"]
 
     App -->|OAuth lecture seule| YT["▶️ YouTube Data API v3\n+ YouTube Analytics"]
     App -->|OAuth lecture seule| TT["🎵 TikTok for Developers"]
@@ -53,8 +53,8 @@ flowchart TD
 
 ## Ce que fait chaque brique
 
-- **Kinde** : gère l'inscription/connexion à Social Hub. L'app ne stocke jamais de mot de passe.
-- **AccountLink** (table) : le lien chiffré entre un utilisateur Social Hub et son compte YouTube/TikTok/Instagram (jeton d'accès chiffré AES-256-GCM, identifiant externe).
+- **Kinde** : gère l'inscription/connexion à Social Hub Dashboard. L'app ne stocke jamais de mot de passe.
+- **AccountLink** (table) : le lien chiffré entre un utilisateur Social Hub Dashboard et son compte YouTube/TikTok/Instagram (jeton d'accès chiffré AES-256-GCM, identifiant externe).
 - **VideoMetric** (table) : une ligne par vidéo et par heure de relevé (`platform`, `videoId`, `snapshotAt`, `views`, `likes`, `comments`, `shares`) — c'est l'historique qui alimente les graphiques.
 - **Job horaire** : appelle une route interne sécurisée (`/api/cron/snapshot`) qui va chercher les KPI actuels de chaque plateforme et les enregistre. Il n'est **pas** déclenché par Vercel : `vercel.json` ne déclare aucun cron, c'est le crontab d'un VPS séparé (Hostinger, orchestré par Coolify) qui appelle l'URL toutes les heures avec `CRON_SECRET`. Ce VPS héberge aussi l'instance Matomo (`stats.social-hub.fr`).
 - **Middleware (`proxy.ts`)** : pose une Content-Security-Policy stricte sur chaque page, vérifie la permission `read:dashboard` (Kinde) sur les pages protégées (`/dashboard`, `/analytics`, `/settings/linked-accounts`), et applique un **refus par défaut à toute route sous `/api/`** — n'y échappent que les chemins qui portent leur propre authentification (handler Kinde, flux OAuth, `CRON_SECRET` du snapshot, signature HMAC de Meta).

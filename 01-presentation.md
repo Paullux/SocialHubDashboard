@@ -25,10 +25,10 @@ Chaque appli a son propre tableau de bord, ses propres graphiques, sa propre fa�
 
 ## La solution
 
-**Social Hub** rassemble tout ça **au même endroit** : un seul tableau de bord qui affiche toutes tes vidéos — YouTube, TikTok et Instagram confondues — avec leurs statistiques (vues, likes, commentaires, partages), triables et comparables.
+**Social Hub Dashboard** rassemble tout ça **au même endroit** : un seul tableau de bord qui affiche toutes tes vidéos — YouTube, TikTok et Instagram confondues — avec leurs statistiques (vues, likes, commentaires, partages), triables et comparables.
 
 > [!IMPORTANT]
-> Social Hub est **strictement en lecture seule**. Il consulte tes statistiques, il ne publie, ne modifie et ne supprime jamais rien à ta place sur tes comptes.
+> Social Hub Dashboard est **strictement en lecture seule**. Il consulte tes statistiques, il ne publie, ne modifie et ne supprime jamais rien à ta place sur tes comptes.
 
 ## À qui c'est destiné
 
@@ -36,7 +36,7 @@ Chaque appli a son propre tableau de bord, ses propres graphiques, sa propre fa�
 - **Aux créateurs solos et petites structures** qui n'ont pas besoin d'un outil d'agence à 40€/mois pour juste voir leurs chiffres.
 - **Aux développeurs curieux** — le projet est pensé pour être compréhensible et, à terme, ouvert (voir la [vision & roadmap](06-vision-roadmap.md)).
 
-## Ce que Social Hub fait aujourd'hui
+## Ce que Social Hub Dashboard fait aujourd'hui
 
 - Connexion sécurisée à tes comptes YouTube, TikTok et Instagram (OAuth, lecture seule).
 - Un tableau de bord unique listant toutes tes vidéos, triable par date, vues, likes, commentaires, partages.
@@ -48,7 +48,7 @@ Chaque appli a son propre tableau de bord, ses propres graphiques, sa propre fa�
 
 <br>
 
-Social Hub est une application **Next.js** (App Router) hébergée sur **Vercel**, qui interroge les APIs officielles de YouTube (Data API v3 et Analytics), TikTok for Developers et Instagram API with Instagram Login via OAuth, stocke les jetons chiffrés et un historique de métriques dans une base **PostgreSQL (Neon)**, et affiche le tout derrière une authentification **Kinde**.
+Social Hub Dashboard est une application **Next.js** (App Router) hébergée sur **Vercel**, qui interroge les APIs officielles de YouTube (Data API v3 et Analytics), TikTok for Developers et Instagram API with Instagram Login via OAuth, stocke les jetons chiffrés et un historique de métriques dans une base **PostgreSQL (Neon)**, et affiche le tout derrière une authentification **Kinde**.
 
 Détails complets : [Architecture](03-architecture.md).
 

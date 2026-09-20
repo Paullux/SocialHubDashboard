@@ -1,6 +1,6 @@
 <div align="center">
 
-# 📊 Social Hub — Documentation
+# 📊 Social Hub Dashboard — Documentation
 
 ![Statut](https://img.shields.io/badge/statut-en%20d%C3%A9veloppement-yellow)
 ![Licence](https://img.shields.io/badge/licence-MIT-brightgreen)
@@ -31,7 +31,7 @@
 
 ## Bienvenue 👋
 
-Cette documentation explique **ce qu'est Social Hub et comment il fonctionne**, à deux niveaux de lecture :
+Cette documentation explique **ce qu'est Social Hub Dashboard et comment il fonctionne**, à deux niveaux de lecture :
 
 - 🌱 **Le texte principal de chaque page** s'adresse à tout le monde — curieux, créateurs de contenu, personnes qui découvrent le projet.
 - 🔧 **Les sections dépliables "Pour les développeurs"** (comme celle juste en dessous) creusent le fonctionnement technique, pour qui veut comprendre le code ou contribuer.
@@ -56,11 +56,11 @@ Pour la mettre à jour : `git checkout Documents` (ou un `git worktree` dédié)
 
 | Page | De quoi ça parle | Pour qui |
 |---|---|---|
-| [🌍 Présentation](01-presentation.md) | Le problème que Social Hub résout, à qui c'est destiné | Tout le monde |
+| [🌍 Présentation](01-presentation.md) | Le problème que Social Hub Dashboard résout, à qui c'est destiné | Tout le monde |
 | [⚙️ Fonctionnement](02-fonctionnement.md) | Le parcours utilisateur, de la connexion au tableau de bord | Tout le monde |
 | [🏗️ Architecture](03-architecture.md) | Stack technique, structure du code, flux de données | Développeurs |
 | [🔒 Sécurité & vie privée](04-securite-vie-privee.md) | Chiffrement, RGPD, accès en lecture seule, suppression des données | Tout le monde |
-| [🔌 Intégrations API](05-integrations-api.md) | Comment Social Hub se connecte à YouTube, TikTok, Instagram | Curieux + développeurs |
+| [🔌 Intégrations API](05-integrations-api.md) | Comment Social Hub Dashboard se connecte à YouTube, TikTok, Instagram | Curieux + développeurs |
 | [🗺️ Vision & roadmap](06-vision-roadmap.md) | Où va le projet à long terme | Tout le monde |
 | [❓ FAQ](07-faq.md) | Questions fréquentes | Tout le monde |
 
@@ -68,7 +68,7 @@ Pour la mettre à jour : `git checkout Documents` (ou un `git worktree` dédié)
 
 <div align="center">
 
-*Social Hub est un projet en développement actif. Cette documentation évolue avec le code.*
+*Social Hub Dashboard est un projet en développement actif. Cette documentation évolue avec le code.*
 
 *Dernière vérification face au code : **18 septembre 2026**.*
 
