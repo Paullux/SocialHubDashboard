@@ -2,26 +2,38 @@
 "use client";
 
 import type { VideoItem } from "@/lib/types";
+import { LOCALE, type Lang } from "@/lib/uiLang";
 
-export default function KpiLine({ v }: { v: VideoItem }) {
-  const nf = new Intl.NumberFormat("fr-FR");
+const T = {
+  fr: { view: "Vue", views: "Vues", like: "Like", likes: "Likes", comments: "Comm.", shares: "Partages", sep: " :" },
+  en: { view: "View", views: "Views", like: "Like", likes: "Likes", comments: "Comm.", shares: "Shares", sep: ":" },
+} as const;
+
+export default function KpiLine({ v, lang = "fr" }: { v: VideoItem; lang?: Lang }) {
+  const nf = new Intl.NumberFormat(LOCALE[lang]);
+  const t = T[lang];
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px]">
       <span>
-        Vue{(v.viewCount ?? 0) > 1 ? "s" : ""} :{" "}
+        {(v.viewCount ?? 0) > 1 ? t.views : t.view}
+        {t.sep}{" "}
         <strong>{v.viewCount != null ? nf.format(v.viewCount) : "—"}</strong>
       </span>
       <span>
-        Like{(v.likeCount ?? 0) > 1 ? "s" : ""} :{" "}
+        {(v.likeCount ?? 0) > 1 ? t.likes : t.like}
+        {t.sep}{" "}
         <strong>{v.likeCount != null ? nf.format(v.likeCount) : "—"}</strong>
       </span>
       <span>
-        Comm. :{" "}
+        {t.comments}
+        {t.sep}{" "}
         <strong>{v.commentCount != null ? nf.format(v.commentCount) : "—"}</strong>
       </span>
       {v.platform === "tiktok" && v.shareCount != null && (
         <span>
-          Partages : <strong>{nf.format(v.shareCount)}</strong>
+          {t.shares}
+          {t.sep}{" "}
+          <strong>{nf.format(v.shareCount)}</strong>
         </span>
       )}
     </div>

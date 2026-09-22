@@ -12,34 +12,65 @@ import {
 import type { PlatformFilterValue } from "@/components/dashboard";
 import type { Platform, VideoItem } from "@/lib/types";
 import { sortVideos, type SortKey, type SortDir } from "@/lib/videoSort";
+import { useUiLang } from "@/lib/uiLang";
+import LangToggle from "@/components/legal/LangToggle";
+
+const T = {
+  fr: {
+    title: "Démo (9 vidéos)",
+    sorts: { date: "Date", views: "Vues", likes: "Likes", comments: "Commentaires", shares: "Partages (TikTok)" },
+    noTikTok: "Aucune vidéo TikTok dans cette sélection",
+    notice:
+      "Données d’exemple : les vignettes et les statistiques affichées ici sont fictives. L’interface, elle, est identique à celle du tableau de bord. Clique sur une vignette pour voir le détail des stats.",
+    empty: "Aucune vidéo pour cette plateforme.",
+    showAll: "Tout afficher",
+    langLabel: "Langue de la page",
+  },
+  en: {
+    title: "Demo (9 videos)",
+    sorts: { date: "Date", views: "Views", likes: "Likes", comments: "Comments", shares: "Shares (TikTok)" },
+    noTikTok: "No TikTok videos in this selection",
+    notice:
+      "Sample data: the thumbnails and statistics shown here are fictional. The interface itself is identical to the real dashboard. Click a thumbnail to see the detailed stats.",
+    empty: "No videos for this platform.",
+    showAll: "Show all",
+    langLabel: "Page language",
+  },
+} as const;
+
+const SORT_KEYS: SortKey[] = ["date", "views", "likes", "comments", "shares"];
 
 export default function DemoPage() {
-  const [videos, setVideos] = useState<VideoItem[] | null>(null);
   const [platform, setPlatform] = useState<PlatformFilterValue>("all");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [lang, setLang] = useUiLang();
+  const t = T[lang];
 
+  // simule un délai pour voir les skeletons
+  const [ready, setReady] = useState(false);
   useEffect(() => {
-    // simule un délai pour voir les skeletons
-    const timer = setTimeout(() => {
-      const normalized: VideoItem[] = demoVideos.map((d: DemoVideo) => ({
-        id: d.id,
-        title: d.title,
-        description: d.description,       // 👈 affichée au survol de la carte
-        platform: d.platform,            // "youtube" | "tiktok" | "instagram"
-        url: "#",                        // pas d’URL dans la démo
-        thumbnail: d.thumbnailUrl,       // 👈 mapping clé de la correction
-        viewCount: d.views,              // 👈 mapping
-        likeCount: d.likes,              // 👈 mapping
-        commentCount: d.comments,        // 👈 mapping
-        shareCount: d.platform === "tiktok" ? 0 : undefined,
-        publishedAt: new Date().toISOString(), // pour l’affichage de date
-      }));
-      setVideos(normalized);
-    }, 800);
-
+    const timer = setTimeout(() => setReady(true), 800);
     return () => clearTimeout(timer);
   }, []);
+
+  // Dérivé de la langue : la changer ne relance pas le faux chargement.
+  const videos = useMemo<VideoItem[] | null>(() => {
+    if (!ready) return null;
+    return demoVideos.map((d: DemoVideo) => ({
+      id: d.id,
+      title: (lang === "en" && d.en?.title) || d.title,
+      description: (lang === "en" && d.en?.description) || d.description, // affichée au survol de la carte
+      platform: d.platform,
+      url: "", // pas d’URL : la vignette mène aux stats
+      thumbnail: d.thumbnailUrl,
+      viewCount: d.views,
+      likeCount: d.likes,
+      commentCount: d.comments,
+      shareCount: d.platform === "tiktok" ? 0 : undefined,
+      publishedAt: new Date().toISOString(), // pour l’affichage de date
+    }));
+  }, [ready, lang]);
 
   const counts = useMemo<Record<Platform, number>>(() => {
     const c: Record<Platform, number> = { youtube: 0, tiktok: 0, instagram: 0 };
@@ -72,50 +103,47 @@ export default function DemoPage() {
     }
   };
 
-  const SORTS: { key: SortKey; label: string }[] = [
-    { key: "date", label: "Date" },
-    { key: "views", label: "Vues" },
-    { key: "likes", label: "Likes" },
-    { key: "comments", label: "Commentaires" },
-    { key: "shares", label: "Partages (TikTok)" },
-  ];
-
   return (
     <main className="mx-auto max-w-7xl px-4 py-10">
       <div className="rounded-2xl p-6 border border-neutral-800 bg-neutral-900/50 backdrop-blur">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-2">
           <h1 className="text-2xl font-semibold text-neutral-100">
-            Démo (9 vidéos)
+            {t.title}
           </h1>
 
           {videos && (
             <div className="flex flex-wrap gap-2">
-              {SORTS.map(({ key, label }) => (
+              {SORT_KEYS.map((key) => (
                 <SortButton
                   key={key}
-                  label={label}
+                  label={t.sorts[key]}
                   active={sortKey === key}
                   dir={sortKey === key ? sortDir : undefined}
                   onClick={() => toggleSort(key)}
                   disabled={key === "shares" && !hasTikTok}
                   title={
                     key === "shares" && !hasTikTok
-                      ? "Aucune vidéo TikTok dans cette sélection"
+                      ? t.noTikTok
                       : undefined
                   }
                 />
               ))}
             </div>
           )}
+
+          <LangToggle
+            lang={lang}
+            onChange={setLang}
+            label={t.langLabel}
+            className="sm:ml-auto"
+          />
         </div>
         {/* La mention remplace une note de développement qui affichait le
             chemin des fichiers de vignettes : sans intérêt pour un visiteur,
             et trompeuse sur une capture d'écran. Ce qu'il faut dire, c'est
             que les chiffres ne sont pas réels. */}
         <p className="mb-4 text-sm text-neutral-400">
-          Données d’exemple : les vignettes et les statistiques affichées ici
-          sont fictives. L’interface, elle, est identique à celle du tableau de
-          bord.
+          {t.notice}
         </p>
 
         {videos && (
@@ -124,6 +152,7 @@ export default function DemoPage() {
               value={platform}
               counts={counts}
               onChange={setPlatform}
+              lang={lang}
             />
           </div>
         )}
@@ -136,17 +165,17 @@ export default function DemoPage() {
           </ul>
         )}
 
-        {sorted && sorted.length > 0 && <VideoGrid videos={sorted} demo />}
+        {sorted && sorted.length > 0 && <VideoGrid videos={sorted} demo lang={lang} />}
 
         {sorted && sorted.length === 0 && (
           <p className="text-sm text-neutral-500">
-            Aucune vidéo pour cette plateforme.{" "}
+            {t.empty}{" "}
             <button
               type="button"
               onClick={() => setPlatform("all")}
               className="underline hover:text-neutral-300"
             >
-              Tout afficher
+              {t.showAll}
             </button>
           </p>
         )}
