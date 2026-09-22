@@ -153,7 +153,7 @@ export default function VideoCard({
 
   const altText = normalizeText(v.title);
   const statsHref = demo
-    ? "/demo/analytics"
+    ? `/demo/analytics?v=${encodeURIComponent(v.id)}`
     : `/analytics/${v.id}?platform=${v.platform}`;
   // Sans URL de vidéo (démo, ou plateforme qui n'en renvoie pas), la vignette
   // mène aux stats. Un `href="#"` en `target="_blank"` rouvrait la page

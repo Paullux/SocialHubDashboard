@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import { useIsXs } from "@/utils/useIsXs";
-import { LOCALE, useUiLang } from "@/lib/uiLang";
+import { LOCALE, useUiLang, type Lang } from "@/lib/uiLang";
+import demoVideos, { type DemoVideo } from "@/data/demo-videos";
 import {
   ResponsiveContainer,
   LineChart,
@@ -14,8 +15,15 @@ import {
   CartesianGrid,
 } from "recharts";
 
-/** Données 100% fictives, générées côté client (pas d'appel API). Sert de
- *  page "Stats" identique pour toutes les vidéos de la démo /demo. */
+/** Données 100% fictives, générées côté client (pas d'appel API). La forme
+ *  des courbes est arbitraire ; seules les échelles comptent : elles sont
+ *  calées sur les chiffres de la vignette cliquée (`?v=<id>`), pour qu'un
+ *  visiteur retrouve ici les vues, likes et commentaires vus sur la carte. */
+
+type Targets = { views: number; likes: number; comments: number };
+
+/** Repli quand aucune vidéo n'est désignée (accès direct à /demo/analytics). */
+const DEFAULT_TARGETS: Targets = { views: 2000, likes: 180, comments: 40 };
 
 type DailyPoint = {
   day: string;
@@ -37,16 +45,26 @@ function engagementRate(views: number, likes: number, comments: number): number 
   return Math.round(((likes + comments) / views) * 1000) / 10;
 }
 
-function buildDemoDaily(): DailyPoint[] {
+/** Likes et commentaires d'un point, dans les proportions de la vignette mais
+ *  avec une variation d'un point à l'autre : à proportion fixe, la courbe du
+ *  taux d'engagement serait une droite horizontale. */
+function interactions(views: number, targets: Targets, i: number) {
+  const base = Math.max(1, targets.views);
+  return {
+    likes: Math.round(views * (targets.likes / base) * (1 + 0.18 * Math.sin(i * 0.9))),
+    comments: Math.round(views * (targets.comments / base) * (1 + 0.25 * Math.cos(i * 1.3))),
+  };
+}
+
+function buildDemoDaily(targets: Targets): DailyPoint[] {
   const today = new Date();
   return Array.from({ length: 14 }).map((_, i) => {
     const day = new Date(today);
     day.setDate(day.getDate() - (13 - i));
-    const views = Math.round(650 + i * 95 + (i % 3 === 0 ? 60 : i % 2 === 0 ? -30 : 15));
-    // Ratios qui varient d'un jour à l'autre : à proportion fixe, la courbe du
-    // taux d'engagement serait une droite horizontale.
-    const likes = Math.round(views * (0.085 + 0.02 * Math.sin(i * 0.9)));
-    const comments = Math.round(views * (0.018 + 0.006 * Math.cos(i * 1.3)));
+    // Montée régulière jusqu'au total de la vignette au dernier jour.
+    const shape = 0.34 + (0.66 * i) / 13 + (i % 3 === 0 ? 0.03 : i % 2 === 0 ? -0.02 : 0.01);
+    const views = Math.max(1, Math.round(targets.views * shape));
+    const { likes, comments } = interactions(views, targets, i);
     return {
       day: day.toISOString(),
       views,
@@ -57,16 +75,18 @@ function buildDemoDaily(): DailyPoint[] {
   });
 }
 
-function buildDemoHourly(): HourlyPoint[] {
+function buildDemoHourly(targets: Targets): HourlyPoint[] {
   const now = new Date();
+  // Une heure pèse une fraction de la journée : l'échelle horaire reste
+  // cohérente avec l'échelle journalière, donc avec la vignette.
+  const peak = Math.max(1, targets.views / 18);
   return Array.from({ length: 24 }).map((_, i) => {
     const at = new Date(now);
     at.setHours(at.getHours() - (23 - i), 0, 0, 0);
     const hour = at.getHours();
     const wave = Math.sin(((hour - 6) / 24) * Math.PI * 2);
-    const views = Math.max(5, Math.round(45 + wave * 30 + (i % 4 === 0 ? 8 : 0)));
-    const likes = Math.round(views * (0.08 + 0.03 * Math.sin(i * 0.7)));
-    const comments = Math.round(views * (0.02 + 0.01 * Math.cos(i * 1.1)));
+    const views = Math.max(1, Math.round(peak * (0.62 + 0.38 * wave) + (i % 4 === 0 ? peak * 0.06 : 0)));
+    const { likes, comments } = interactions(views, targets, i);
     return {
       at: at.toISOString(),
       views,
@@ -75,6 +95,12 @@ function buildDemoHourly(): HourlyPoint[] {
       engagement: engagementRate(views, likes, comments),
     };
   });
+}
+
+/** Titre affiché : celui de la vignette cliquée, dans la langue courante. */
+function videoTitle(v: DemoVideo, lang: Lang): string {
+  const title = (lang === "en" && v.en?.title) || v.title;
+  return title.replace(/[\r\n]+/g, " ").trim();
 }
 
 function formatDayLabel(iso: string, locale: string) {
@@ -126,18 +152,37 @@ const T = {
   },
 } as const;
 
+const PLATFORM_LABEL: Record<DemoVideo["platform"], string> = {
+  youtube: "YouTube",
+  tiktok: "TikTok",
+  instagram: "Instagram",
+};
+
 const COLOR_VIEWS = "#16a34a";
 const COLOR_LIKES = "#dc2626";
 const COLOR_COMMS = "#2563eb";
 const COLOR_ENGAGE = "#a855f7"; // violet — axe de droite, en %
 
-export default function DemoVideoAnalytics() {
+export default function DemoVideoAnalytics({ videoId }: { videoId?: string }) {
   const isXs = useIsXs();
   const [lang] = useUiLang();
   const t = T[lang];
   const locale = LOCALE[lang];
-  const daily = useMemo(buildDemoDaily, []);
-  const hourly = useMemo(buildDemoHourly, []);
+
+  const video = useMemo(
+    () => demoVideos.find((v) => v.id === videoId),
+    [videoId],
+  );
+  const targets = useMemo<Targets>(
+    () =>
+      video
+        ? { views: video.views, likes: video.likes, comments: video.comments }
+        : DEFAULT_TARGETS,
+    [video],
+  );
+
+  const daily = useMemo(() => buildDemoDaily(targets), [targets]);
+  const hourly = useMemo(() => buildDemoHourly(targets), [targets]);
 
   const chartMargin = isXs
     ? ({ top: 8, right: 8, bottom: 20, left: 0 } as const)
@@ -154,7 +199,9 @@ export default function DemoVideoAnalytics() {
   return (
     <div className="space-y-6">
       <header>
-        <h2 className="text-xl font-semibold">{t.title}</h2>
+        <h2 className="text-xl font-semibold">
+          {video ? `${videoTitle(video, lang)} — ${PLATFORM_LABEL[video.platform]}` : t.title}
+        </h2>
         <p className="mt-1 text-sm text-neutral-400">
           {t.intro}
         </p>

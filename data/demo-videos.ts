@@ -8,6 +8,11 @@ export type DemoVideo = {
   likes: number;
   comments: number;
   platform: "youtube" | "tiktok" | "instagram";
+  /** Ancienneté de la publication, en jours. La date est calculée à
+   *  l'affichage : les vignettes gardent des dates plausibles sans que le jeu
+   *  d'exemple vieillisse. Toutes les vidéos partageaient la date du jour, ce
+   *  qui affichait « il y a 0s » partout et rendait le tri par date inerte. */
+  daysAgo: number;
   /** Version anglaise des textes rédigés en français (le reste est déjà en
    *  anglais, ou ne dépend pas de la langue). */
   en?: { title?: string; description?: string };
@@ -22,6 +27,7 @@ export type DemoVideo = {
 const demoVideos: DemoVideo[] = [
   {
     id: "y1",
+    daysAgo: 3,
     title: "Good Days — Acoustic Session",
     description:
       "Enregistré en une prise, guitare et voix, sans retouche.\n\nUne session tournée un dimanche après-midi, avec la lumière de fin de journée pour seul éclairage.\n\n00:00 Intro\n00:38 Premier couplet\n02:14 Pont instrumental",
@@ -37,6 +43,7 @@ const demoVideos: DemoVideo[] = [
   },
   {
     id: "y2",
+    daysAgo: 9,
     title: "Midnight Sessions — musique, histoires et fins de nuit",
     en: { title: "Midnight Sessions — music, stories and late nights" },
     thumbnailUrl: "/thumbs/2.jpg",
@@ -47,6 +54,7 @@ const demoVideos: DemoVideo[] = [
   },
   {
     id: "i1",
+    daysAgo: 5,
     // Instagram : pas de titre distinct, `title` = la légende (souvent des \r seuls).
     title:
       "Luna — Beats & Good Vibes 🎧\r\rCasque sur les oreilles, deux heures à chercher la bonne boucle.\rSon original\r#beats #lofi #reels #homestudio",
@@ -66,6 +74,7 @@ const demoVideos: DemoVideo[] = [
   },
   {
     id: "i2",
+    daysAgo: 16,
     title: "The Roads — Live Sessions, épisode 3",
     en: { title: "The Roads — Live Sessions, episode 3" },
     thumbnailUrl: "/thumbs/4.jpg",
@@ -76,6 +85,7 @@ const demoVideos: DemoVideo[] = [
   },
   {
     id: "y3",
+    daysAgo: 24,
     title: "Sora — Music for a Brighter Tomorrow",
     thumbnailUrl: "/thumbs/5.jpg",
     views: 760,
@@ -85,6 +95,7 @@ const demoVideos: DemoVideo[] = [
   },
   {
     id: "t3",
+    daysAgo: 12,
     title: "Sunset — Live at Home",
     description:
       "Reprise en fin de journée, une seule prise, rien de retouché.\n\nMusique : son original\n#live #acoustic #cover #fyp",
@@ -100,6 +111,7 @@ const demoVideos: DemoVideo[] = [
   },
   {
     id: "y4",
+    daysAgo: 33,
     title: "Riverflow — Live Session : une guitare, un micro",
     en: { title: "Riverflow — Live Session: one guitar, one mic" },
     thumbnailUrl: "/thumbs/7.jpg",
@@ -110,6 +122,7 @@ const demoVideos: DemoVideo[] = [
   },
   {
     id: "y5",
+    daysAgo: 47,
     title: "Novae — Electronic Stories, le set complet",
     en: { title: "Novae — Electronic Stories, the full set" },
     thumbnailUrl: "/thumbs/8.jpg",
@@ -120,6 +133,7 @@ const demoVideos: DemoVideo[] = [
   },
   {
     id: "t4",
+    daysAgo: 20,
     title: "Solaris — Acoustic Moments",
     thumbnailUrl: "/thumbs/9.jpg",
     views: 2210,
