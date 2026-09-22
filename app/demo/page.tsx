@@ -40,6 +40,13 @@ const T = {
 
 const SORT_KEYS: SortKey[] = ["date", "views", "likes", "comments", "shares"];
 
+/** Date de publication d'une vidéo d'exemple, à `daysAgo` jours d'ici. */
+function publishedAt(daysAgo: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - daysAgo);
+  return d.toISOString();
+}
+
 export default function DemoPage() {
   const [platform, setPlatform] = useState<PlatformFilterValue>("all");
   const [sortKey, setSortKey] = useState<SortKey>("date");
@@ -68,7 +75,7 @@ export default function DemoPage() {
       likeCount: d.likes,
       commentCount: d.comments,
       shareCount: d.platform === "tiktok" ? 0 : undefined,
-      publishedAt: new Date().toISOString(), // pour l’affichage de date
+      publishedAt: publishedAt(d.daysAgo),
     }));
   }, [ready, lang]);
 
