@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useIsXs } from "@/utils/useIsXs";
+import { LOCALE, useUiLang } from "@/lib/uiLang";
 import {
   ResponsiveContainer,
   LineChart,
@@ -20,6 +21,35 @@ const PLATFORM_LABEL: Record<Platform, string> = {
   tiktok: "TikTok",
   instagram: "Instagram",
 };
+
+const T = {
+  fr: {
+    views: "Vues",
+    likes: "Likes",
+    comments: "Commentaires",
+    shares: "Partages",
+    engagement: "Taux d’engagement",
+    viewsDay: "Vues / jour",
+    viewsHour: "Vues / heure",
+    loading: "Chargement…",
+    error: "Erreur :",
+    engagementDay: "Engagement / jour — likes, commentaires et taux",
+    engagementHour: "Engagement / heure — likes, commentaires et taux",
+  },
+  en: {
+    views: "Views",
+    likes: "Likes",
+    comments: "Comments",
+    shares: "Shares",
+    engagement: "Engagement rate",
+    viewsDay: "Views / day",
+    viewsHour: "Views / hour",
+    loading: "Loading…",
+    error: "Error:",
+    engagementDay: "Engagement / day — likes, comments and rate",
+    engagementHour: "Engagement / hour — likes, comments and rate",
+  },
+} as const;
 
 type HourlyPoint = {
   at: string;
@@ -47,13 +77,13 @@ type ApiErr = { error: string };
 
 type VideoMeta = { id: string; platform: Platform; title: string };
 
-function formatDayLabel(iso: string) {
+function formatDayLabel(iso: string, locale: string) {
   const d = new Date(iso);
-  return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+  return d.toLocaleDateString(locale, { day: "2-digit", month: "2-digit" });
 }
-function formatHourLabel(iso: string) {
+function formatHourLabel(iso: string, locale: string) {
   const d = new Date(iso);
-  return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
 }
 /** Taux d'engagement : (likes + commentaires + partages) / vues, en %.
  *  `null` si les vues manquent ou valent 0 — diviser par zéro donnerait
@@ -69,14 +99,19 @@ function engagementRate(p: {
   return Math.round((interactions / p.views) * 1000) / 10;
 }
 
-function formatPercent(n: number | null) {
-  if (n == null || Number.isNaN(n)) return "—";
-  return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(n)} %`;
+/** Le français sépare le signe % du nombre par une espace insécable, pas l'anglais. */
+function percentSuffix(locale: string) {
+  return locale.startsWith("fr") ? " %" : "%";
 }
 
-function formatNumber(n: number | null) {
+function formatPercent(n: number | null, locale: string) {
   if (n == null || Number.isNaN(n)) return "—";
-  return new Intl.NumberFormat("fr-FR").format(n);
+  return `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(n)}${percentSuffix(locale)}`;
+}
+
+function formatNumber(n: number | null, locale: string) {
+  if (n == null || Number.isNaN(n)) return "—";
+  return new Intl.NumberFormat(locale).format(n);
 }
 
 export default function VideoAnalytics({
@@ -92,6 +127,9 @@ export default function VideoAnalytics({
   const [videoTitle, setVideoTitle] = useState<string>("");
 
   const isXs = useIsXs(); // <= 425px ?
+  const [lang] = useUiLang();
+  const t = T[lang];
+  const locale = LOCALE[lang];
 
   // Marges des graphes (colle à gauche en xs)
   const chartMargin = isXs
@@ -196,14 +234,14 @@ export default function VideoAnalytics({
       <header className="flex items-center gap-3">
         <h2 className="text-xl font-semibold">{titleText}</h2>
         {loading && (
-          <span className="text-sm text-neutral-500">Chargement…</span>
+          <span className="text-sm text-neutral-500">{t.loading}</span>
         )}
-        {err && <span className="text-sm text-red-500">Erreur : {err}</span>}
+        {err && <span className="text-sm text-red-500">{t.error} {err}</span>}
       </header>
 
       {/* === DAILY === */}
       <section className="rounded-2xl border border-neutral-700 bg-neutral-800/60 backdrop-blur p-4 xs:p-2">
-        <h3 className="font-medium mb-2 text-neutral-200">Vues / jour</h3>
+        <h3 className="font-medium mb-2 text-neutral-200">{t.viewsDay}</h3>
         <div className="w-full h-72">
           <ResponsiveContainer
             width="100%"
@@ -212,15 +250,15 @@ export default function VideoAnalytics({
           >
             <LineChart data={daily} margin={chartMargin}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="day" tickFormatter={formatDayLabel} />
+              <XAxis dataKey="day" tickFormatter={(v) => formatDayLabel(v, locale)} />
               <YAxis
-                tickFormatter={(v) => formatNumber(Number(v))}
+                tickFormatter={(v) => formatNumber(Number(v), locale)}
                 width={70}
               />
               <Tooltip
-                formatter={(value: any) => formatNumber(Number(value))}
+                formatter={(value: any) => formatNumber(Number(value), locale)}
                 labelFormatter={(l) =>
-                  new Date(l as string).toLocaleDateString("fr-FR", {
+                  new Date(l as string).toLocaleDateString(locale, {
                     weekday: "short",
                     year: "numeric",
                     month: "2-digit",
@@ -232,7 +270,7 @@ export default function VideoAnalytics({
               <Line
                 type="monotone"
                 dataKey="views"
-                name="Vues"
+                name={t.views}
                 dot={false}
                 strokeWidth={2}
                 stroke={COLOR_VIEWS}
@@ -241,7 +279,7 @@ export default function VideoAnalytics({
                 <Line
                   type="monotone"
                   dataKey="shares"
-                  name="Partages"
+                  name={t.shares}
                   dot={false}
                   strokeWidth={2}
                   stroke={COLOR_SHARES}
@@ -254,7 +292,7 @@ export default function VideoAnalytics({
 
       <section className="rounded-2xl border border-neutral-700 bg-neutral-800/60 backdrop-blur p-4 xs:p-2">
         <h3 className="font-medium mb-2 text-neutral-200">
-          Engagement / jour — likes, commentaires et taux
+          {t.engagementDay}
         </h3>
         <div className="w-full h-72">
           <ResponsiveContainer
@@ -264,27 +302,27 @@ export default function VideoAnalytics({
           >
             <LineChart data={daily} margin={chartMargin}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="day" tickFormatter={formatDayLabel} />
+              <XAxis dataKey="day" tickFormatter={(v) => formatDayLabel(v, locale)} />
               <YAxis
                 yAxisId="left"
-                tickFormatter={(v) => formatNumber(Number(v))}
+                tickFormatter={(v) => formatNumber(Number(v), locale)}
                 width={70}
               />
               <YAxis
                 yAxisId="right"
                 orientation="right"
-                tickFormatter={(v) => `${Number(v)} %`}
+                tickFormatter={(v) => `${Number(v)}${percentSuffix(locale)}`}
                 width={56}
                 stroke={COLOR_ENGAGE}
               />
               <Tooltip
                 formatter={(value: any, name: any) =>
-                  name === "Taux d’engagement"
-                    ? formatPercent(value == null ? null : Number(value))
-                    : formatNumber(Number(value))
+                  name === t.engagement
+                    ? formatPercent(value == null ? null : Number(value), locale)
+                    : formatNumber(Number(value), locale)
                 }
                 labelFormatter={(l) =>
-                  new Date(l as string).toLocaleDateString("fr-FR", {
+                  new Date(l as string).toLocaleDateString(locale, {
                     weekday: "short",
                     year: "numeric",
                     month: "2-digit",
@@ -297,7 +335,7 @@ export default function VideoAnalytics({
                 yAxisId="left"
                 type="monotone"
                 dataKey="likes"
-                name="Likes"
+                name={t.likes}
                 dot={false}
                 strokeWidth={2}
                 stroke={COLOR_LIKES}
@@ -306,7 +344,7 @@ export default function VideoAnalytics({
                 yAxisId="left"
                 type="monotone"
                 dataKey="comments"
-                name="Commentaires"
+                name={t.comments}
                 dot={false}
                 strokeWidth={2}
                 stroke={COLOR_COMMS}
@@ -315,7 +353,7 @@ export default function VideoAnalytics({
                 yAxisId="right"
                 type="monotone"
                 dataKey="engagement"
-                name="Taux d’engagement"
+                name={t.engagement}
                 dot={false}
                 strokeWidth={2}
                 strokeDasharray="4 3"
@@ -329,7 +367,7 @@ export default function VideoAnalytics({
 
       {/* === HOURLY === */}
       <section className="rounded-2xl border border-neutral-700 bg-neutral-800/60 backdrop-blur p-4 xs:p-2">
-        <h3 className="font-medium mb-2 text-neutral-200">Vues / heure</h3>
+        <h3 className="font-medium mb-2 text-neutral-200">{t.viewsHour}</h3>
         <div className="w-full h-72">
           <ResponsiveContainer
             width="100%"
@@ -338,15 +376,15 @@ export default function VideoAnalytics({
           >
             <LineChart data={hourly} margin={chartMargin}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="at" tickFormatter={formatHourLabel} />
+              <XAxis dataKey="at" tickFormatter={(v) => formatHourLabel(v, locale)} />
               <YAxis
-                tickFormatter={(v) => formatNumber(Number(v))}
+                tickFormatter={(v) => formatNumber(Number(v), locale)}
                 width={70}
               />
               <Tooltip
-                formatter={(value: any) => formatNumber(Number(value))}
+                formatter={(value: any) => formatNumber(Number(value), locale)}
                 labelFormatter={(l) =>
-                  new Date(l as string).toLocaleString("fr-FR", {
+                  new Date(l as string).toLocaleString(locale, {
                     weekday: "short",
                     year: "numeric",
                     month: "2-digit",
@@ -360,7 +398,7 @@ export default function VideoAnalytics({
               <Line
                 type="monotone"
                 dataKey="views"
-                name="Vues"
+                name={t.views}
                 dot={false}
                 strokeWidth={2}
                 stroke={COLOR_VIEWS}
@@ -369,7 +407,7 @@ export default function VideoAnalytics({
                 <Line
                   type="monotone"
                   dataKey="shares"
-                  name="Partages"
+                  name={t.shares}
                   dot={false}
                   strokeWidth={2}
                   stroke={COLOR_SHARES}
@@ -382,7 +420,7 @@ export default function VideoAnalytics({
 
       <section className="rounded-2xl border border-neutral-700 bg-neutral-800/60 backdrop-blur p-4 xs:p-2">
         <h3 className="font-medium mb-2 text-neutral-200">
-          Engagement / heure — likes, commentaires et taux
+          {t.engagementHour}
         </h3>
         <div className="w-full h-72">
           <ResponsiveContainer
@@ -392,27 +430,27 @@ export default function VideoAnalytics({
           >
             <LineChart data={hourly} margin={chartMargin}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="at" tickFormatter={formatHourLabel} />
+              <XAxis dataKey="at" tickFormatter={(v) => formatHourLabel(v, locale)} />
               <YAxis
                 yAxisId="left"
-                tickFormatter={(v) => formatNumber(Number(v))}
+                tickFormatter={(v) => formatNumber(Number(v), locale)}
                 width={70}
               />
               <YAxis
                 yAxisId="right"
                 orientation="right"
-                tickFormatter={(v) => `${Number(v)} %`}
+                tickFormatter={(v) => `${Number(v)}${percentSuffix(locale)}`}
                 width={56}
                 stroke={COLOR_ENGAGE}
               />
               <Tooltip
                 formatter={(value: any, name: any) =>
-                  name === "Taux d’engagement"
-                    ? formatPercent(value == null ? null : Number(value))
-                    : formatNumber(Number(value))
+                  name === t.engagement
+                    ? formatPercent(value == null ? null : Number(value), locale)
+                    : formatNumber(Number(value), locale)
                 }
                 labelFormatter={(l) =>
-                  new Date(l as string).toLocaleString("fr-FR", {
+                  new Date(l as string).toLocaleString(locale, {
                     weekday: "short",
                     year: "numeric",
                     month: "2-digit",
@@ -427,7 +465,7 @@ export default function VideoAnalytics({
                 yAxisId="left"
                 type="monotone"
                 dataKey="likes"
-                name="Likes"
+                name={t.likes}
                 dot={false}
                 strokeWidth={2}
                 stroke={COLOR_LIKES}
@@ -436,7 +474,7 @@ export default function VideoAnalytics({
                 yAxisId="left"
                 type="monotone"
                 dataKey="comments"
-                name="Commentaires"
+                name={t.comments}
                 dot={false}
                 strokeWidth={2}
                 stroke={COLOR_COMMS}
@@ -445,7 +483,7 @@ export default function VideoAnalytics({
                 yAxisId="right"
                 type="monotone"
                 dataKey="engagement"
-                name="Taux d’engagement"
+                name={t.engagement}
                 dot={false}
                 strokeWidth={2}
                 strokeDasharray="4 3"

@@ -3,15 +3,34 @@
 
 import clsx from "clsx";
 import type { Platform } from "@/lib/types";
+import type { Lang } from "@/lib/uiLang";
 
 export type PlatformFilterValue = Platform | "all";
 
-const LABELS: Record<PlatformFilterValue, string> = {
-  all: "Toutes",
+const NAMES: Record<Platform, string> = {
   youtube: "YouTube",
   tiktok: "TikTok",
   instagram: "Instagram",
 };
+
+const T = {
+  fr: {
+    all: "Toutes",
+    group: "Filtrer par plateforme",
+    heading: "Plateforme",
+    none: (name: string) => `Aucune vidéo ${name} dans ce lot`,
+    showAll: "Afficher toutes les plateformes",
+    show: (name: string) => `Afficher ${name}`,
+  },
+  en: {
+    all: "All",
+    group: "Filter by platform",
+    heading: "Platform",
+    none: (name: string) => `No ${name} videos in this batch`,
+    showAll: "Show all platforms",
+    show: (name: string) => `Show ${name}`,
+  },
+} as const;
 
 /** Couleur d'accent par plateforme, reprise des badges de `VideoCard`. */
 const ACCENT: Record<PlatformFilterValue, string> = {
@@ -26,6 +45,7 @@ export default function PlatformFilter({
   counts,
   onChange,
   pending = false,
+  lang = "fr",
 }: {
   value: PlatformFilterValue;
   /** Nombre de vidéos par plateforme dans le lot chargé. */
@@ -35,7 +55,10 @@ export default function PlatformFilter({
    *  dire « aucune vidéo ». On affiche un tiret et on ne désactive rien, sinon
    *  la barre donne l'impression d'un compte vide pendant le chargement. */
   pending?: boolean;
+  lang?: Lang;
 }) {
+  const t = T[lang];
+  const label = (key: PlatformFilterValue) => (key === "all" ? t.all : NAMES[key]);
   const options: { key: PlatformFilterValue; n: number }[] = [
     { key: "all", n: counts.youtube + counts.tiktok + counts.instagram },
     { key: "youtube", n: counts.youtube },
@@ -46,11 +69,11 @@ export default function PlatformFilter({
   return (
     <div
       role="group"
-      aria-label="Filtrer par plateforme"
+      aria-label={t.group}
       className="flex flex-wrap items-center gap-1.5 sm:gap-2"
     >
       <span className="text-xs uppercase tracking-wide text-neutral-400 mr-0.5">
-        Plateforme
+        {t.heading}
       </span>
 
       {options.map(({ key, n }) => {
@@ -69,8 +92,10 @@ export default function PlatformFilter({
             aria-pressed={active}
             title={
               disabled
-                ? `Aucune vidéo ${LABELS[key]} dans ce lot`
-                : `Afficher ${key === "all" ? "toutes les plateformes" : LABELS[key]}`
+                ? t.none(label(key))
+                : key === "all"
+                  ? t.showAll
+                  : t.show(label(key))
             }
             className={clsx(
               "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-sm text-white transition",
@@ -80,7 +105,7 @@ export default function PlatformFilter({
               disabled && "opacity-40 cursor-not-allowed hover:bg-neutral-700"
             )}
           >
-            {LABELS[key]}
+            {label(key)}
             <span
               aria-hidden
               className={clsx(

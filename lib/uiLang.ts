@@ -65,3 +65,6 @@ export function useUiLang(): [Lang, (lang: Lang) => void] {
 
   return [lang, set];
 }
+
+/** Locale `Intl` associée à chaque langue (dates, nombres). */
+export const LOCALE: Record<Lang, string> = { fr: "fr-FR", en: "en-US" };

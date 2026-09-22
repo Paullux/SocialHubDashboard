@@ -13,6 +13,8 @@ import {
 import type { PlatformFilterValue } from "@/components/dashboard";
 import type { Platform } from "@/lib/types";
 import { sortVideos, type SortKey, type SortDir } from "@/lib/videoSort";
+import { useUiLang } from "@/lib/uiLang";
+import LangToggle from "@/components/legal/LangToggle";
 
 /* ================== Types réponse API ================== */
 interface ApiResponseOk {
@@ -25,6 +27,33 @@ type ApiResponse = ApiResponseOk | ApiResponseErr;
 
 /* ================== Constantes ================== */
 const STEP = 60;
+
+const SORT_KEYS: SortKey[] = ["date", "views", "likes", "comments", "shares"];
+
+const T = {
+  fr: {
+    title: "DASHBOARD — Vidéos",
+    sorts: { date: "Date", views: "Vues", likes: "Likes", comments: "Commentaires", shares: "Partages (TikTok)" },
+    noTikTok: "Aucune vidéo TikTok pour ce lot",
+    loading: "Chargement...",
+    loadMore: `Charger +${STEP}`,
+    empty: "Aucune vidéo trouvée. Vérifie tes clés/permissions.",
+    emptyPlatform: "Aucune vidéo pour cette plateforme dans ce lot.",
+    showAll: "Afficher toutes les plateformes",
+    langLabel: "Langue de la page",
+  },
+  en: {
+    title: "DASHBOARD — Videos",
+    sorts: { date: "Date", views: "Views", likes: "Likes", comments: "Comments", shares: "Shares (TikTok)" },
+    noTikTok: "No TikTok videos in this batch",
+    loading: "Loading...",
+    loadMore: `Load +${STEP}`,
+    empty: "No videos found. Check your keys/permissions.",
+    emptyPlatform: "No videos for this platform in this batch.",
+    showAll: "Show all platforms",
+    langLabel: "Page language",
+  },
+} as const;
 
 /* ================== Page ================== */
 export default function DashboardPage(): JSX.Element {
@@ -39,6 +68,9 @@ export default function DashboardPage(): JSX.Element {
 
   // Filtre par plateforme
   const [platform, setPlatform] = useState<PlatformFilterValue>("all");
+
+  const [lang, setLang] = useUiLang();
+  const t = T[lang];
 
   // La barre d'outils est en `fixed` : sa hauteur varie avec le nombre de
   // lignes (filtre + tri passent a la ligne en dessous de ~640px). On la mesure
@@ -126,53 +158,31 @@ export default function DashboardPage(): JSX.Element {
           <div className="mx-auto max-w-7xl px-3 sm:px-6">
             <div className="flex flex-wrap items-center gap-2 py-2 sm:py-3">
               <h1 className="ml-2 sm:ml-[40px] text-base sm:text-lg font-semibold mr-2 sm:mr-3">
-                DASHBOARD — Vidéos
+                {t.title}
               </h1>
 
               <div className="flex flex-wrap gap-2">
-                <SortButton
-                  label="Date"
-                  active={sortKey === "date"}
-                  dir={sortKey === "date" ? sortDir : undefined}
-                  onClick={() => toggleSort("date")}
-                />
-                <SortButton
-                  label="Vues"
-                  active={sortKey === "views"}
-                  dir={sortKey === "views" ? sortDir : undefined}
-                  onClick={() => toggleSort("views")}
-                />
-                <SortButton
-                  label="Likes"
-                  active={sortKey === "likes"}
-                  dir={sortKey === "likes" ? sortDir : undefined}
-                  onClick={() => toggleSort("likes")}
-                />
-                <SortButton
-                  label="Commentaires"
-                  active={sortKey === "comments"}
-                  dir={sortKey === "comments" ? sortDir : undefined}
-                  onClick={() => toggleSort("comments")}
-                />
-                <SortButton
-                  label="Partages (TikTok)"
-                  active={sortKey === "shares"}
-                  dir={sortKey === "shares" ? sortDir : undefined}
-                  onClick={() => toggleSort("shares")}
-                  disabled={!hasTikTok}
-                  title={
-                    !hasTikTok ? "Aucune vidéo TikTok pour ce lot" : undefined
-                  }
-                />
+                {SORT_KEYS.map((key) => (
+                  <SortButton
+                    key={key}
+                    label={t.sorts[key]}
+                    active={sortKey === key}
+                    dir={sortKey === key ? sortDir : undefined}
+                    onClick={() => toggleSort(key)}
+                    disabled={key === "shares" && !hasTikTok}
+                    title={key === "shares" && !hasTikTok ? t.noTikTok : undefined}
+                  />
+                ))}
               </div>
 
-              <div className="ml-auto">
+              <div className="ml-auto flex items-center gap-2">
+                <LangToggle lang={lang} onChange={setLang} label={t.langLabel} className="self-center" />
                 <button
                   onClick={() => setLimit((l) => l + STEP)}
                   disabled={loading}
                   className="rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base bg-neutral-900 hover:bg-neutral-800 disabled:opacity-50"
                 >
-                  {loading ? "Chargement..." : `Charger +${STEP}`}
+                  {loading ? t.loading : t.loadMore}
                 </button>
               </div>
             </div>
@@ -183,6 +193,7 @@ export default function DashboardPage(): JSX.Element {
                 counts={counts}
                 onChange={setPlatform}
                 pending={!videos}
+                lang={lang}
               />
             </div>
 
@@ -206,7 +217,7 @@ export default function DashboardPage(): JSX.Element {
         className="xs:pt-[180px] pt-24 sm:pt-28 px-3 sm:px-6 max-w-7xl mx-auto"
         style={barH ? { paddingTop: barH + 56 + 16 } : undefined}
       >
-        {err && <ErrorBox message={err} />}
+        {err && <ErrorBox message={err} lang={lang} />}
 
         {/* GRID DE SKELETONS pendant le fetch initial */}
         {!sorted && !err && (
@@ -220,16 +231,16 @@ export default function DashboardPage(): JSX.Element {
         {sorted && sorted.length === 0 && (
           <div className="text-sm text-neutral-500">
             {platform === "all" ? (
-              "Aucune vidéo trouvée. Vérifie tes clés/permissions."
+              t.empty
             ) : (
               <>
-                Aucune vidéo pour cette plateforme dans ce lot.{" "}
+                {t.emptyPlatform}{" "}
                 <button
                   type="button"
                   onClick={() => setPlatform("all")}
                   className="underline hover:text-neutral-300"
                 >
-                  Afficher toutes les plateformes
+                  {t.showAll}
                 </button>
               </>
             )}
@@ -238,14 +249,14 @@ export default function DashboardPage(): JSX.Element {
 
         {sorted && sorted.length > 0 && (
           <>
-            <VideoGrid videos={sorted} />
+            <VideoGrid videos={sorted} lang={lang} />
             <div className="flex justify-center">
               <button
                 disabled={loading}
                 onClick={() => setLimit((l) => l + STEP)}
                 className="border border-neutral-700 bg-neutral-800/60 backdrop-blur mt-8 rounded-xl px-5 py-2.5 text-white hover:bg-neutral-700 disabled:opacity-50"
               >
-                {loading ? "Chargement..." : `Charger +${STEP}`}
+                {loading ? t.loading : t.loadMore}
               </button>
             </div>
           </>

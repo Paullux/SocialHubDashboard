@@ -8,6 +8,9 @@ export type DemoVideo = {
   likes: number;
   comments: number;
   platform: "youtube" | "tiktok" | "instagram";
+  /** Version anglaise des textes rédigés en français (le reste est déjà en
+   *  anglais, ou ne dépend pas de la langue). */
+  en?: { title?: string; description?: string };
 };
 
 /** Jeu d'exemple de la page /demo. Les titres reprennent les pochettes des
@@ -22,6 +25,10 @@ const demoVideos: DemoVideo[] = [
     title: "Good Days — Acoustic Session",
     description:
       "Enregistré en une prise, guitare et voix, sans retouche.\n\nUne session tournée un dimanche après-midi, avec la lumière de fin de journée pour seul éclairage.\n\n00:00 Intro\n00:38 Premier couplet\n02:14 Pont instrumental",
+    en: {
+      description:
+        "Recorded in one take, guitar and vocals, no edits.\n\nA session filmed on a Sunday afternoon, lit only by the late-day sun.\n\n00:00 Intro\n00:38 First verse\n02:14 Instrumental bridge",
+    },
     thumbnailUrl: "/thumbs/1.jpg",
     views: 1280,
     likes: 122,
@@ -31,6 +38,7 @@ const demoVideos: DemoVideo[] = [
   {
     id: "y2",
     title: "Midnight Sessions — musique, histoires et fins de nuit",
+    en: { title: "Midnight Sessions — music, stories and late nights" },
     thumbnailUrl: "/thumbs/2.jpg",
     views: 980,
     likes: 76,
@@ -44,6 +52,12 @@ const demoVideos: DemoVideo[] = [
       "Luna — Beats & Good Vibes 🎧\r\rCasque sur les oreilles, deux heures à chercher la bonne boucle.\rSon original\r#beats #lofi #reels #homestudio",
     description:
       "Luna — Beats & Good Vibes 🎧\r\rCasque sur les oreilles, deux heures à chercher la bonne boucle.\rSon original\r#beats #lofi #reels #homestudio",
+    en: {
+      title:
+        "Luna — Beats & Good Vibes 🎧\r\rHeadphones on, two hours hunting for the right loop.\rOriginal audio\r#beats #lofi #reels #homestudio",
+      description:
+        "Luna — Beats & Good Vibes 🎧\r\rHeadphones on, two hours hunting for the right loop.\rOriginal audio\r#beats #lofi #reels #homestudio",
+    },
     thumbnailUrl: "/thumbs/3.jpg",
     views: 2050,
     likes: 310,
@@ -53,6 +67,7 @@ const demoVideos: DemoVideo[] = [
   {
     id: "i2",
     title: "The Roads — Live Sessions, épisode 3",
+    en: { title: "The Roads — Live Sessions, episode 3" },
     thumbnailUrl: "/thumbs/4.jpg",
     views: 1520,
     likes: 150,
@@ -73,6 +88,10 @@ const demoVideos: DemoVideo[] = [
     title: "Sunset — Live at Home",
     description:
       "Reprise en fin de journée, une seule prise, rien de retouché.\n\nMusique : son original\n#live #acoustic #cover #fyp",
+    en: {
+      description:
+        "A cover at the end of the day, a single take, nothing edited.\n\nMusic: original audio\n#live #acoustic #cover #fyp",
+    },
     thumbnailUrl: "/thumbs/6.jpg",
     views: 3110,
     likes: 420,
@@ -82,6 +101,7 @@ const demoVideos: DemoVideo[] = [
   {
     id: "y4",
     title: "Riverflow — Live Session : une guitare, un micro",
+    en: { title: "Riverflow — Live Session: one guitar, one mic" },
     thumbnailUrl: "/thumbs/7.jpg",
     views: 640,
     likes: 70,
@@ -91,6 +111,7 @@ const demoVideos: DemoVideo[] = [
   {
     id: "y5",
     title: "Novae — Electronic Stories, le set complet",
+    en: { title: "Novae — Electronic Stories, the full set" },
     thumbnailUrl: "/thumbs/8.jpg",
     views: 890,
     likes: 95,

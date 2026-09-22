@@ -2,15 +2,18 @@
 "use client";
 
 import type { VideoItem } from "@/lib/types";
+import type { Lang } from "@/lib/uiLang";
 import VideoCard from "./VideoCard";
 
 export default function VideoGrid({
   videos,
   demo = false,
+  lang = "fr",
 }: {
   videos: VideoItem[];
   /** Vidéos factices (page /demo) : pas d'ID réel, donc pas de lien vers les stats détaillées. */
   demo?: boolean;
+  lang?: Lang;
 }) {
   return (
     <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
@@ -22,6 +25,7 @@ export default function VideoGrid({
           video={v}
           demo={demo}
           priority={i < 6}
+          lang={lang}
         />
       ))}
     </ul>

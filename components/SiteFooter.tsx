@@ -3,10 +3,28 @@
 
 import Link from "next/link";
 import { useConsent } from "@/components/consent/CookieConsentProvider";
+import { useUiLang } from "@/lib/uiLang";
+
+const T = {
+  fr: {
+    terms: "Mentions légales & CGU",
+    privacy: "Confidentialité",
+    deleteData: "Suppression des données",
+    cookies: "Gérer les cookies",
+  },
+  en: {
+    terms: "Legal notice & Terms",
+    privacy: "Privacy",
+    deleteData: "Data deletion",
+    cookies: "Manage cookies",
+  },
+} as const;
 
 export default function SiteFooter() {
   const { openPreferences } = useConsent();
   const year = new Date().getFullYear();
+  const [lang] = useUiLang();
+  const t = T[lang];
 
   return (
     <footer className="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-800 bg-neutral-900/95 backdrop-blur">
@@ -14,20 +32,20 @@ export default function SiteFooter() {
         <p className="hidden sm:block">© {year} Social Hub Dashboard — Paul Woisard</p>
         <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
           <Link href="/terms" className="hover:text-neutral-200 hover:underline">
-            Mentions légales &amp; CGU
+            {t.terms}
           </Link>
           <Link href="/privacy" className="hover:text-neutral-200 hover:underline">
-            Confidentialité
+            {t.privacy}
           </Link>
           <Link href="/delete-data" className="hover:text-neutral-200 hover:underline">
-            Suppression des données
+            {t.deleteData}
           </Link>
           <button
             type="button"
             onClick={openPreferences}
             className="hover:text-neutral-200 hover:underline"
           >
-            Gérer les cookies
+            {t.cookies}
           </button>
         </nav>
       </div>

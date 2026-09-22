@@ -6,7 +6,21 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import FormatDate from "@/components/FormatDate";
 import type { VideoItem } from "@/lib/types";
+import type { Lang } from "@/lib/uiLang";
 import KpiLine from "./KpiLine";
+
+const T = {
+  fr: {
+    open: "Ouvrir la vidéo",
+    openStats: (title: string) => `Ouvrir les stats pour ${title}`,
+    noPreview: "(Pas d’aperçu)",
+  },
+  en: {
+    open: "Open the video",
+    openStats: (title: string) => `Open stats for ${title}`,
+    noPreview: "(No preview)",
+  },
+} as const;
 
 /** Ramène toutes les formes de saut de ligne à `\n` (seul séparateur que
  *  `white-space: pre-line` sait rendre) et resserre les lignes vides.
@@ -112,6 +126,7 @@ export default function VideoCard({
   video: v,
   demo = false,
   priority = false,
+  lang = "fr",
 }: {
   video: VideoItem;
   /** Vidéo factice (page /demo) : id non réel, on n'appelle pas l'API de stats. */
@@ -120,7 +135,9 @@ export default function VideoCard({
    *  miniature est candidate au LCP : elle se charge donc sans attendre, et
    *  la carte échappe au `content-visibility` qui allège les suivantes. */
   priority?: boolean;
+  lang?: Lang;
 }) {
+  const t = T[lang];
   const tip = buildTip(v);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const portrait = isPortraitThumbnail(v);
@@ -135,6 +152,13 @@ export default function VideoCard({
   const hide = useCallback(() => setPos(null), []);
 
   const altText = normalizeText(v.title);
+  const statsHref = demo
+    ? "/demo/analytics"
+    : `/analytics/${v.id}?platform=${v.platform}`;
+  // Sans URL de vidéo (démo, ou plateforme qui n'en renvoie pas), la vignette
+  // mène aux stats. Un `href="#"` en `target="_blank"` rouvrait la page
+  // courante dans un nouvel onglet : on aurait dit un simple rechargement.
+  const externalUrl = !demo && v.url && v.url !== "#" ? v.url : null;
 
   return (
     <li
@@ -153,11 +177,10 @@ export default function VideoCard({
       onBlurCapture={hide}
     >
       {/* Preview */}
-      <a
-        href={v.url || "#"}
-        target="_blank"
-        rel="noreferrer"
-        aria-label={altText || "Ouvrir la vidéo"}
+      <PreviewLink
+        external={externalUrl}
+        internal={statsHref}
+        label={externalUrl ? altText || t.open : t.openStats(altText)}
         className="block"
       >
         <div
@@ -201,11 +224,11 @@ export default function VideoCard({
             )
           ) : (
             <div className="w-full h-full flex items-center justify-center text-neutral-400 text-sm">
-              (Pas d’aperçu)
+              {t.noPreview}
             </div>
           )}
         </div>
-      </a>
+      </PreviewLink>
 
       {/* Infos */}
       <div className="flex flex-col flex-1">
@@ -213,7 +236,7 @@ export default function VideoCard({
           <span className="uppercase tracking-wide rounded-full border border-neutral-500 px-1.5 py-0.5">
             {v.platform}
           </span>
-          {v.publishedAt && <FormatDate iso={v.publishedAt} />}
+          {v.publishedAt && <FormatDate iso={v.publishedAt} lang={lang} />}
         </div>
 
         <div className="px-2 sm:px-3 pb-2 flex-1">
@@ -224,13 +247,13 @@ export default function VideoCard({
 
         <div className="bg-neutral-800/70 backdrop-blur mt-auto px-2 sm:px-3 py-2 flex items-center justify-between text-neutral-100">
           <div className="overflow-x-auto whitespace-nowrap pr-2">
-            <KpiLine v={v} />
+            <KpiLine v={v} lang={lang} />
           </div>
 
           <Link
-            href={demo ? "/demo/analytics" : `/analytics/${v.id}?platform=${v.platform}`}
+            href={statsHref}
             className="ml-2 text-[11px] sm:text-xs px-2 py-1 rounded bg-neutral-700 hover:bg-neutral-600 flex items-center gap-1 shrink-0"
-            aria-label={`Ouvrir les stats pour ${altText}`}
+            aria-label={t.openStats(altText)}
             title="Stats"
           >
             <span aria-hidden>📈</span>
@@ -241,6 +264,35 @@ export default function VideoCard({
 
       {tip && pos && <HoverTip pos={pos} content={tip} />}
     </li>
+  );
+}
+
+/** Lien de la vignette : la vidéo d'origine dans un nouvel onglet quand on a
+ *  son URL, sinon la page de stats, dans l'onglet courant. */
+function PreviewLink({
+  external,
+  internal,
+  label,
+  className,
+  children,
+}: {
+  external: string | null;
+  internal: string;
+  label: string;
+  className: string;
+  children: React.ReactNode;
+}) {
+  if (external) {
+    return (
+      <a href={external} target="_blank" rel="noreferrer" aria-label={label} className={className}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link href={internal} aria-label={label} className={className}>
+      {children}
+    </Link>
   );
 }
 

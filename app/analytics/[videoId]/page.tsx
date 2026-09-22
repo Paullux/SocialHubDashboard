@@ -1,5 +1,5 @@
 // app/analytics/[videoId]/page.tsx
-import Link from "next/link";
+import BackLink from "@/components/BackLink";
 import VideoAnalytics from "@/components/VideoAnalytics";
 
 type Params = { videoId: string };
@@ -24,15 +24,7 @@ export default async function AnalyticsPage({
   return (
     <main className="pt-24 px-4 sm:px-6 max-w-7xl mx-auto space-y-4">
       <div className="sticky top-16 z-10">
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-2 rounded-lg border border-neutral-700 bg-neutral-800/90 backdrop-blur px-3 py-1.5 text-sm text-white hover:bg-neutral-700"
-          aria-label="Retour au dashboard"
-        >
-          <span aria-hidden>←</span>
-          <span className="hidden xs:inline">Dashboard</span>
-          <span className="xs:hidden">Retour</span>
-        </Link>
+        <BackLink href="/dashboard" label={{ fr: "Dashboard", en: "Dashboard" }} />
       </div>
 
       <VideoAnalytics videoId={videoId} platform={platform} />
