@@ -113,6 +113,9 @@ export default function DashboardPage(): JSX.Element {
   }, []);
 
   const noAccount = links !== null && links.length === 0;
+  // Les partages n'existent que côté TikTok : sans compte TikTok, pas de tri.
+  const tiktokLinked = links?.some((l) => l.provider === "tiktok") ?? false;
+  const sortKeys = tiktokLinked ? SORT_KEYS : SORT_KEYS.filter((k) => k !== "shares");
 
   // Meta ajoute « #_ » à ses redirections OAuth : on le retire de l'URL.
   useEffect(() => {
@@ -186,7 +189,7 @@ export default function DashboardPage(): JSX.Element {
                   détournent l'attention de l'écran d'accueil. */}
               {!noAccount && (
                 <div className="flex flex-wrap gap-2">
-                  {SORT_KEYS.map((key) => (
+                  {sortKeys.map((key) => (
                     <SortButton
                       key={key}
                       label={t.sorts[key]}
