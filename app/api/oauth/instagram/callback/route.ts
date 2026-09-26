@@ -92,7 +92,7 @@ export async function GET(req: Request) {
 
   const base = process.env.NEXT_PUBLIC_BASE_URL ?? new URL(req.url).origin;
   const res = NextResponse.redirect(
-    `${base}/settings/linked-accounts?connected=instagram`
+    `${base}/dashboard?connected=instagram`
   );
   res.headers.append("Set-Cookie", stateCookieClear());
   return res;

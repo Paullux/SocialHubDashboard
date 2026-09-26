@@ -118,7 +118,7 @@ export async function GET(req: Request) {
     }
 
     const base = process.env.NEXT_PUBLIC_BASE_URL!;
-    const res = NextResponse.redirect(`${base}/settings/linked-accounts?connected=youtube`);
+    const res = NextResponse.redirect(`${base}/dashboard?connected=youtube`);
     res.headers.append("Set-Cookie", stateCookieClear());
     return res;
   } catch (e: any) {

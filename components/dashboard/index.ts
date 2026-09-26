@@ -6,3 +6,5 @@ export { default as VideoGrid } from "./VideoGrid";
 export { default as VideoCard } from "./VideoCard";
 export { default as VideoCardSkeleton } from "./VideoCardSkeleton";
 export { default as KpiLine } from "./KpiLine";
+export { default as ConnectPanel } from "./ConnectPanel";
+export type { LinkedAccount } from "./ConnectPanel";

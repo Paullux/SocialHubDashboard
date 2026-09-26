@@ -9,8 +9,9 @@ import {
   SortButton,
   PlatformFilter,
   VideoGrid,
+  ConnectPanel,
 } from "@/components/dashboard";
-import type { PlatformFilterValue } from "@/components/dashboard";
+import type { PlatformFilterValue, LinkedAccount } from "@/components/dashboard";
 import type { Platform } from "@/lib/types";
 import { sortVideos, type SortKey, type SortDir } from "@/lib/videoSort";
 import { useUiLang } from "@/lib/uiLang";
@@ -37,7 +38,7 @@ const T = {
     noTikTok: "Aucune vidéo TikTok pour ce lot",
     loading: "Chargement...",
     loadMore: `Charger +${STEP}`,
-    empty: "Aucune vidéo trouvée. Vérifie tes clés/permissions.",
+    empty: "Aucune vidéo trouvée sur les comptes connectés pour le moment.",
     emptyPlatform: "Aucune vidéo pour cette plateforme dans ce lot.",
     showAll: "Afficher toutes les plateformes",
     langLabel: "Langue de la page",
@@ -48,7 +49,7 @@ const T = {
     noTikTok: "No TikTok videos in this batch",
     loading: "Loading...",
     loadMore: `Load +${STEP}`,
-    empty: "No videos found. Check your keys/permissions.",
+    empty: "No videos found on your connected accounts yet.",
     emptyPlatform: "No videos for this platform in this batch.",
     showAll: "Show all platforms",
     langLabel: "Page language",
@@ -61,6 +62,9 @@ export default function DashboardPage(): JSX.Element {
   const [videos, setVideos] = useState<VideoItem[] | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [err, setErr] = useState<string | null>(null);
+  // Comptes liés : null tant qu'on ne sait pas (ou si l'appel a échoué), pour ne
+  // pas afficher l'écran « connecte ta première plateforme » à tort.
+  const [links, setLinks] = useState<LinkedAccount[] | null>(null);
 
   // Tri
   const [sortKey, setSortKey] = useState<SortKey>("date");
@@ -100,6 +104,15 @@ export default function DashboardPage(): JSX.Element {
   useEffect(() => {
     void load(limit);
   }, [limit]);
+
+  useEffect(() => {
+    fetch("/api/linked-accounts", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((d: { links?: LinkedAccount[] }) => setLinks(d.links ?? []))
+      .catch(() => setLinks(null));
+  }, []);
+
+  const noAccount = links !== null && links.length === 0;
 
   useEffect(() => {
     const el = barRef.current;
@@ -217,10 +230,13 @@ export default function DashboardPage(): JSX.Element {
         className="xs:pt-[180px] pt-24 sm:pt-28 px-3 sm:px-6 max-w-7xl mx-auto"
         style={barH ? { paddingTop: barH + 56 + 16 } : undefined}
       >
-        {err && <ErrorBox message={err} lang={lang} />}
+        {/* Aucun compte lié : l'écran d'accueil remplace la grille */}
+        {noAccount && <ConnectPanel links={[]} variant="hero" lang={lang} />}
+
+        {!noAccount && err && <ErrorBox message={err} lang={lang} />}
 
         {/* GRID DE SKELETONS pendant le fetch initial */}
-        {!sorted && !err && (
+        {!noAccount && !sorted && !err && (
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {Array.from({ length: 9 }).map((_, i) => (
               <VideoCardSkeleton key={i} />
@@ -228,7 +244,7 @@ export default function DashboardPage(): JSX.Element {
           </ul>
         )}
 
-        {sorted && sorted.length === 0 && (
+        {!noAccount && sorted && sorted.length === 0 && (
           <div className="text-sm text-neutral-500">
             {platform === "all" ? (
               t.empty
@@ -247,7 +263,7 @@ export default function DashboardPage(): JSX.Element {
           </div>
         )}
 
-        {sorted && sorted.length > 0 && (
+        {!noAccount && sorted && sorted.length > 0 && (
           <>
             <VideoGrid videos={sorted} lang={lang} />
             <div className="flex justify-center">
@@ -260,6 +276,11 @@ export default function DashboardPage(): JSX.Element {
               </button>
             </div>
           </>
+        )}
+
+        {/* Au moins un compte lié : gestion des connexions sous les vidéos */}
+        {links && links.length > 0 && (
+          <ConnectPanel links={links} variant="footer" lang={lang} />
         )}
       </main>
     </>
