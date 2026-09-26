@@ -110,7 +110,7 @@ export async function GET(req: Request) {
 
     // Nettoie le cookie PKCE et redirige
     const res = NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/settings/linked-accounts?connected=tiktok`
+      `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard?connected=tiktok`
     );
     res.cookies.set("tiktok_pkce", "", { maxAge: 0, path: "/" });
     return res;

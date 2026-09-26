@@ -9,6 +9,8 @@ export async function GET(request: Request) {
 
     const links = await prisma.accountLink.findMany({
       where: { userId: user.id },
+      // Jamais les jetons (même chiffrés) côté navigateur.
+      select: { provider: true, username: true },
     });
 
     return NextResponse.json({ links });
