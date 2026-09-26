@@ -114,6 +114,14 @@ export default function DashboardPage(): JSX.Element {
 
   const noAccount = links !== null && links.length === 0;
 
+  // Meta ajoute « #_ » à ses redirections OAuth : on le retire de l'URL.
+  useEffect(() => {
+    if (window.location.hash === "#_") {
+      const { pathname, search } = window.location;
+      window.history.replaceState(window.history.state, "", pathname + search);
+    }
+  }, []);
+
   useEffect(() => {
     const el = barRef.current;
     if (!el || typeof ResizeObserver === "undefined") return;
@@ -174,41 +182,49 @@ export default function DashboardPage(): JSX.Element {
                 {t.title}
               </h1>
 
-              <div className="flex flex-wrap gap-2">
-                {SORT_KEYS.map((key) => (
-                  <SortButton
-                    key={key}
-                    label={t.sorts[key]}
-                    active={sortKey === key}
-                    dir={sortKey === key ? sortDir : undefined}
-                    onClick={() => toggleSort(key)}
-                    disabled={key === "shares" && !hasTikTok}
-                    title={key === "shares" && !hasTikTok ? t.noTikTok : undefined}
-                  />
-                ))}
-              </div>
+              {/* Sans compte lié, tris / filtre / chargement ne servent à rien et
+                  détournent l'attention de l'écran d'accueil. */}
+              {!noAccount && (
+                <div className="flex flex-wrap gap-2">
+                  {SORT_KEYS.map((key) => (
+                    <SortButton
+                      key={key}
+                      label={t.sorts[key]}
+                      active={sortKey === key}
+                      dir={sortKey === key ? sortDir : undefined}
+                      onClick={() => toggleSort(key)}
+                      disabled={key === "shares" && !hasTikTok}
+                      title={key === "shares" && !hasTikTok ? t.noTikTok : undefined}
+                    />
+                  ))}
+                </div>
+              )}
 
               <div className="ml-auto flex items-center gap-2">
                 <LangToggle lang={lang} onChange={setLang} label={t.langLabel} className="self-center" />
-                <button
-                  onClick={() => setLimit((l) => l + STEP)}
-                  disabled={loading}
-                  className="rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base bg-neutral-900 hover:bg-neutral-800 disabled:opacity-50"
-                >
-                  {loading ? t.loading : t.loadMore}
-                </button>
+                {!noAccount && (
+                  <button
+                    onClick={() => setLimit((l) => l + STEP)}
+                    disabled={loading}
+                    className="rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base bg-neutral-900 hover:bg-neutral-800 disabled:opacity-50"
+                  >
+                    {loading ? t.loading : t.loadMore}
+                  </button>
+                )}
               </div>
             </div>
 
-            <div className="flex items-center gap-2 pb-2 sm:pb-3">
-              <PlatformFilter
-                value={platform}
-                counts={counts}
-                onChange={setPlatform}
-                pending={!videos}
-                lang={lang}
-              />
-            </div>
+            {!noAccount && (
+              <div className="flex items-center gap-2 pb-2 sm:pb-3">
+                <PlatformFilter
+                  value={platform}
+                  counts={counts}
+                  onChange={setPlatform}
+                  pending={!videos}
+                  lang={lang}
+                />
+              </div>
+            )}
 
             {/* Skeleton de toolbar au tout premier chargement */}
             {/* {!sorted && !err && (
