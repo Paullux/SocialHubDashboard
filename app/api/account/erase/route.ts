@@ -93,6 +93,9 @@ export async function POST(req: Request) {
     deletedMetrics += count;
   }
 
+  // 2 bis) Catalogue des tris (cache par utilisateur, cf. VideoCatalog).
+  await prisma.videoCatalog.deleteMany({ where: { userId: user.id } });
+
   // 3) Supprimer tous les comptes liés de l'utilisateur (chacun n'efface que
   //    ses propres AccountLink, jamais ceux d'un autre).
   const { count: deletedLinks } = await prisma.accountLink.deleteMany({

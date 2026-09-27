@@ -2,6 +2,7 @@
 export const runtime = "nodejs";
 import { requireDashboardUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { deleteYouTubeCatalog } from "@/lib/youtube/catalog.server";
 
 export async function GET(req: Request) {
   // requireDashboardUser() lève une exception : sans ce filet, un appel sans
@@ -18,6 +19,10 @@ export async function GET(req: Request) {
   await prisma.accountLink
     .delete({ where: { userId_provider: { userId: user.id, provider } } })
     .catch(() => {});
+  // Le catalogue des tris est rattaché à l'utilisateur : il part avec le lien.
+  if (provider === "google-youtube") {
+    await deleteYouTubeCatalog(user.id).catch(() => {});
+  }
 
   return Response.redirect(
     new URL(

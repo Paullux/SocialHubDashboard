@@ -11,6 +11,7 @@ import { fetchInstagramMedia } from "@/lib/meta/media.server";
 import { refreshLongLivedToken } from "@/lib/meta/auth.server";
 import type { VideoItem } from "@/lib/types";
 import { jsonNoStore, timingSafeEqualStr } from "@/lib/security";
+import { syncYouTubeCatalog } from "@/lib/youtube/catalog.server";
 
 async function fetchTikTokIdsForMetrics(access: string): Promise<VideoItem[]> {
   const fields = [
@@ -137,17 +138,30 @@ export async function GET(req: Request) {
       ? await prisma.accountLink.findMany({ where: { provider: "google-youtube" } })
       : [];
     let total = 0;
+    let rebuilt = 0;
     for (const link of links) {
       try {
         const channelId = (link.meta as { channelId?: string } | null)?.channelId;
         if (!channelId) continue;
         const yt = await fetchYouTubeLatest(ytKey, channelId, 100);
         total += await writeMetrics(yt, nowHour);
+
+        // Catalogue des tris : reconstruit seulement si la vidéo la plus
+        // récente a changé (ou si le cache a vieilli). Séparé du snapshot pour
+        // qu'un échec ici n'efface pas les métriques déjà écrites.
+        try {
+          if (await syncYouTubeCatalog(link.userId, channelId, ytKey, yt[0]?.id ?? null)) {
+            rebuilt += 1;
+          }
+        } catch (e: any) {
+          errors[`youtube-catalog:${link.id}`] = String(e?.message ?? e);
+        }
       } catch (e: any) {
         errors[`youtube:${link.id}`] = String(e?.message ?? e);
       }
     }
     counts.youtube = total;
+    counts.youtubeCatalogRebuilt = rebuilt;
   } catch (e: any) {
     errors.youtube = String(e?.message ?? e);
   }

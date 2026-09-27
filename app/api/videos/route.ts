@@ -11,6 +11,8 @@ import { getAccountLink } from "@/lib/accountLinks";
 import { fetchInstagramMedia } from "@/lib/meta/media.server";
 import { ipFromHeaders, isRateLimitedKey, timingSafeEqualStr } from "@/lib/security";
 import { attachThumbnailDimensions } from "@/lib/imageProbe.server";
+import { getYouTubeCatalog } from "@/lib/youtube/catalog.server";
+import { isSortKey, sortVideos, type SortDir } from "@/lib/videoSort";
 
 /* ================== Types ================== */
 type Notes = Record<string, unknown>;
@@ -139,6 +141,15 @@ export async function GET(req: Request) {
     const ttParam = url.searchParams.get("tt");
     const TOTAL_LIMIT = Math.min(Math.max(Number(limitParam ?? 60), 1), 200); // borne à 200
 
+    // Tri demandé. Hors « date décroissante » (l'ordre naturel des API), le lot
+    // renvoyé est classé sur tout le catalogue YouTube (cache VideoCatalog), pas
+    // sur les dernières vidéos publiées. TikTok/Instagram restent sur leurs
+    // dernières vidéos pour l'instant.
+    const sortParam = url.searchParams.get("sort");
+    const sortKey = isSortKey(sortParam) ? sortParam : "date";
+    const sortDir: SortDir = url.searchParams.get("dir") === "asc" ? "asc" : "desc";
+    const ranked = !(sortKey === "date" && sortDir === "desc");
+
     // Utilisateur Kinde (une seule fois) : chaque plateforme n'est affichée que
     // si l'utilisateur a lié SON PROPRE compte → chacun ne voit que ses vidéos,
     // et la déconnexion masque les siennes (jamais celles d'un autre).
@@ -219,7 +230,14 @@ export async function GET(req: Request) {
     let yt: VideoItem[] = [];
     if (ytKey && ytChannelId && ytTarget > 0) {
       try {
-        yt = await fetchYouTubeLatest(ytKey, ytChannelId, ytTarget);
+        if (ranked && kuserId) {
+          // Tout le lot peut venir de YouTube : le tri final départage les
+          // plateformes, pas le partage moitié/moitié.
+          const catalog = await getYouTubeCatalog(kuserId, ytChannelId, ytKey);
+          yt = sortVideos(catalog, sortKey, sortDir).slice(0, TOTAL_LIMIT);
+        } else {
+          yt = await fetchYouTubeLatest(ytKey, ytChannelId, ytTarget);
+        }
       } catch (e: unknown) {
         (notes as any).youtube_error = String(e);
       }
@@ -259,15 +277,17 @@ export async function GET(req: Request) {
     }
 
     const seen = new Set<string>();
-    const videos = [...yt, ...tt, ...ig]
-      .filter((v) => {
-        const key = `${v.platform}:${v.id}`;
-        if (!v.id || seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      })
-      .sort((a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt))
-      .slice(0, TOTAL_LIMIT);
+    const merged = [...yt, ...tt, ...ig].filter((v) => {
+      const key = `${v.platform}:${v.id}`;
+      if (!v.id || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    const videos = (
+      ranked
+        ? sortVideos(merged, sortKey, sortDir)
+        : merged.sort((a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt))
+    ).slice(0, TOTAL_LIMIT);
 
     // TikTok/Instagram ne fournissent pas les dimensions de leur miniature :
     // on les sonde nous-mêmes (best-effort), uniquement sur la liste finale

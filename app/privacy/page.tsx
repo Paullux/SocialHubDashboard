@@ -85,6 +85,12 @@ function Fr() {
         Vous pouvez néanmoins supprimer cet historique à tout moment depuis la page{" "}
         <a href="/settings/linked-accounts">Comptes liés</a> (voir §8).
       </p>
+      <p>
+        Pour trier vos vidéos YouTube sur l’ensemble de votre chaîne, nous conservons
+        aussi une copie de sa liste publique (titres, miniatures, compteurs), rattachée à
+        votre compte et actualisée automatiquement. Elle est supprimée dès que vous
+        déconnectez YouTube ou effacez vos données.
+      </p>
       <h3>2.4 Données techniques</h3>
       <p>
         Nos hébergeurs génèrent des journaux techniques (adresse IP, horodatage, type de
@@ -405,6 +411,12 @@ function En() {
         or your account: once an account is disconnected, these measurements can no longer
         be tied back to you. You can still delete this history at any time from the{" "}
         <a href="/settings/linked-accounts">Linked accounts</a> page (see §8).
+      </p>
+      <p>
+        To sort your YouTube videos across your whole channel, we also keep a copy of its
+        public video list (titles, thumbnails, counters), linked to your account and
+        refreshed automatically. It is deleted as soon as you disconnect YouTube or erase
+        your data.
       </p>
       <h3>2.4 Technical data</h3>
       <p>
