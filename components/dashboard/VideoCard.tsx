@@ -8,6 +8,7 @@ import FormatDate from "@/components/FormatDate";
 import type { VideoItem } from "@/lib/types";
 import type { Lang } from "@/lib/uiLang";
 import KpiLine from "./KpiLine";
+import { untitledLabel } from "@/lib/untitled";
 
 const T = {
   fr: {
@@ -151,7 +152,10 @@ export default function VideoCard({
   }, []);
   const hide = useCallback(() => setPos(null), []);
 
-  const altText = normalizeText(v.title);
+  // Vidéo sans description (TikTok / Instagram l'autorisent) : titre générique,
+  // affiché en retrait pour ne pas passer pour le texte du créateur.
+  const hasTitle = normalizeText(v.title) !== "";
+  const altText = hasTitle ? normalizeText(v.title) : untitledLabel(v.platform, lang);
   const statsHref = demo
     ? `/demo/analytics?v=${encodeURIComponent(v.id)}`
     : `/analytics/${v.id}?platform=${v.platform}`;
@@ -240,9 +244,15 @@ export default function VideoCard({
         </div>
 
         <div className="px-2 sm:px-3 pb-2 flex-1">
-          <h3 className="font-medium text-sm sm:text-base line-clamp-2 text-neutral-100">
-            {v.title}
-          </h3>
+          {hasTitle ? (
+            <h3 className="font-medium text-sm sm:text-base line-clamp-2 text-neutral-100">
+              {v.title}
+            </h3>
+          ) : (
+            <h3 className="font-medium text-sm sm:text-base line-clamp-2 italic text-neutral-400">
+              {altText}
+            </h3>
+          )}
         </div>
 
         <div className="bg-neutral-800/70 backdrop-blur mt-auto px-2 sm:px-3 py-2 flex items-center justify-between text-neutral-100">

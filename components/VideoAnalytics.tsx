@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useIsXs } from "@/utils/useIsXs";
 import { LOCALE, useUiLang } from "@/lib/uiLang";
+import { untitledLabel } from "@/lib/untitled";
 import {
   ResponsiveContainer,
   LineChart,
@@ -124,7 +125,9 @@ export default function VideoAnalytics({
   const [data, setData] = useState<ApiOk | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [videoTitle, setVideoTitle] = useState<string>("");
+  // null : vidéo introuvable dans la liste (on affiche son id) ; "" : trouvée
+  // mais sans description (TikTok / Instagram) → titre générique.
+  const [videoTitle, setVideoTitle] = useState<string | null>(null);
 
   const isXs = useIsXs(); // <= 425px ?
   const [lang] = useUiLang();
@@ -185,7 +188,7 @@ export default function VideoAnalytics({
         const found = list.find(
           (v: any) => v.id === videoId && v.platform === platform
         ) as VideoMeta | undefined;
-        if (mounted) setVideoTitle(found?.title || "");
+        if (mounted) setVideoTitle(found ? (found.title ?? "").trim() : null);
       } catch {
         /* ignore */
       }
@@ -213,9 +216,12 @@ export default function VideoAnalytics({
 
   const TITLE_LIMIT = platform === "tiktok" ? 45 : 35;
 
-  const displayTitle = videoTitle
-    ? truncateTitle(videoTitle, TITLE_LIMIT)
-    : videoId;
+  const displayTitle =
+    videoTitle === null
+      ? videoId
+      : videoTitle
+        ? truncateTitle(videoTitle, TITLE_LIMIT)
+        : untitledLabel(platform, lang);
 
   const titleText =
     displayTitle +
