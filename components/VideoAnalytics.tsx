@@ -31,11 +31,15 @@ const T = {
     shares: "Partages",
     engagement: "Taux d’engagement",
     viewsDay: "Vues / jour",
-    viewsHour: "Vues / heure",
+    viewsHour: "Vues / heure — 7 derniers jours",
     loading: "Chargement…",
     error: "Erreur :",
     engagementDay: "Engagement / jour — likes, commentaires et taux",
-    engagementHour: "Engagement / heure — likes, commentaires et taux",
+    engagementHour: "Engagement / heure — 7 derniers jours",
+    buildingTitle: "L’historique de cette vidéo se construit",
+    buildingBody:
+      "Social Hub enregistre les compteurs de chacune de tes vidéos une fois par jour, et toutes les heures pour les plus récentes. Les courbes apparaîtront au fil des prochains jours : rien n’est cassé, il faut juste un peu de recul.",
+    buildingNow: "En ce moment :",
   },
   en: {
     views: "Views",
@@ -44,11 +48,15 @@ const T = {
     shares: "Shares",
     engagement: "Engagement rate",
     viewsDay: "Views / day",
-    viewsHour: "Views / hour",
+    viewsHour: "Views / hour — last 7 days",
     loading: "Loading…",
     error: "Error:",
     engagementDay: "Engagement / day — likes, comments and rate",
-    engagementHour: "Engagement / hour — likes, comments and rate",
+    engagementHour: "Engagement / hour — last 7 days",
+    buildingTitle: "This video’s history is being built",
+    buildingBody:
+      "Social Hub records the counters of every one of your videos once a day, and every hour for the most recent ones. The charts will fill in over the next few days: nothing is broken, it just needs a little time.",
+    buildingNow: "Right now:",
   },
 } as const;
 
@@ -73,6 +81,13 @@ type ApiOk = {
   videoId: string;
   /** Titre lu dans le catalogue : null = inconnu, "" = sans description. */
   title?: string | null;
+  /** Compteurs actuels (catalogue), null si la vidéo n'y est pas. */
+  current?: {
+    views: number | null;
+    likes: number | null;
+    comments: number | null;
+    shares: number | null;
+  } | null;
   hourly: HourlyPoint[];
   daily: DailyPoint[];
 };
@@ -86,7 +101,12 @@ function formatDayLabel(iso: string, locale: string) {
 }
 function formatHourLabel(iso: string, locale: string) {
   const d = new Date(iso);
-  return d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleString(locale, {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 /** Taux d'engagement : (likes + commentaires + partages) / vues, en %.
  *  `null` si les vues manquent ou valent 0 — diviser par zéro donnerait
@@ -254,7 +274,38 @@ export default function VideoAnalytics({
         {err && <span className="text-sm text-red-500">{t.error} {err}</span>}
       </header>
 
+      {/* Historique trop court pour une courbe : on l'explique plutôt que
+          d'afficher des cadres vides — un nouvel utilisateur croirait que le
+          site ne marche pas. */}
+      {data && daily.length < 2 && (
+        <section className="rounded-2xl border border-sky-700/60 bg-sky-950/40 p-4 space-y-2">
+          <h3 className="font-medium text-sky-100">{t.buildingTitle}</h3>
+          <p className="text-sm text-neutral-300">{t.buildingBody}</p>
+          {data.current && (
+            <p className="text-sm text-neutral-200 flex flex-wrap gap-x-4 gap-y-1">
+              <span className="text-neutral-400">{t.buildingNow}</span>
+              <span>
+                {t.views} <strong>{formatNumber(data.current.views, locale)}</strong>
+              </span>
+              <span>
+                {t.likes} <strong>{formatNumber(data.current.likes, locale)}</strong>
+              </span>
+              <span>
+                {t.comments} <strong>{formatNumber(data.current.comments, locale)}</strong>
+              </span>
+              {platform === "tiktok" && (
+                <span>
+                  {t.shares} <strong>{formatNumber(data.current.shares, locale)}</strong>
+                </span>
+              )}
+            </p>
+          )}
+        </section>
+      )}
+
       {/* === DAILY === */}
+      {daily.length > 0 && (
+      <>
       <section className="rounded-2xl border border-neutral-700 bg-neutral-800/60 backdrop-blur p-4 xs:p-2">
         <h3 className="font-medium mb-2 text-neutral-200">{t.viewsDay}</h3>
         <div className="w-full h-72">
@@ -379,8 +430,12 @@ export default function VideoAnalytics({
           </ResponsiveContainer>
         </div>
       </section>
+      </>
+      )}
 
       {/* === HOURLY === */}
+      {hourly.length > 0 && (
+      <>
       <section className="rounded-2xl border border-neutral-700 bg-neutral-800/60 backdrop-blur p-4 xs:p-2">
         <h3 className="font-medium mb-2 text-neutral-200">{t.viewsHour}</h3>
         <div className="w-full h-72">
@@ -509,6 +564,8 @@ export default function VideoAnalytics({
           </ResponsiveContainer>
         </div>
       </section>
+      </>
+      )}
     </div>
   );
 }

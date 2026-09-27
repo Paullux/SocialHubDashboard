@@ -12,6 +12,7 @@ import { refreshLongLivedToken } from "@/lib/meta/auth.server";
 import type { VideoItem } from "@/lib/types";
 import { jsonNoStore, timingSafeEqualStr } from "@/lib/security";
 import { syncCatalog, type CatalogSource } from "@/lib/catalog.server";
+import { downsampleHourlyMetrics, recordCatalogDailyPoints } from "@/lib/metrics";
 
 async function fetchTikTokIdsForMetrics(access: string): Promise<VideoItem[]> {
   const fields = [
@@ -266,7 +267,22 @@ export async function GET(req: Request) {
     errors.meta = String(e?.message ?? e);
   }
 
-  // 4) Purge de l'historique au-delà de la durée de conservation (25 mois).
+  // 4) Historique quotidien de TOUTES les vidéos des catalogues (le relevé
+  //    horaire ci-dessus ne suit que les dernières), puis allègement : au-delà
+  //    de 7 jours, un seul point par vidéo et par jour. Deux requêtes SQL, sans
+  //    appel API.
+  try {
+    counts.dailyPoints = await recordCatalogDailyPoints();
+  } catch (e: any) {
+    errors.dailyPoints = String(e?.message ?? e);
+  }
+  try {
+    counts.downsampled = await downsampleHourlyMetrics();
+  } catch (e: any) {
+    errors.downsample = String(e?.message ?? e);
+  }
+
+  // 5) Purge de l'historique au-delà de la durée de conservation (25 mois).
   let purged = 0;
   try {
     const cutoff = retentionCutoff();

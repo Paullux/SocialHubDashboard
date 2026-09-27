@@ -26,8 +26,9 @@ model VideoMetric {
   comments   BigInt   @default(0)
   shares     BigInt?
 
+  // La clé primaire sert aussi d'index (platform, videoId, snapshotAt) : un
+  // @@index identique doublait la taille de la table (111 Mo le 2026-09-27).
   @@id([platform, videoId, snapshotAt])
-  @@index([platform, videoId, snapshotAt])
 }
 
 /**
