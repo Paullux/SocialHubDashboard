@@ -138,8 +138,15 @@ async function rebuildAtOnce(
 /**
  * TikTok, par étapes. Les pages lues s'accumulent dans pendingItems avec le
  * curseur de reprise ; le catalogue servi (items) reste l'ancien, complet,
- * jusqu'à ce que la nouvelle liste le soit à son tour, puis on bascule. Sans
- * ancien catalogue (premier passage), on sert ce qui a déjà été lu.
+ * jusqu'à ce que la nouvelle liste le soit à son tour, puis on bascule.
+ *
+ * Tant que la liste en cours est au moins aussi longue que celle servie, c'est
+ * elle qu'on sert : c'est le cas d'une toute première construction (rien à
+ * servir, ou seulement la partie lue par un passage précédent) — sans cette
+ * règle, deux passages qui se chevauchent figeaient à l'écran la partie lue
+ * par le premier (318 vidéos affichées pour 924 lues, constaté le 2026-09-27).
+ * Pour une reconstruction d'un catalogue complet, la liste en cours reste plus
+ * courte jusqu'à la fin : l'ancien catalogue reste affiché.
  *
  * Avance jusqu'à `deadline` (au moins une page) et renvoie le catalogue à
  * servir, ainsi que la liste en cours pour le cas des miniatures expirées.
@@ -159,13 +166,14 @@ async function advanceTikTok(
 
   const seen = new Set(pending.map((v) => v.id));
   let done = false;
+  const showPending = () => pending.length >= served.length;
   const savePending = async () => {
-    const first = served.length === 0;
+    const partial = showPending();
     await saveRow(userId, "tiktok", {
       sourceId: src.sourceId,
-      items: json(first ? pending : served),
-      latestVideoId: first ? (pending[0]?.id ?? null) : (row?.latestVideoId ?? null),
-      refreshedAt: first || !row ? new Date() : row.refreshedAt,
+      items: json(partial ? pending : served),
+      latestVideoId: partial ? (pending[0]?.id ?? null) : (row?.latestVideoId ?? null),
+      refreshedAt: partial || !row ? new Date() : row.refreshedAt,
       pendingItems: json(pending),
       pendingCursor: cursor != null ? String(cursor) : null,
     });
@@ -191,7 +199,7 @@ async function advanceTikTok(
 
   if (!done) {
     await savePending();
-    return { items: served.length ? served : pending, pending };
+    return { items: showPending() ? pending : served, pending };
   }
 
   const items = pending.slice(0, MAX_VIDEOS.tiktok);

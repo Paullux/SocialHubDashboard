@@ -135,16 +135,18 @@ export async function GET(req: Request) {
   // vidéo la plus récente a changé, si le cache a vieilli ou si ses miniatures
   // expirent. Séparé du snapshot pour qu'un échec ici n'efface pas les
   // métriques déjà écrites.
-  // Budget : une reconstruction complète prend plusieurs secondes (Instagram
-  // ~150 appels ; TikTok jusqu'à ~150 pages, construit par étapes jusqu'à
-  // TIKTOK_STEP_END). Passé ce délai, on remet à l'heure suivante pour que le
-  // refresh Instagram et la purge (maxDuration = 60 s) aient le temps de
-  // passer. Un catalogue manquant est de toute façon calculé à la demande.
+  // Budget : aucune reconstruction ne démarre au-delà de CATALOG_BUDGET_MS
+  // depuis le début du cron. Il reste alors ~20 s (maxDuration = 60 s) pour la
+  // plus longue d'entre elles (Instagram, ~150 appels en lots parallèles), le
+  // refresh Instagram et la purge. Ce qui ne passe pas est remis à l'heure
+  // suivante ; un catalogue manquant est de toute façon calculé à la demande.
   const startedAt = Date.now();
-  const CATALOG_BUDGET_MS = 30_000;
-  // L'étape TikTok s'arrête un peu avant la fin du budget, pour laisser à
-  // Instagram, synchronisé juste après, une chance de passer dans le même run.
-  const TIKTOK_STEP_END = startedAt + CATALOG_BUDGET_MS - 5_000;
+  const CATALOG_BUDGET_MS = 40_000;
+  // TikTok (jusqu'à ~150 pages) se construit par étapes, chacune avec sa
+  // propre tranche mesurée depuis son début. Mesurée depuis le début du cron,
+  // elle était mangée par le relevé des métriques de tous les comptes : ~200
+  // vidéos lues par passage au lieu de ~900 (constaté le 2026-09-27).
+  const TIKTOK_SLICE_MS = 15_000;
   const syncCatalogSafe = async (
     userId: string,
     src: CatalogSource,
@@ -158,7 +160,8 @@ export async function GET(req: Request) {
       return;
     }
     try {
-      if (await syncCatalog(userId, src, latest[0]?.id ?? null, TIKTOK_STEP_END)) {
+      const deadline = Math.min(Date.now() + TIKTOK_SLICE_MS, startedAt + CATALOG_BUDGET_MS);
+      if (await syncCatalog(userId, src, latest[0]?.id ?? null, deadline)) {
         counts[key] += 1;
       }
     } catch (e: any) {
