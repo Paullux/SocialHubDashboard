@@ -135,12 +135,16 @@ export async function GET(req: Request) {
   // vidéo la plus récente a changé, si le cache a vieilli ou si ses miniatures
   // expirent. Séparé du snapshot pour qu'un échec ici n'efface pas les
   // métriques déjà écrites.
-  // Budget : une reconstruction complète prend plusieurs secondes (TikTok ~50
-  // appels, Instagram ~150). Passé ce délai, on remet à l'heure suivante pour
-  // que le refresh Instagram et la purge (maxDuration = 60 s) aient le temps de
+  // Budget : une reconstruction complète prend plusieurs secondes (Instagram
+  // ~150 appels ; TikTok jusqu'à ~150 pages, construit par étapes jusqu'à
+  // TIKTOK_STEP_END). Passé ce délai, on remet à l'heure suivante pour que le
+  // refresh Instagram et la purge (maxDuration = 60 s) aient le temps de
   // passer. Un catalogue manquant est de toute façon calculé à la demande.
   const startedAt = Date.now();
   const CATALOG_BUDGET_MS = 30_000;
+  // L'étape TikTok s'arrête un peu avant la fin du budget, pour laisser à
+  // Instagram, synchronisé juste après, une chance de passer dans le même run.
+  const TIKTOK_STEP_END = startedAt + CATALOG_BUDGET_MS - 5_000;
   const syncCatalogSafe = async (
     userId: string,
     src: CatalogSource,
@@ -154,7 +158,9 @@ export async function GET(req: Request) {
       return;
     }
     try {
-      if (await syncCatalog(userId, src, latest[0]?.id ?? null)) counts[key] += 1;
+      if (await syncCatalog(userId, src, latest[0]?.id ?? null, TIKTOK_STEP_END)) {
+        counts[key] += 1;
+      }
     } catch (e: any) {
       errors[`${key}:${linkId}`] = String(e?.message ?? e);
     }

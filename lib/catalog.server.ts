@@ -7,32 +7,39 @@
 // compte. On garde donc toute la liste (compteurs compris) en base, et les tris
 // par métrique ne sont plus qu'un tri + slice sur ce cache.
 //
-// Coût d'une reconstruction, pour 1 000 vidéos :
-// - YouTube : playlistItems + videos.list avec la clé API, ~40 unités de quota.
-//   Pas l'API Analytics : un seul parcours donne vues, likes et commentaires à
-//   jour, sans son retard de ~2 jours.
-// - TikTok : video/list par pages de 20 (aucun tri côté API), ~50 appels.
-//   Donne aussi les partages, d'où le tri « Partages » sur tout le compte.
-// - Instagram : /me/media par pages de 50 (~20 appels) pour likes et
+// Coût d'une reconstruction :
+// - YouTube (≤ 1 000) : playlistItems + videos.list avec la clé API, ~40 unités
+//   de quota. Pas l'API Analytics : un seul parcours donne vues, likes et
+//   commentaires à jour, sans son retard de ~2 jours.
+// - TikTok (≤ 3 000) : video/list par pages de 20 (aucun tri côté API), jusqu'à
+//   ~150 appels — trop pour un seul passage du cron, d'où la construction par
+//   étapes (advanceTikTok). Donne aussi les partages.
+// - Instagram (≤ 1 000) : /me/media par pages de 50 (~20 appels) pour likes et
 //   commentaires ; les vues exigent un appel /insights PAR média, cf.
 //   buildInstagram.
 import "server-only";
-import type { Prisma } from "@prisma/client";
+import { Prisma, type VideoCatalog } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { fetchYouTubeLatest } from "@/lib/fetchVideos";
-import { fetchTikTokPaged } from "@/lib/tiktok/videos.server";
+import { fetchTikTokPage } from "@/lib/tiktok/videos.server";
 import { attachInstagramViews, listInstagramMedia } from "@/lib/meta/media.server";
 import type { Platform, VideoItem } from "@/lib/types";
 
-const MAX_VIDEOS = 1000; // borne le temps de reconstruction et la taille du JSON
+// Borne le temps de reconstruction et la taille du JSON.
+const MAX_VIDEOS: Record<Platform, number> = { youtube: 1000, tiktok: 3000, instagram: 1000 };
 // Sans nouvelle vidéo, les compteurs évoluent quand même : on reconstruit
 // au-delà de cet âge pour que les classements ne se figent pas.
 const MAX_AGE_MS = 6 * 3_600_000;
-// Miniatures TikTok / Instagram : URL signées qui expirent. Un cache qui sert
-// des miniatures mortes est reconstruit ; le cron s'y prend plus tôt pour que
-// l'utilisateur n'attende presque jamais.
+// Miniatures TikTok / Instagram : URL signées qui expirent (~24 h côté TikTok,
+// ~4 j côté Meta, mesuré le 2026-09-27). Un cache qui sert des miniatures
+// mortes est reconstruit ; le cron s'y prend plus tôt pour que l'utilisateur
+// n'attende presque jamais.
 const READ_EXPIRY_MARGIN_MS = 3_600_000;
 const CRON_EXPIRY_MARGIN_MS = 2 * 3_600_000;
+// Construction TikTok lancée depuis une requête utilisateur (catalogue absent
+// ou miniatures expirées) : on lit ce qu'on peut dans ce délai (~1 000 vidéos),
+// le cron termine.
+const READ_TIKTOK_STEP_MS = 15_000;
 
 // Instagram : vues à (re)demander par reconstruction. Les plus récentes bougent
 // vite ; les autres se remplissent au fil des passages du cron, les vues déjà
@@ -45,9 +52,10 @@ export type CatalogSource =
   | { platform: "youtube"; sourceId: string /* channelId */; apiKey: string }
   | { platform: "tiktok"; sourceId: string /* open_id */; accessToken: string }
   | { platform: "instagram"; sourceId: string /* IG user id */; accessToken: string };
+type TikTokSource = Extract<CatalogSource, { platform: "tiktok" }>;
 
 async function buildInstagram(accessToken: string, previous: VideoItem[]): Promise<VideoItem[]> {
-  const items = await listInstagramMedia(accessToken, MAX_VIDEOS);
+  const items = await listInstagramMedia(accessToken, MAX_VIDEOS.instagram);
   const known = new Map(previous.map((v) => [v.id, v.viewCount]));
   for (const v of items) v.viewCount = known.get(v.id) ?? undefined;
   const missing = items
@@ -56,17 +64,6 @@ async function buildInstagram(accessToken: string, previous: VideoItem[]): Promi
     .slice(0, IG_MISSING_VIEWS);
   await attachInstagramViews(accessToken, [...items.slice(0, IG_RECENT_VIEWS), ...missing]);
   return items;
-}
-
-async function build(src: CatalogSource, previous: VideoItem[]): Promise<VideoItem[]> {
-  switch (src.platform) {
-    case "youtube":
-      return fetchYouTubeLatest(src.apiKey, src.sourceId, MAX_VIDEOS);
-    case "tiktok":
-      return fetchTikTokPaged(src.accessToken, MAX_VIDEOS);
-    case "instagram":
-      return buildInstagram(src.accessToken, previous);
-  }
 }
 
 /** Expiration d'une URL signée : `x-expires` (TikTok, secondes) ou `oe` (CDN Meta, hexa). */
@@ -91,73 +88,184 @@ function thumbnailsExpire(items: VideoItem[], marginMs: number): boolean {
   });
 }
 
-function asItems(json: Prisma.JsonValue | undefined): VideoItem[] {
+function asItems(json: Prisma.JsonValue | undefined | null): VideoItem[] {
   return Array.isArray(json) ? (json as unknown as VideoItem[]) : [];
 }
 
-async function rebuild(userId: string, src: CatalogSource, previous: VideoItem[]): Promise<VideoItem[]> {
-  // Les trois API listent de la plus récente à la plus ancienne : items[0]
-  // est la dernière vidéo publiée.
-  const items = await build(src, previous);
-  const data = {
+const json = (items: VideoItem[]) => items as unknown as Prisma.InputJsonValue;
+
+async function findRow(userId: string, platform: Platform): Promise<VideoCatalog | null> {
+  return prisma.videoCatalog.findUnique({
+    where: { userId_platform: { userId, platform } },
+  });
+}
+
+async function saveRow(
+  userId: string,
+  platform: Platform,
+  data: Omit<Prisma.VideoCatalogUncheckedCreateInput, "userId" | "platform">
+): Promise<void> {
+  await prisma.videoCatalog.upsert({
+    where: { userId_platform: { userId, platform } },
+    update: data,
+    create: { userId, platform, ...data },
+  });
+}
+
+/** YouTube et Instagram : reconstruction complète en un seul appel. */
+async function rebuildAtOnce(
+  userId: string,
+  src: Exclude<CatalogSource, TikTokSource>,
+  previous: VideoItem[]
+): Promise<VideoItem[]> {
+  // Les API listent de la plus récente à la plus ancienne : items[0] est la
+  // dernière vidéo publiée.
+  const items =
+    src.platform === "youtube"
+      ? await fetchYouTubeLatest(src.apiKey, src.sourceId, MAX_VIDEOS.youtube)
+      : await buildInstagram(src.accessToken, previous);
+  await saveRow(userId, src.platform, {
     sourceId: src.sourceId,
     latestVideoId: items[0]?.id ?? null,
-    items: items as unknown as Prisma.InputJsonValue,
+    items: json(items),
     refreshedAt: new Date(),
-  };
-  await prisma.videoCatalog.upsert({
-    where: { userId_platform: { userId, platform: src.platform } },
-    update: data,
-    create: { userId, platform: src.platform, ...data },
+    pendingItems: Prisma.DbNull,
+    pendingCursor: null,
   });
   return items;
 }
 
 /**
- * Lecture pour /api/videos. Sert le cache tel quel ; ne le calcule à la volée
- * que s'il n'existe pas encore (compte lié depuis le dernier cron), s'il
- * appartient à un autre compte (re-liaison) ou si ses miniatures ont expiré.
+ * TikTok, par étapes. Les pages lues s'accumulent dans pendingItems avec le
+ * curseur de reprise ; le catalogue servi (items) reste l'ancien, complet,
+ * jusqu'à ce que la nouvelle liste le soit à son tour, puis on bascule. Sans
+ * ancien catalogue (premier passage), on sert ce qui a déjà été lu.
+ *
+ * Avance jusqu'à `deadline` (au moins une page) et renvoie le catalogue à
+ * servir, ainsi que la liste en cours pour le cas des miniatures expirées.
+ */
+async function advanceTikTok(
+  userId: string,
+  src: TikTokSource,
+  row: VideoCatalog | null,
+  deadline: number,
+  restart: boolean
+): Promise<{ items: VideoItem[]; pending: VideoItem[] }> {
+  const sameSource = row?.sourceId === src.sourceId;
+  const served = sameSource ? asItems(row?.items) : [];
+  const resume = sameSource && !restart && row?.pendingItems != null;
+  const pending = resume ? asItems(row?.pendingItems) : [];
+  let cursor = resume && row?.pendingCursor ? Number(row.pendingCursor) : null;
+
+  const seen = new Set(pending.map((v) => v.id));
+  let done = false;
+  const savePending = async () => {
+    const first = served.length === 0;
+    await saveRow(userId, "tiktok", {
+      sourceId: src.sourceId,
+      items: json(first ? pending : served),
+      latestVideoId: first ? (pending[0]?.id ?? null) : (row?.latestVideoId ?? null),
+      refreshedAt: first || !row ? new Date() : row.refreshedAt,
+      pendingItems: json(pending),
+      pendingCursor: cursor != null ? String(cursor) : null,
+    });
+  };
+
+  try {
+    do {
+      const page = await fetchTikTokPage(src.accessToken, cursor);
+      for (const v of page.items) {
+        if (!seen.has(v.id)) {
+          seen.add(v.id);
+          pending.push(v);
+        }
+      }
+      cursor = page.cursor;
+      if (!page.hasMore || pending.length >= MAX_VIDEOS.tiktok) done = true;
+    } while (!done && Date.now() < deadline);
+  } catch (e) {
+    // Garder les pages déjà lues : le prochain passage reprendra d'ici.
+    if (pending.length > 0) await savePending().catch(() => {});
+    throw e;
+  }
+
+  if (!done) {
+    await savePending();
+    return { items: served.length ? served : pending, pending };
+  }
+
+  const items = pending.slice(0, MAX_VIDEOS.tiktok);
+  await saveRow(userId, "tiktok", {
+    sourceId: src.sourceId,
+    latestVideoId: items[0]?.id ?? null,
+    items: json(items),
+    refreshedAt: new Date(),
+    pendingItems: Prisma.DbNull,
+    pendingCursor: null,
+  });
+  return { items, pending: [] };
+}
+
+/**
+ * Lecture pour /api/videos. Sert le cache tel quel ; ne le (re)calcule que
+ * s'il n'existe pas encore (compte lié depuis le dernier cron), s'il appartient
+ * à un autre compte (re-liaison) ou si ses miniatures ont expiré.
  */
 export async function getCatalog(userId: string, src: CatalogSource): Promise<VideoItem[]> {
-  const row = await prisma.videoCatalog.findUnique({
-    where: { userId_platform: { userId, platform: src.platform } },
-    select: { sourceId: true, items: true },
-  });
+  const row = await findRow(userId, src.platform);
   const items = asItems(row?.items);
-  if (row && row.sourceId === src.sourceId && !thumbnailsExpire(items, READ_EXPIRY_MARGIN_MS)) {
-    return items;
+  const fresh = !thumbnailsExpire(items, READ_EXPIRY_MARGIN_MS);
+  if (row && row.sourceId === src.sourceId && items.length > 0 && fresh) return items;
+
+  if (src.platform !== "tiktok") {
+    return rebuildAtOnce(userId, src, row?.sourceId === src.sourceId ? items : []);
   }
-  return rebuild(userId, src, row?.sourceId === src.sourceId ? items : []);
+  // TikTok : impossible de tout relire pendant la requête. On avance la
+  // construction ; si l'ancien catalogue a des miniatures mortes, les vidéos
+  // déjà relues (miniatures neuves) passent devant le reste.
+  const r = await advanceTikTok(userId, src, row, Date.now() + READ_TIKTOK_STEP_MS, false);
+  if (!thumbnailsExpire(r.items, READ_EXPIRY_MARGIN_MS) || r.pending.length === 0) return r.items;
+  const renewed = new Set(r.pending.map((v) => v.id));
+  return [...r.pending, ...r.items.filter((v) => !renewed.has(v.id))];
 }
 
 /**
  * Appelée par le cron horaire, qui connaît déjà la vidéo la plus récente (il
  * vient de lister les dernières pour le snapshot). Reconstruit seulement si la
  * vidéo en tête a changé, si le compte a changé, si le cache a dépassé
- * MAX_AGE_MS ou si ses miniatures vont expirer. Renvoie true si reconstruit.
+ * MAX_AGE_MS ou si ses miniatures vont expirer ; pour TikTok, poursuit aussi
+ * une construction en cours, jusqu'à `deadline`. Renvoie true s'il y a eu du
+ * travail.
  */
 export async function syncCatalog(
   userId: string,
   src: CatalogSource,
-  latestVideoId: string | null
+  latestVideoId: string | null,
+  deadline: number
 ): Promise<boolean> {
-  const row = await prisma.videoCatalog.findUnique({
-    where: { userId_platform: { userId, platform: src.platform } },
-  });
-  const items = asItems(row?.items);
+  const row = await findRow(userId, src.platform);
   const upToDate =
     row !== null &&
     row.sourceId === src.sourceId &&
     row.latestVideoId === latestVideoId &&
     Date.now() - row.refreshedAt.getTime() < MAX_AGE_MS &&
-    !thumbnailsExpire(items, CRON_EXPIRY_MARGIN_MS);
+    !thumbnailsExpire(asItems(row.items), CRON_EXPIRY_MARGIN_MS);
+
+  if (src.platform === "tiktok") {
+    const building = row?.pendingItems != null && row.sourceId === src.sourceId;
+    if (upToDate && !building) return false;
+    // Une construction en cours se poursuit ; sinon on en démarre une neuve.
+    await advanceTikTok(userId, src, row, deadline, !building);
+    return true;
+  }
+
   if (upToDate) return false;
-  await rebuild(userId, src, row?.sourceId === src.sourceId ? items : []);
+  await rebuildAtOnce(userId, src, row?.sourceId === src.sourceId ? asItems(row.items) : []);
   return true;
 }
 
 /** Nombre de vidéos de chaque catalogue en cache, compté en SQL pour ne pas
- *  rapatrier le JSON complet (jusqu'à 1 000 vidéos par plateforme). */
+ *  rapatrier le JSON complet (jusqu'à 3 000 vidéos par plateforme). */
 export async function getCatalogTotals(userId: string): Promise<Partial<Record<Platform, number>>> {
   const rows = await prisma.$queryRaw<{ platform: string; n: number }[]>`
     SELECT platform, jsonb_array_length(items)::int AS n

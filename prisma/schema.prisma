@@ -45,6 +45,10 @@ model VideoCatalog {
   latestVideoId String?  // vidéo la plus récente : en changer = reconstruire
   items         Json     // VideoItem[]
   refreshedAt   DateTime
+  // Construction en plusieurs passages (TikTok, jusqu'à 3 000 vidéos) : les
+  // pages déjà lues et le curseur de reprise. null = aucune en cours.
+  pendingItems  Json?
+  pendingCursor String?
 
   @@id([userId, platform])
 }
