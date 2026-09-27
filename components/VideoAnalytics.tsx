@@ -235,6 +235,19 @@ export default function VideoAnalytics({
     () => (data?.hourly ?? []).map((p) => ({ ...p, engagement: engagementRate(p) })),
     [data]
   );
+  // Une vidéo hors du relevé horaire (au-delà des dernières de son compte)
+  // n'a que ses points quotidiens, horodatés à minuit UTC : le graphique
+  // « par heure » montrait alors des points isolés à 02:00 (heure de Paris)
+  // qui ressemblaient à une courbe horaire sans en être une. On ne l'affiche
+  // qu'avec au moins deux vrais relevés horaires (hors minuit UTC).
+  const hasHourly = useMemo(
+    () =>
+      hourly.filter((p) => {
+        const d = new Date(p.at);
+        return d.getUTCHours() !== 0 || d.getUTCMinutes() !== 0;
+      }).length >= 2,
+    [hourly]
+  );
 
   function truncateTitle(title: string, max: number) {
     if (!title) return "";
@@ -434,7 +447,7 @@ export default function VideoAnalytics({
       )}
 
       {/* === HOURLY === */}
-      {hourly.length > 0 && (
+      {hasHourly && (
       <>
       <section className="rounded-2xl border border-neutral-700 bg-neutral-800/60 backdrop-blur p-4 xs:p-2">
         <h3 className="font-medium mb-2 text-neutral-200">{t.viewsHour}</h3>
