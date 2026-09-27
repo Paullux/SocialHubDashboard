@@ -20,6 +20,8 @@ import LangToggle from "@/components/legal/LangToggle";
 /* ================== Types réponse API ================== */
 interface ApiResponseOk {
   videos: VideoItem[];
+  /** Nombre total de vidéos par compte (catalogues en cache côté serveur). */
+  totals?: Partial<Record<Platform, number>>;
 }
 interface ApiResponseErr {
   error: string;
@@ -72,6 +74,11 @@ export default function DashboardPage(): JSX.Element {
 
   // Filtre par plateforme
   const [platform, setPlatform] = useState<PlatformFilterValue>("all");
+  // Compteurs du filtre : total de vidéos par compte quand le serveur le
+  // connaît, sinon le nombre de vidéos de chaque réseau dans le dernier lot
+  // mélangé (« Toutes ») — un lot filtré ne contient par définition qu'un réseau.
+  const [totals, setTotals] = useState<Partial<Record<Platform, number>>>({});
+  const [mixedCounts, setMixedCounts] = useState<Record<Platform, number> | null>(null);
 
   const [lang, setLang] = useUiLang();
   const t = T[lang];
@@ -83,23 +90,33 @@ export default function DashboardPage(): JSX.Element {
   const barRef = useRef<HTMLDivElement | null>(null);
   const [barH, setBarH] = useState<number | null>(null);
 
-  // Le tri est envoyé à l'API : hors date décroissante, elle classe tout le
-  // catalogue de chaque plateforme, pas seulement les dernières vidéos.
+  // Le tri et le filtre plateforme sont envoyés à l'API : hors date
+  // décroissante, elle classe tout le catalogue de chaque plateforme, et un
+  // filtre donne un lot complet de ce seul réseau.
   async function load(
     newLimit: number,
     key: SortKey,
     dir: SortDir,
+    only: PlatformFilterValue,
     signal: AbortSignal
   ): Promise<void> {
     try {
       setLoading(true);
       setErr(null);
       const qs = new URLSearchParams({ limit: String(newLimit), sort: key, dir });
+      if (only !== "all") qs.set("platform", only);
       const r = await fetch(`/api/videos?${qs}`, { cache: "no-store", signal });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const data: ApiResponse = await r.json();
       if ("error" in data) throw new Error(data.error);
-      setVideos(data.videos ?? []);
+      const list = data.videos ?? [];
+      setVideos(list);
+      setTotals(data.totals ?? {});
+      if (only === "all") {
+        const c: Record<Platform, number> = { youtube: 0, tiktok: 0, instagram: 0 };
+        for (const v of list) c[v.platform] += 1;
+        setMixedCounts(c);
+      }
     } catch (e) {
       // Requête remplacée par un nouveau tri : sa réponse ne doit rien écraser.
       if (signal.aborted) return;
@@ -111,9 +128,9 @@ export default function DashboardPage(): JSX.Element {
 
   useEffect(() => {
     const ctrl = new AbortController();
-    void load(limit, sortKey, sortDir, ctrl.signal);
+    void load(limit, sortKey, sortDir, platform, ctrl.signal);
     return () => ctrl.abort();
-  }, [limit, sortKey, sortDir]);
+  }, [limit, sortKey, sortDir, platform]);
 
   useEffect(() => {
     fetch("/api/linked-accounts", { cache: "no-store" })
@@ -146,17 +163,31 @@ export default function DashboardPage(): JSX.Element {
   }, []);
 
   const counts = useMemo<Record<Platform, number>>(() => {
-    const c: Record<Platform, number> = { youtube: 0, tiktok: 0, instagram: 0 };
-    for (const v of videos ?? []) c[v.platform] += 1;
-    return c;
-  }, [videos]);
+    const batch: Record<Platform, number> = { youtube: 0, tiktok: 0, instagram: 0 };
+    for (const v of videos ?? []) batch[v.platform] += 1;
+    const fallback = platform === "all" ? batch : (mixedCounts ?? batch);
+    return {
+      youtube: totals.youtube ?? Math.max(fallback.youtube, batch.youtube),
+      tiktok: totals.tiktok ?? Math.max(fallback.tiktok, batch.tiktok),
+      instagram: totals.instagram ?? Math.max(fallback.instagram, batch.instagram),
+    };
+  }, [videos, totals, mixedCounts, platform]);
+
+  // Même logique que pour le tri : nouveau lot, on repart de 60 et on montre
+  // les squelettes plutôt que la grille précédente filtrée côté client.
+  const selectPlatform = (next: PlatformFilterValue) => {
+    if (next === platform) return;
+    setLimit(STEP);
+    setVideos(null);
+    setPlatform(next);
+  };
 
   // Un lot rechargé peut ne plus contenir la plateforme filtrée (déconnexion
   // d'un compte, par exemple) : on revient sur « Toutes » plutôt que d'afficher
   // une grille vide sans explication.
   useEffect(() => {
     if (platform !== "all" && videos && counts[platform] === 0) {
-      setPlatform("all");
+      selectPlatform("all");
     }
   }, [counts, platform, videos]);
 
@@ -239,8 +270,8 @@ export default function DashboardPage(): JSX.Element {
                 <PlatformFilter
                   value={platform}
                   counts={counts}
-                  onChange={setPlatform}
-                  pending={!videos}
+                  onChange={selectPlatform}
+                  pending={!videos && Object.keys(totals).length === 0}
                   lang={lang}
                 />
               </div>
@@ -289,7 +320,7 @@ export default function DashboardPage(): JSX.Element {
                 {t.emptyPlatform}{" "}
                 <button
                   type="button"
-                  onClick={() => setPlatform("all")}
+                  onClick={() => selectPlatform("all")}
                   className="underline hover:text-neutral-300"
                 >
                   {t.showAll}
