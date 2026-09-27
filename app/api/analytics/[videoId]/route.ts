@@ -72,7 +72,17 @@ export async function GET(
 
     // title : null = inconnu (pas de catalogue) ; "" = vidéo sans description.
     const title = video ? (video.title ?? "").trim() : null;
-    return jsonNoStore({ platform, videoId, title, hourly, daily });
+    // Compteurs actuels (catalogue) : affichés tant que l'historique est trop
+    // court pour tracer une courbe.
+    const current = video
+      ? {
+          views: video.viewCount ?? null,
+          likes: video.likeCount ?? null,
+          comments: video.commentCount ?? null,
+          shares: video.shareCount ?? null,
+        }
+      : null;
+    return jsonNoStore({ platform, videoId, title, current, hourly, daily });
   } catch (e: any) {
     return jsonNoStore({ error: String(e?.message ?? e) }, { status: 500 });
   }
