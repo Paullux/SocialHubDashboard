@@ -15,6 +15,7 @@ import { getAccountLink } from "@/lib/accountLinks";
 import { fetchInstagramMedia } from "@/lib/meta/media.server";
 import { getFreshTikTokAccessToken } from "@/lib/tiktok/perUser";
 import { jsonNoStore } from "@/lib/security";
+import { deleteCatalog } from "@/lib/catalog.server";
 import type { VideoItem } from "@/lib/types";
 
 /** Phrase de confirmation attendue (insensible à la casse / aux espaces autour). */
@@ -92,6 +93,9 @@ export async function POST(req: Request) {
     });
     deletedMetrics += count;
   }
+
+  // 2 bis) Catalogue des tris (cache par utilisateur, cf. VideoCatalog).
+  await deleteCatalog(user.id);
 
   // 3) Supprimer tous les comptes liés de l'utilisateur (chacun n'efface que
   //    ses propres AccountLink, jamais ceux d'un autre).

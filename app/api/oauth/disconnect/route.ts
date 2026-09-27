@@ -2,6 +2,14 @@
 export const runtime = "nodejs";
 import { requireDashboardUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { deleteCatalog } from "@/lib/catalog.server";
+import type { Platform } from "@/lib/types";
+
+const PLATFORM_OF: Record<string, Platform> = {
+  "google-youtube": "youtube",
+  tiktok: "tiktok",
+  instagram: "instagram",
+};
 
 export async function GET(req: Request) {
   // requireDashboardUser() lève une exception : sans ce filet, un appel sans
@@ -18,6 +26,9 @@ export async function GET(req: Request) {
   await prisma.accountLink
     .delete({ where: { userId_provider: { userId: user.id, provider } } })
     .catch(() => {});
+  // Le catalogue des tris est rattaché à l'utilisateur : il part avec le lien.
+  const platform = PLATFORM_OF[provider];
+  if (platform) await deleteCatalog(user.id, platform).catch(() => {});
 
   return Response.redirect(
     new URL(

@@ -56,6 +56,10 @@ export async function POST(req: Request) {
   const { count } = await prisma.accountLink.deleteMany({
     where: { provider: "instagram", externalUserId: igUserId },
   });
+  // Et le catalogue des tris construit pour ce compte (cf. VideoCatalog).
+  await prisma.videoCatalog.deleteMany({
+    where: { platform: "instagram", sourceId: igUserId },
+  }).catch(() => null);
 
   const code = crypto.randomUUID();
   console.log("[META][deauthorize] ig_user=%s deleted=%d code=%s", igUserId, count, code);

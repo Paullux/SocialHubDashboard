@@ -85,6 +85,13 @@ function Fr() {
         Vous pouvez néanmoins supprimer cet historique à tout moment depuis la page{" "}
         <a href="/settings/linked-accounts">Comptes liés</a> (voir §8).
       </p>
+      <p>
+        Pour trier vos vidéos sur l’ensemble de chaque compte connecté (et pas seulement
+        les dernières publiées), nous conservons aussi une copie de leur liste (titres,
+        miniatures, compteurs), rattachée à votre compte et actualisée automatiquement.
+        Celle d’une plateforme est supprimée dès que vous la déconnectez, et l’ensemble
+        dès que vous effacez vos données.
+      </p>
       <h3>2.4 Données techniques</h3>
       <p>
         Nos hébergeurs génèrent des journaux techniques (adresse IP, horodatage, type de
@@ -405,6 +412,12 @@ function En() {
         or your account: once an account is disconnected, these measurements can no longer
         be tied back to you. You can still delete this history at any time from the{" "}
         <a href="/settings/linked-accounts">Linked accounts</a> page (see §8).
+      </p>
+      <p>
+        To sort your videos across each connected account (not just the latest ones), we
+        also keep a copy of their video list (titles, thumbnails, counters), linked to your
+        account and refreshed automatically. A platform’s copy is deleted as soon as you
+        disconnect it, and all of it as soon as you erase your data.
       </p>
       <h3>2.4 Technical data</h3>
       <p>

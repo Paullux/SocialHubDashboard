@@ -31,6 +31,25 @@ model VideoMetric {
 }
 
 /**
+ * ===== CATALOGUE (cache des tris) =====
+ * Toutes les vidéos publiques d'un compte lié, avec leurs compteurs, pour que
+ * les tris par vues / likes / commentaires portent sur tout le catalogue et
+ * pas seulement sur les dernières vidéos chargées. Reconstruit par le cron
+ * quand une nouvelle vidéo apparaît (ou quand le cache vieillit).
+ */
+
+model VideoCatalog {
+  userId        String
+  platform      String
+  sourceId      String   // chaîne YouTube au moment du calcul
+  latestVideoId String?  // vidéo la plus récente : en changer = reconstruire
+  items         Json     // VideoItem[]
+  refreshedAt   DateTime
+
+  @@id([userId, platform])
+}
+
+/**
  * ======= ACCOUNT LINKED =======
  */
 

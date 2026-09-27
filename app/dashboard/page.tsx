@@ -83,27 +83,38 @@ export default function DashboardPage(): JSX.Element {
   const barRef = useRef<HTMLDivElement | null>(null);
   const [barH, setBarH] = useState<number | null>(null);
 
-  async function load(newLimit: number): Promise<void> {
+  // Le tri est envoyé à l'API : hors date décroissante, elle classe tout le
+  // catalogue YouTube, pas seulement les dernières vidéos. En attendant la
+  // réponse, le lot déjà affiché est trié localement (retour immédiat).
+  async function load(
+    newLimit: number,
+    key: SortKey,
+    dir: SortDir,
+    signal: AbortSignal
+  ): Promise<void> {
     try {
       setLoading(true);
       setErr(null);
-      const r = await fetch(`/api/videos?limit=${newLimit}`, {
-        cache: "no-store",
-      });
+      const qs = new URLSearchParams({ limit: String(newLimit), sort: key, dir });
+      const r = await fetch(`/api/videos?${qs}`, { cache: "no-store", signal });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const data: ApiResponse = await r.json();
       if ("error" in data) throw new Error(data.error);
       setVideos(data.videos ?? []);
     } catch (e) {
+      // Requête remplacée par un nouveau tri : sa réponse ne doit rien écraser.
+      if (signal.aborted) return;
       setErr(e instanceof Error ? e.message : String(e));
     } finally {
-      setLoading(false);
+      if (!signal.aborted) setLoading(false);
     }
   }
 
   useEffect(() => {
-    void load(limit);
-  }, [limit]);
+    const ctrl = new AbortController();
+    void load(limit, sortKey, sortDir, ctrl.signal);
+    return () => ctrl.abort();
+  }, [limit, sortKey, sortDir]);
 
   useEffect(() => {
     fetch("/api/linked-accounts", { cache: "no-store" })
@@ -167,6 +178,8 @@ export default function DashboardPage(): JSX.Element {
   }, [filtered, sortKey, sortDir]);
 
   const toggleSort = (key: SortKey) => {
+    // Nouveau classement : on repart des 60 premiers, pas du lot agrandi.
+    setLimit(STEP);
     if (sortKey === key) setSortDir((d) => (d === "desc" ? "asc" : "desc"));
     else {
       setSortKey(key);

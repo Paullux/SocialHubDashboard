@@ -6,6 +6,12 @@ import type { VideoItem } from "@/lib/types";
 export type SortKey = "date" | "views" | "likes" | "comments" | "shares";
 export type SortDir = "desc" | "asc";
 
+const SORT_KEYS: readonly SortKey[] = ["date", "views", "likes", "comments", "shares"];
+
+export function isSortKey(v: unknown): v is SortKey {
+  return typeof v === "string" && (SORT_KEYS as readonly string[]).includes(v);
+}
+
 function metricOf(v: VideoItem, key: SortKey): number {
   switch (key) {
     case "date":

@@ -5,8 +5,8 @@ import type { VideoItem } from "@/lib/types";
 import { LOCALE, type Lang } from "@/lib/uiLang";
 
 const T = {
-  fr: { view: "Vue", views: "Vues", like: "Like", likes: "Likes", comments: "Comm.", shares: "Partages", sep: " :" },
-  en: { view: "View", views: "Views", like: "Like", likes: "Likes", comments: "Comm.", shares: "Shares", sep: ":" },
+  fr: { view: "Vue", views: "Vues", like: "Like", likes: "Likes", comments: "Comm.", share: "Partage", shares: "Partages", sep: " :" },
+  en: { view: "View", views: "Views", like: "Like", likes: "Likes", comments: "Comm.", share: "Share", shares: "Shares", sep: ":" },
 } as const;
 
 export default function KpiLine({ v, lang = "fr" }: { v: VideoItem; lang?: Lang }) {
@@ -31,7 +31,7 @@ export default function KpiLine({ v, lang = "fr" }: { v: VideoItem; lang?: Lang 
       </span>
       {v.platform === "tiktok" && v.shareCount != null && (
         <span>
-          {t.shares}
+          {v.shareCount > 1 ? t.shares : t.share}
           {t.sep}{" "}
           <strong>{nf.format(v.shareCount)}</strong>
         </span>
