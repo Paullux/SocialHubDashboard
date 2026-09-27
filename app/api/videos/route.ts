@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import type { VideoItem } from "@/lib/types";
+import type { Platform, VideoItem } from "@/lib/types";
 import { fetchYouTubeLatest } from "@/lib/fetchVideos";
 import { fetchTikTokPaged } from "@/lib/tiktok/videos.server";
 import { getFreshTikTokAccessToken } from "@/lib/tiktok/perUser";
@@ -12,11 +12,13 @@ import { getAccountLink } from "@/lib/accountLinks";
 import { fetchInstagramMedia } from "@/lib/meta/media.server";
 import { ipFromHeaders, isRateLimitedKey, timingSafeEqualStr } from "@/lib/security";
 import { attachThumbnailDimensions } from "@/lib/imageProbe.server";
-import { getCatalog } from "@/lib/catalog.server";
+import { getCatalog, getCatalogTotals } from "@/lib/catalog.server";
 import { isSortKey, sortVideos, type SortDir } from "@/lib/videoSort";
 
 /* ================== Types ================== */
 type Notes = Record<string, unknown>;
+
+const PLATFORMS: Platform[] = ["youtube", "tiktok", "instagram"];
 
 /* ================== Route ================== */
 export async function GET(req: Request) {
@@ -42,6 +44,13 @@ export async function GET(req: Request) {
     const sortKey = isSortKey(sortParam) ? sortParam : "date";
     const sortDir: SortDir = url.searchParams.get("dir") === "asc" ? "asc" : "desc";
     const ranked = !(sortKey === "date" && sortDir === "desc");
+
+    // Filtre plateforme : tout le lot vient de ce réseau (60 vidéos YouTube,
+    // pas les 51 que contenait le lot mélangé).
+    const platformParam = url.searchParams.get("platform");
+    const onlyPlatform: Platform | null = PLATFORMS.includes(platformParam as Platform)
+      ? (platformParam as Platform)
+      : null;
 
     // Utilisateur Kinde (une seule fois) : chaque plateforme n'est affichée que
     // si l'utilisateur a lié SON PROPRE compte → chacun ne voit que ses vidéos,
@@ -118,6 +127,10 @@ export async function GET(req: Request) {
         ttTarget = 0;
       }
     }
+    if (onlyPlatform) {
+      ytTarget = onlyPlatform === "youtube" ? TOTAL_LIMIT : 0;
+      ttTarget = onlyPlatform === "tiktok" ? TOTAL_LIMIT : 0;
+    }
 
     // Collecte YouTube
     let yt: VideoItem[] = [];
@@ -168,7 +181,7 @@ export async function GET(req: Request) {
     // Collecte Instagram si l'utilisateur Kinde a lié son compte
     let ig: VideoItem[] = [];
     try {
-      if (kuserId) {
+      if (kuserId && (!onlyPlatform || onlyPlatform === "instagram")) {
         const link = await getAccountLink(kuserId, "instagram");
         if (link?.accessToken && ranked) {
           const catalog = await getCatalog(kuserId, {
@@ -209,7 +222,21 @@ export async function GET(req: Request) {
     // déjà limitée. YouTube les a déjà (cf. fetchVideos.ts), donc ignoré ici.
     await attachThumbnailDimensions(videos);
 
-    const res = NextResponse.json(debug ? { videos, count: videos.length, notes } : { videos });
+    // Nombre total de vidéos par compte (catalogues en cache), pour les
+    // compteurs du filtre plateforme : « YouTube 312 » plutôt que le nombre
+    // de vidéos YouTube présentes dans ce lot. Absent tant qu'aucun
+    // catalogue n'existe ; le client retombe alors sur le lot.
+    let totals: Partial<Record<Platform, number>> = {};
+    if (kuserId) {
+      try {
+        totals = await getCatalogTotals(kuserId);
+      } catch (e: unknown) {
+        (notes as any).totals_error = String(e);
+      }
+    }
+
+    const body = { videos, totals };
+    const res = NextResponse.json(debug ? { ...body, count: videos.length, notes } : body);
     res.headers.set("Cache-Control", "no-store");
     return res;
   } catch (e: unknown) {

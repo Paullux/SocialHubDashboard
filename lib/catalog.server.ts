@@ -156,6 +156,19 @@ export async function syncCatalog(
   return true;
 }
 
+/** Nombre de vidéos de chaque catalogue en cache, compté en SQL pour ne pas
+ *  rapatrier le JSON complet (jusqu'à 1 000 vidéos par plateforme). */
+export async function getCatalogTotals(userId: string): Promise<Partial<Record<Platform, number>>> {
+  const rows = await prisma.$queryRaw<{ platform: string; n: number }[]>`
+    SELECT platform, jsonb_array_length(items)::int AS n
+    FROM "VideoCatalog"
+    WHERE "userId" = ${userId}
+  `;
+  const totals: Partial<Record<Platform, number>> = {};
+  for (const r of rows) totals[r.platform as Platform] = r.n;
+  return totals;
+}
+
 /** Déconnexion / effacement : le catalogue est rattaché à l'utilisateur. */
 export async function deleteCatalog(userId: string, platform?: Platform): Promise<void> {
   await prisma.videoCatalog.deleteMany({ where: { userId, ...(platform ? { platform } : {}) } });
