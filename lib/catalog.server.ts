@@ -285,6 +285,30 @@ export async function getCatalogTotals(userId: string): Promise<Partial<Record<P
   return totals;
 }
 
+/**
+ * Une vidéo du catalogue de l'utilisateur, cherchée en SQL (sans rapatrier les
+ * milliers d'autres). `sourceId` restreint au compte actuellement lié : un
+ * catalogue d'un ancien compte (re-liaison pas encore reconstruite) ne compte
+ * pas. null si absente.
+ */
+export async function findCatalogVideo(
+  userId: string,
+  platform: Platform,
+  videoId: string,
+  sourceId?: string
+): Promise<VideoItem | null> {
+  const rows = await prisma.$queryRaw<{ item: VideoItem }[]>`
+    SELECT e AS item
+    FROM "VideoCatalog", jsonb_array_elements(items) e
+    WHERE "userId" = ${userId}
+      AND platform = ${platform}
+      AND (${sourceId ?? null}::text IS NULL OR "sourceId" = ${sourceId ?? null})
+      AND e->>'id' = ${videoId}
+    LIMIT 1
+  `;
+  return rows[0]?.item ?? null;
+}
+
 /** Déconnexion / effacement : le catalogue est rattaché à l'utilisateur. */
 export async function deleteCatalog(userId: string, platform?: Platform): Promise<void> {
   await prisma.videoCatalog.deleteMany({ where: { userId, ...(platform ? { platform } : {}) } });

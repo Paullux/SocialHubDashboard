@@ -5,6 +5,7 @@ import "server-only";
 import { getAccountLink } from "@/lib/accountLinks";
 import { getFreshTikTokAccessToken } from "@/lib/tiktok/perUser";
 import { fetchInstagramMedia } from "@/lib/meta/media.server";
+import { findCatalogVideo } from "@/lib/catalog.server";
 
 type Platform = "youtube" | "tiktok" | "instagram";
 
@@ -69,6 +70,12 @@ export async function userOwnsVideo(
     if (platform === "instagram") {
       const link = await getAccountLink(userId, "instagram");
       if (!link?.accessToken) return false;
+      // Catalogue d'abord : il couvre tout le compte (≤ 1 000 publications),
+      // construit avec le jeton de CE compte. La liste API ne voit que les 200
+      // dernières, alors que les tris font remonter des publications anciennes.
+      if (await findCatalogVideo(userId, "instagram", videoId, link.externalUserId)) {
+        return true;
+      }
       const items = await fetchInstagramMedia(link.accessToken, 200);
       return items.some((v) => v.id === videoId);
     }

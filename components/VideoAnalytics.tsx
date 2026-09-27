@@ -71,6 +71,8 @@ type DailyPoint = {
 type ApiOk = {
   platform: Platform;
   videoId: string;
+  /** Titre lu dans le catalogue : null = inconnu, "" = sans description. */
+  title?: string | null;
   hourly: HourlyPoint[];
   daily: DailyPoint[];
 };
@@ -176,8 +178,15 @@ export default function VideoAnalytics({
     };
   }, [videoId, platform]);
 
-  // 2) Récup titre vidéo
+  // 2) Titre : fourni par /api/analytics (catalogue, tout le compte). Repli
+  // sur les 200 dernières vidéos seulement si le catalogue ne la connaît pas
+  // (compte lié depuis le dernier passage du cron).
   useEffect(() => {
+    if (!data) return;
+    if (typeof data.title === "string") {
+      setVideoTitle(data.title);
+      return;
+    }
     let mounted = true;
     (async () => {
       try {
@@ -196,7 +205,7 @@ export default function VideoAnalytics({
     return () => {
       mounted = false;
     };
-  }, [videoId, platform]);
+  }, [data, videoId, platform]);
 
   const daily = useMemo(
     () => (data?.daily ?? []).map((p) => ({ ...p, engagement: engagementRate(p) })),
