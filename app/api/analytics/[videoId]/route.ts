@@ -6,6 +6,7 @@ import { getHourlyMetrics, getDailyMetrics } from "@/lib/metrics";
 import { ipFromHeaders, isRateLimitedKey, jsonNoStore } from "@/lib/security";
 import { requireDashboardUser } from "@/lib/auth";
 import { userOwnsVideo } from "@/lib/videoOwnership";
+import { findCatalogVideo } from "@/lib/catalog.server";
 
 export async function GET(
   req: Request,
@@ -60,12 +61,18 @@ export async function GET(
     // ✅ CE LOG VA MAINTENANT S’AFFICHER
     console.log("[ANALYTICS]", { platform, videoId, user: user.id });
 
-    const [hourly, daily] = await Promise.all([
+    const [hourly, daily, video] = await Promise.all([
       getHourlyMetrics(platform, videoId),
       getDailyMetrics(platform, videoId),
+      // Titre depuis le catalogue (tout le compte), et non plus depuis les 200
+      // dernières vidéos : les tris font désormais remonter des vidéos
+      // anciennes, dont la page de stats affichait l'identifiant.
+      findCatalogVideo(user.id, platform, videoId).catch(() => null),
     ]);
 
-    return jsonNoStore({ platform, videoId, hourly, daily });
+    // title : null = inconnu (pas de catalogue) ; "" = vidéo sans description.
+    const title = video ? (video.title ?? "").trim() : null;
+    return jsonNoStore({ platform, videoId, title, hourly, daily });
   } catch (e: any) {
     return jsonNoStore({ error: String(e?.message ?? e) }, { status: 500 });
   }
