@@ -25,6 +25,17 @@ export async function fetchInstagramMedia(
   accessToken: string,
   limit = 30
 ): Promise<VideoItem[]> {
+  const items = await listInstagramMedia(accessToken, limit);
+  // Vues : /insights par média, borné aux 25 plus récents, best-effort.
+  await attachInstagramViews(accessToken, items.slice(0, 25));
+  return items;
+}
+
+/** Médias sans les vues (1 appel par lot de 50) : likes et commentaires seulement. */
+export async function listInstagramMedia(
+  accessToken: string,
+  limit = 30
+): Promise<VideoItem[]> {
   if (!accessToken) return [];
   const at = encodeURIComponent(accessToken);
 
@@ -51,7 +62,7 @@ export async function fetchInstagramMedia(
           typeof m.like_count === "number" ? m.like_count : undefined,
         commentCount:
           typeof m.comments_count === "number" ? m.comments_count : undefined,
-        // viewCount rempli plus bas
+        // viewCount : cf. attachInstagramViews
       } as VideoItem);
       if (items.length >= limit) break;
     }
@@ -59,27 +70,40 @@ export async function fetchInstagramMedia(
     next = data?.paging?.next ?? null;
   }
 
-  // Vues : /insights par média, borné à 25 appels, best-effort.
-  // Pas de filtre sur le type de média : depuis l'API v22, `views` est servi
-  // pour tout (REELS, VIDEO, IMAGE, CAROUSEL_ALBUM). Ne demander les insights
-  // que pour les vidéos laissait les carrousels et les photos à « — ».
-  await Promise.all(
-    items.slice(0, 25).map(async (v) => {
-      try {
-        const r = await fetch(
-          `${IG_LOGIN_GRAPH}/${v.id}/insights?metric=views&access_token=${at}`,
-          { cache: "no-store" }
-        );
-        if (!r.ok) return;
-        const j = await r.json();
-        const val =
-          j?.data?.[0]?.values?.[0]?.value ?? j?.data?.[0]?.total_value?.value;
-        if (typeof val === "number") v.viewCount = val;
-      } catch {
-        /* best-effort */
-      }
-    })
-  );
-
   return items;
+}
+
+const INSIGHTS_CONCURRENCY = 10;
+
+/**
+ * Renseigne `viewCount` (en place) via /{media-id}/insights, un appel par média,
+ * par lots parallèles. Best-effort : un échec laisse la vue inconnue.
+ * Pas de filtre sur le type de média : depuis l'API v22, `views` est servi
+ * pour tout (REELS, VIDEO, IMAGE, CAROUSEL_ALBUM). Ne demander les insights
+ * que pour les vidéos laissait les carrousels et les photos à « — ».
+ */
+export async function attachInstagramViews(
+  accessToken: string,
+  items: VideoItem[]
+): Promise<void> {
+  const at = encodeURIComponent(accessToken);
+  for (let i = 0; i < items.length; i += INSIGHTS_CONCURRENCY) {
+    await Promise.all(
+      items.slice(i, i + INSIGHTS_CONCURRENCY).map(async (v) => {
+        try {
+          const r = await fetch(
+            `${IG_LOGIN_GRAPH}/${v.id}/insights?metric=views&access_token=${at}`,
+            { cache: "no-store" }
+          );
+          if (!r.ok) return;
+          const j = await r.json();
+          const val =
+            j?.data?.[0]?.values?.[0]?.value ?? j?.data?.[0]?.total_value?.value;
+          if (typeof val === "number") v.viewCount = val;
+        } catch {
+          /* best-effort */
+        }
+      })
+    );
+  }
 }

@@ -11,7 +11,7 @@ import { fetchInstagramMedia } from "@/lib/meta/media.server";
 import { refreshLongLivedToken } from "@/lib/meta/auth.server";
 import type { VideoItem } from "@/lib/types";
 import { jsonNoStore, timingSafeEqualStr } from "@/lib/security";
-import { syncYouTubeCatalog } from "@/lib/youtube/catalog.server";
+import { syncCatalog, type CatalogSource } from "@/lib/catalog.server";
 
 async function fetchTikTokIdsForMetrics(access: string): Promise<VideoItem[]> {
   const fields = [
@@ -131,6 +131,35 @@ export async function GET(req: Request) {
   const counts: Record<string, number> = {};
   const errors: Record<string, string> = {};
 
+  // Catalogue des tris (lib/catalog.server.ts) : reconstruit seulement si la
+  // vidéo la plus récente a changé, si le cache a vieilli ou si ses miniatures
+  // expirent. Séparé du snapshot pour qu'un échec ici n'efface pas les
+  // métriques déjà écrites.
+  // Budget : une reconstruction complète prend plusieurs secondes (TikTok ~50
+  // appels, Instagram ~150). Passé ce délai, on remet à l'heure suivante pour
+  // que le refresh Instagram et la purge (maxDuration = 60 s) aient le temps de
+  // passer. Un catalogue manquant est de toute façon calculé à la demande.
+  const startedAt = Date.now();
+  const CATALOG_BUDGET_MS = 30_000;
+  const syncCatalogSafe = async (
+    userId: string,
+    src: CatalogSource,
+    latest: VideoItem[],
+    linkId: string
+  ): Promise<void> => {
+    const key = `catalog:${src.platform}`;
+    counts[key] ??= 0;
+    if (Date.now() - startedAt > CATALOG_BUDGET_MS) {
+      counts[`${key}:deferred`] = (counts[`${key}:deferred`] ?? 0) + 1;
+      return;
+    }
+    try {
+      if (await syncCatalog(userId, src, latest[0]?.id ?? null)) counts[key] += 1;
+    } catch (e: any) {
+      errors[`${key}:${linkId}`] = String(e?.message ?? e);
+    }
+  };
+
   // 1) YouTube — un snapshot par compte lié (chacun sa propre chaîne).
   try {
     const ytKey = process.env.YT_API_KEY || "";
@@ -138,30 +167,23 @@ export async function GET(req: Request) {
       ? await prisma.accountLink.findMany({ where: { provider: "google-youtube" } })
       : [];
     let total = 0;
-    let rebuilt = 0;
     for (const link of links) {
       try {
         const channelId = (link.meta as { channelId?: string } | null)?.channelId;
         if (!channelId) continue;
         const yt = await fetchYouTubeLatest(ytKey, channelId, 100);
         total += await writeMetrics(yt, nowHour);
-
-        // Catalogue des tris : reconstruit seulement si la vidéo la plus
-        // récente a changé (ou si le cache a vieilli). Séparé du snapshot pour
-        // qu'un échec ici n'efface pas les métriques déjà écrites.
-        try {
-          if (await syncYouTubeCatalog(link.userId, channelId, ytKey, yt[0]?.id ?? null)) {
-            rebuilt += 1;
-          }
-        } catch (e: any) {
-          errors[`youtube-catalog:${link.id}`] = String(e?.message ?? e);
-        }
+        await syncCatalogSafe(
+          link.userId,
+          { platform: "youtube", sourceId: channelId, apiKey: ytKey },
+          yt,
+          link.id
+        );
       } catch (e: any) {
         errors[`youtube:${link.id}`] = String(e?.message ?? e);
       }
     }
     counts.youtube = total;
-    counts.youtubeCatalogRebuilt = rebuilt;
   } catch (e: any) {
     errors.youtube = String(e?.message ?? e);
   }
@@ -176,6 +198,12 @@ export async function GET(req: Request) {
         if (!access) continue;
         const tt = await fetchTikTokIdsForMetrics(access);
         total += await writeMetrics(tt, nowHour);
+        await syncCatalogSafe(
+          link.userId,
+          { platform: "tiktok", sourceId: link.externalUserId, accessToken: access },
+          tt,
+          link.id
+        );
       } catch (e: any) {
         errors[`tiktok:${link.id}`] = String(e?.message ?? e);
       }
@@ -193,6 +221,14 @@ export async function GET(req: Request) {
         const token = dec(link.accessTokenEnc);
         const batch: VideoItem[] = token ? await fetchInstagramMedia(token, 50) : [];
         counts[`meta:${link.id}`] = await writeMetrics(batch, nowHour);
+        if (token) {
+          await syncCatalogSafe(
+            link.userId,
+            { platform: "instagram", sourceId: link.externalUserId, accessToken: token },
+            batch,
+            link.id
+          );
+        }
 
         const daysLeft = link.expiresAt
           ? (link.expiresAt.getTime() - Date.now()) / 86_400_000

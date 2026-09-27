@@ -6,123 +6,17 @@ import { NextResponse } from "next/server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import type { VideoItem } from "@/lib/types";
 import { fetchYouTubeLatest } from "@/lib/fetchVideos";
+import { fetchTikTokPaged } from "@/lib/tiktok/videos.server";
 import { getFreshTikTokAccessToken } from "@/lib/tiktok/perUser";
 import { getAccountLink } from "@/lib/accountLinks";
 import { fetchInstagramMedia } from "@/lib/meta/media.server";
 import { ipFromHeaders, isRateLimitedKey, timingSafeEqualStr } from "@/lib/security";
 import { attachThumbnailDimensions } from "@/lib/imageProbe.server";
-import { getYouTubeCatalog } from "@/lib/youtube/catalog.server";
+import { getCatalog } from "@/lib/catalog.server";
 import { isSortKey, sortVideos, type SortDir } from "@/lib/videoSort";
 
 /* ================== Types ================== */
 type Notes = Record<string, unknown>;
-
-interface TikTokVideo {
-  id: string;
-  title?: string;
-  video_description?: string;
-  duration?: number;
-  cover_image_url?: string;
-  share_url?: string;
-  embed_link?: string;
-  create_time?: number;
-  like_count?: number;
-  comment_count?: number;
-  share_count?: number;
-  view_count?: number;
-}
-
-interface TikTokResponse {
-  data?: {
-    has_more?: boolean;
-    cursor?: number;
-    videos?: TikTokVideo[];
-  };
-}
-
-/* ================== Helper TikTok paginé ================== */
-async function fetchTikTokPaged(
-  access: string,
-  target: number,
-  debug: boolean,
-  notes: Notes
-): Promise<VideoItem[]> {
-  const items: VideoItem[] = [];
-  let cursor: number | undefined;
-  const fields = [
-    "id","title","video_description","duration","cover_image_url","share_url","embed_link",
-    "create_time","like_count","comment_count","share_count","view_count",
-  ].join(",");
-
-  const dbg = {
-    pages: 0,
-    cursors: [] as Array<number | null>,
-    last_status: 0,
-    total_received: 0,
-  };
-
-  while (items.length < target) {
-    const body: Record<string, unknown> = {
-      max_count: Math.min(20, Math.max(0, target - items.length)),
-    };
-    if (cursor != null) body.cursor = cursor;
-
-    const r = await fetch(
-      `https://open.tiktokapis.com/v2/video/list/?fields=${encodeURIComponent(fields)}`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${access}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          "User-Agent": "social-hub/1.0",
-        },
-        body: JSON.stringify(body),
-        cache: "no-store",
-      }
-    );
-
-    dbg.pages += 1;
-    dbg.last_status = r.status;
-
-    if (!r.ok) {
-      if (debug) {
-        try { (notes as any).tiktok_error_body = await r.json(); } catch {}
-      }
-      break;
-    }
-
-    const data: TikTokResponse = await r.json();
-    const list: TikTokVideo[] = data?.data?.videos ?? [];
-    dbg.total_received += list.length;
-
-    for (const v of list) {
-      items.push({
-        id: String(v.id),
-        platform: "tiktok",
-        title: v.title || v.video_description || "",
-        description: v.video_description || "",
-        url: v.share_url || "",
-        thumbnail: v.cover_image_url || "",
-        publishedAt: v.create_time ? new Date(v.create_time * 1000).toISOString() : new Date().toISOString(),
-        viewCount: typeof v.view_count === "number" ? v.view_count : undefined,
-        likeCount: typeof v.like_count === "number" ? v.like_count : undefined,
-        commentCount: typeof v.comment_count === "number" ? v.comment_count : undefined,
-        shareCount: typeof v.share_count === "number" ? v.share_count : undefined,
-        embedLink: v.embed_link,
-      });
-      if (items.length >= target) break;
-    }
-
-    const hasMore: boolean = Boolean(data?.data?.has_more);
-    cursor = data?.data?.cursor;
-    dbg.cursors.push(cursor ?? null);
-    if (!hasMore || cursor == null) break;
-  }
-
-  if (debug) (notes as any).tiktok_debug = dbg;
-  return items;
-}
 
 /* ================== Route ================== */
 export async function GET(req: Request) {
@@ -142,9 +36,8 @@ export async function GET(req: Request) {
     const TOTAL_LIMIT = Math.min(Math.max(Number(limitParam ?? 60), 1), 200); // borne à 200
 
     // Tri demandé. Hors « date décroissante » (l'ordre naturel des API), le lot
-    // renvoyé est classé sur tout le catalogue YouTube (cache VideoCatalog), pas
-    // sur les dernières vidéos publiées. TikTok/Instagram restent sur leurs
-    // dernières vidéos pour l'instant.
+    // renvoyé est classé sur tout le catalogue de chaque plateforme (cache
+    // VideoCatalog, cf. lib/catalog.server.ts), pas sur les dernières vidéos.
     const sortParam = url.searchParams.get("sort");
     const sortKey = isSortKey(sortParam) ? sortParam : "date";
     const sortDir: SortDir = url.searchParams.get("dir") === "asc" ? "asc" : "desc";
@@ -233,7 +126,11 @@ export async function GET(req: Request) {
         if (ranked && kuserId) {
           // Tout le lot peut venir de YouTube : le tri final départage les
           // plateformes, pas le partage moitié/moitié.
-          const catalog = await getYouTubeCatalog(kuserId, ytChannelId, ytKey);
+          const catalog = await getCatalog(kuserId, {
+            platform: "youtube",
+            sourceId: ytChannelId,
+            apiKey: ytKey,
+          });
           yt = sortVideos(catalog, sortKey, sortDir).slice(0, TOTAL_LIMIT);
         } else {
           yt = await fetchYouTubeLatest(ytKey, ytChannelId, ytTarget);
@@ -251,7 +148,18 @@ export async function GET(req: Request) {
     let tt: VideoItem[] = [];
     if (tiktokAccess && ttTarget > 0) {
       try {
-        tt = await fetchTikTokPaged(tiktokAccess, ttTarget, debug, notes);
+        const openId =
+          ranked && kuserId ? (await getAccountLink(kuserId, "tiktok"))?.externalUserId : null;
+        if (openId && kuserId) {
+          const catalog = await getCatalog(kuserId, {
+            platform: "tiktok",
+            sourceId: openId,
+            accessToken: tiktokAccess,
+          });
+          tt = sortVideos(catalog, sortKey, sortDir).slice(0, TOTAL_LIMIT);
+        } else {
+          tt = await fetchTikTokPaged(tiktokAccess, ttTarget, debug, notes);
+        }
       } catch (e: unknown) {
         (notes as any).tiktok_error = String(e);
       }
@@ -262,7 +170,14 @@ export async function GET(req: Request) {
     try {
       if (kuserId) {
         const link = await getAccountLink(kuserId, "instagram");
-        if (link?.accessToken) {
+        if (link?.accessToken && ranked) {
+          const catalog = await getCatalog(kuserId, {
+            platform: "instagram",
+            sourceId: link.externalUserId,
+            accessToken: link.accessToken,
+          });
+          ig = sortVideos(catalog, sortKey, sortDir).slice(0, TOTAL_LIMIT);
+        } else if (link?.accessToken) {
           ig = await fetchInstagramMedia(link.accessToken, TOTAL_LIMIT);
         }
       }

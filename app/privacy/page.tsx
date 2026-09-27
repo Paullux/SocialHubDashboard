@@ -86,10 +86,11 @@ function Fr() {
         <a href="/settings/linked-accounts">Comptes liés</a> (voir §8).
       </p>
       <p>
-        Pour trier vos vidéos YouTube sur l’ensemble de votre chaîne, nous conservons
-        aussi une copie de sa liste publique (titres, miniatures, compteurs), rattachée à
-        votre compte et actualisée automatiquement. Elle est supprimée dès que vous
-        déconnectez YouTube ou effacez vos données.
+        Pour trier vos vidéos sur l’ensemble de chaque compte connecté (et pas seulement
+        les dernières publiées), nous conservons aussi une copie de leur liste (titres,
+        miniatures, compteurs), rattachée à votre compte et actualisée automatiquement.
+        Celle d’une plateforme est supprimée dès que vous la déconnectez, et l’ensemble
+        dès que vous effacez vos données.
       </p>
       <h3>2.4 Données techniques</h3>
       <p>
@@ -413,10 +414,10 @@ function En() {
         <a href="/settings/linked-accounts">Linked accounts</a> page (see §8).
       </p>
       <p>
-        To sort your YouTube videos across your whole channel, we also keep a copy of its
-        public video list (titles, thumbnails, counters), linked to your account and
-        refreshed automatically. It is deleted as soon as you disconnect YouTube or erase
-        your data.
+        To sort your videos across each connected account (not just the latest ones), we
+        also keep a copy of their video list (titles, thumbnails, counters), linked to your
+        account and refreshed automatically. A platform’s copy is deleted as soon as you
+        disconnect it, and all of it as soon as you erase your data.
       </p>
       <h3>2.4 Technical data</h3>
       <p>
