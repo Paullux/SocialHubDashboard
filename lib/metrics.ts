@@ -159,9 +159,9 @@ export async function recordCatalogDailyPoints(): Promise<number> {
 export async function downsampleHourlyMetrics(spanDays = 2): Promise<number> {
   return prisma.$executeRaw`
     WITH bounds AS (
-      SELECT date_trunc('day', (now() AT TIME ZONE 'UTC')) - make_interval(days => ${HOURLY_WINDOW_DAYS}) AS hi
+      SELECT date_trunc('day', (now() AT TIME ZONE 'UTC')) - make_interval(days => ${HOURLY_WINDOW_DAYS}::int) AS hi
     ),
-    b AS (SELECT hi - make_interval(days => ${spanDays}) AS lo, hi FROM bounds),
+    b AS (SELECT hi - make_interval(days => ${spanDays}::int) AS lo, hi FROM bounds),
     keep AS (
       SELECT m.platform, m."videoId", date_trunc('day', m."snapshotAt") AS d,
              max(m."snapshotAt") AS kept
