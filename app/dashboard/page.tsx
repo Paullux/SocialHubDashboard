@@ -84,8 +84,7 @@ export default function DashboardPage(): JSX.Element {
   const [barH, setBarH] = useState<number | null>(null);
 
   // Le tri est envoyé à l'API : hors date décroissante, elle classe tout le
-  // catalogue YouTube, pas seulement les dernières vidéos. En attendant la
-  // réponse, le lot déjà affiché est trié localement (retour immédiat).
+  // catalogue de chaque plateforme, pas seulement les dernières vidéos.
   async function load(
     newLimit: number,
     key: SortKey,
@@ -180,6 +179,11 @@ export default function DashboardPage(): JSX.Element {
   const toggleSort = (key: SortKey) => {
     // Nouveau classement : on repart des 60 premiers, pas du lot agrandi.
     setLimit(STEP);
+    // Squelettes jusqu'à la réponse. Trier en attendant le lot déjà affiché
+    // montrait un classement provisoire (les 60 dernières), remplacé ensuite
+    // par le vrai : les cartes changeaient sous les yeux. Le calcul d'un
+    // catalogue encore absent peut prendre plusieurs secondes.
+    setVideos(null);
     if (sortKey === key) setSortDir((d) => (d === "desc" ? "asc" : "desc"));
     else {
       setSortKey(key);
