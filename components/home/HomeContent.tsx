@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Check, ShieldCheck } from "lucide-react";
 import { useUiLang } from "@/lib/uiLang";
 import LangToggle from "@/components/legal/LangToggle";
@@ -15,6 +16,8 @@ const copy = {
     demoCaption:
       "Aucune inscription requise : la démo montre exactement ce que les autorisations demandées permettent d'afficher.",
     hero: "Le tableau de bord unique pour suivre les statistiques de tes vidéos YouTube, TikTok et Instagram — vues, likes, commentaires, partages — sans jongler entre les apps.",
+    heroImageAlt:
+      "Le tableau de bord Social Hub Dashboard : une grille de vidéos YouTube, TikTok et Instagram avec leurs vues, likes et commentaires, triables par date, vues, likes ou commentaires.",
     benefitsTitle: "Ce que tu peux faire",
     benefits: [
       "Trier toutes tes vidéos par vues, date, likes, commentaires ou partages",
@@ -75,6 +78,8 @@ const copy = {
     demoCaption:
       "No sign-up needed: the demo shows exactly what the requested permissions let the app display.",
     hero: "The single dashboard to track your YouTube, TikTok and Instagram video stats — views, likes, comments, shares — without juggling between apps.",
+    heroImageAlt:
+      "The Social Hub Dashboard: a grid of YouTube, TikTok and Instagram videos with their views, likes and comments, sortable by date, views, likes or comments.",
     benefitsTitle: "What you can do",
     benefits: [
       "Sort all your videos by views, date, likes, comments or shares",
@@ -168,6 +173,17 @@ export default function HomeContent({ canSeeDashboard }: { canSeeDashboard: bool
           )}
         </div>
         <p className="mt-3 text-xs text-neutral-400">{t.demoCaption}</p>
+
+        <div className="mt-6 overflow-hidden rounded-xl border border-neutral-800">
+          <Image
+            src="/dashboard-screenshot.jpg"
+            alt={t.heroImageAlt}
+            width={1600}
+            height={707}
+            className="w-full h-auto"
+            priority
+          />
+        </div>
       </div>
 
       {/* Bénéfices concrets */}
