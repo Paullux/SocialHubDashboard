@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, ShieldCheck } from "lucide-react";
 import { useUiLang } from "@/lib/uiLang";
 import LangToggle from "@/components/legal/LangToggle";
 import { faq } from "@/lib/faq";
@@ -22,6 +22,14 @@ const copy = {
       "Suivre l'évolution de tes statistiques dans le temps grâce à l'historique automatique",
       "Centraliser plusieurs comptes dans un seul tableau de bord",
     ],
+    trustTitle: "Sécurité et confidentialité",
+    trust: [
+      "Lecture seule : Social Hub ne publie, ne modifie et ne supprime jamais rien sur tes comptes",
+      "Jetons d'accès chiffrés au repos (AES-256-GCM)",
+      "Aucune donnée revendue ni utilisée à des fins publicitaires",
+      "Suppression de tes données en un clic, à tout moment",
+    ],
+    trustLink: "En savoir plus sur la confidentialité",
     howTitle: "Comment ça marche",
     howBody:
       "Un créateur qui publie sur plusieurs plateformes doit habituellement ouvrir chaque application pour connaître ses chiffres. Social Hub rassemble tout au même endroit : un seul tableau de bord listant toutes tes vidéos, triable par date, vues, likes, commentaires et partages, avec un historique conservé automatiquement.",
@@ -74,6 +82,14 @@ const copy = {
       "Track how your stats evolve over time with automatic history",
       "Centralize several accounts in a single dashboard",
     ],
+    trustTitle: "Security and privacy",
+    trust: [
+      "Read-only: Social Hub never posts, edits or deletes anything on your accounts",
+      "Access tokens encrypted at rest (AES-256-GCM)",
+      "No data ever sold or used for advertising",
+      "Delete your data in one click, at any time",
+    ],
+    trustLink: "Learn more in our Privacy Policy",
     howTitle: "How it works",
     howBody:
       "Creators who publish across several platforms usually have to open each app separately to check their numbers. Social Hub brings it all together in one place: a single dashboard listing all your videos, sortable by date, views, likes, comments and shares, with history kept automatically.",
@@ -165,6 +181,23 @@ export default function HomeContent({ canSeeDashboard }: { canSeeDashboard: bool
             </li>
           ))}
         </ul>
+      </div>
+
+      {/* Sécurité & confidentialité — les pages légales détaillent tout,
+          mais cette confiance doit être visible avant même l'inscription. */}
+      <div className="rounded-2xl p-8 border border-neutral-800 bg-neutral-900/60 backdrop-blur">
+        <h2 className="text-lg font-semibold mb-4 text-neutral-100">{t.trustTitle}</h2>
+        <ul className="space-y-3 mb-4">
+          {t.trust.map((point) => (
+            <li key={point} className="flex items-start gap-3 text-neutral-300">
+              <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
+              <span>{point}</span>
+            </li>
+          ))}
+        </ul>
+        <Link href="/privacy" className="text-sm underline text-neutral-300 hover:text-neutral-100">
+          {t.trustLink}
+        </Link>
       </div>
 
       {/* Fonctionnement */}
