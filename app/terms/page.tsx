@@ -39,12 +39,18 @@ function Fr() {
         <li>
           <strong>Paul Woisard</strong>, personne physique agissant à titre non professionnel
         </li>
-        <li>Adresse&nbsp;: 4, avenue Marc Chagall, 37100 Tours, France</li>
         <li>
           Contact&nbsp;: <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>
         </li>
         <li>Directeur de la publication&nbsp;: Paul Woisard</li>
       </ul>
+      <p>
+        Conformément à l’article 1<sup>er</sup>-1, II de la loi n°&nbsp;2004-575 du 21 juin
+        2004 pour la confiance dans l’économie numérique (LCEN), l’éditeur, personne
+        physique agissant à titre non professionnel, a choisi de préserver son anonymat&nbsp;:
+        ses éléments d’identification personnelle ont été communiqués à l’hébergeur (voir
+        §2), qui les conserve de manière confidentielle.
+      </p>
       <p>
         Social Hub est un projet personnel proposé gratuitement&nbsp;; il ne donne lieu à
         aucune facturation et n’a pas de finalité commerciale. À ce titre, l’éditeur ne
@@ -172,12 +178,18 @@ function En() {
         <li>
           <strong>Paul Woisard</strong>, an individual acting in a non-professional capacity
         </li>
-        <li>Address: 4, avenue Marc Chagall, 37100 Tours, France</li>
         <li>
           Contact: <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>
         </li>
         <li>Publication director: Paul Woisard</li>
       </ul>
+      <p>
+        Under Article 1-1, II of French law n°&nbsp;2004-575 of 21 June 2004 on confidence
+        in the digital economy (LCEN), the publisher, an individual acting in a
+        non-professional capacity, has chosen to preserve their anonymity: their personal
+        identification details have been provided to the host (see §2), who keeps them
+        confidential.
+      </p>
       <p>
         Social Hub is a personal project offered free of charge; it involves no billing and
         has no commercial purpose. Accordingly, the publisher has no business registration
