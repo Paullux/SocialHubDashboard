@@ -94,7 +94,7 @@ function Fr({ code }: { code: string | null }) {
       <p>
         Pour supprimer l’ensemble de votre compte (identité gérée par Kinde et tous les
         comptes liés), écrivez à{" "}
-        <a href="mailto:paulwoisard@gmail.com">paulwoisard@gmail.com</a>{" "}
+        <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>{" "}
         depuis l’adresse associée à votre compte, ou en indiquant l’identifiant du compte
         concerné. La suppression est effectuée sous 30&nbsp;jours et une confirmation vous
         est envoyée.
@@ -176,7 +176,7 @@ function En({ code }: { code: string | null }) {
       <p>
         To delete your whole account (identity managed by Kinde and all linked accounts),
         write to{" "}
-        <a href="mailto:paulwoisard@gmail.com">paulwoisard@gmail.com</a>{" "}
+        <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>{" "}
         from the address associated with your account, or stating the identifier of the
         account concerned. Deletion is carried out within 30 days and a confirmation is
         sent to you.

@@ -40,7 +40,7 @@ function Fr() {
       <h2 id="responsable">1. Responsable du traitement</h2>
       <p>
         Paul Woisard — 4, avenue Marc Chagall, 37100 Tours, France —{" "}
-        <a href="mailto:paulwoisard@gmail.com">paulwoisard@gmail.com</a>. Aucun délégué à la
+        <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>. Aucun délégué à la
         protection des données (DPO) n’est désigné&nbsp;; vos demandes sont traitées
         directement à cette adresse.
       </p>
@@ -304,7 +304,7 @@ function Fr() {
       </p>
       <p>
         Pour les exercer&nbsp;: écrivez à{" "}
-        <a href="mailto:paulwoisard@gmail.com">paulwoisard@gmail.com</a>. Une réponse vous
+        <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>. Une réponse vous
         est apportée dans un délai d’un mois. Vous pouvez aussi, sans nous écrire&nbsp;:
       </p>
       <ul>
@@ -372,7 +372,7 @@ function En() {
       <h2 id="controller">1. Data controller</h2>
       <p>
         Paul Woisard — 4, avenue Marc Chagall, 37100 Tours, France —{" "}
-        <a href="mailto:paulwoisard@gmail.com">paulwoisard@gmail.com</a>. No Data Protection
+        <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>. No Data Protection
         Officer has been appointed; your requests are handled directly at this address.
       </p>
 
@@ -622,7 +622,7 @@ function En() {
       </p>
       <p>
         To exercise them: write to{" "}
-        <a href="mailto:paulwoisard@gmail.com">paulwoisard@gmail.com</a>. We reply within
+        <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>. We reply within
         one month. You can also, without contacting us:
       </p>
       <ul>
