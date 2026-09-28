@@ -41,7 +41,7 @@ function Fr() {
         </li>
         <li>Adresse&nbsp;: 4, avenue Marc Chagall, 37100 Tours, France</li>
         <li>
-          Contact&nbsp;: <a href="mailto:paulwoisard@gmail.com">paulwoisard@gmail.com</a>
+          Contact&nbsp;: <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>
         </li>
         <li>Directeur de la publication&nbsp;: Paul Woisard</li>
       </ul>
@@ -151,7 +151,7 @@ function Fr() {
       <p>
         Les présentes conditions sont régies par le droit français. En cas de litige, et à
         défaut de résolution amiable après une réclamation adressée à{" "}
-        <a href="mailto:paulwoisard@gmail.com">paulwoisard@gmail.com</a>, les tribunaux
+        <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>, les tribunaux
         français sont compétents.
       </p>
     </>
@@ -174,7 +174,7 @@ function En() {
         </li>
         <li>Address: 4, avenue Marc Chagall, 37100 Tours, France</li>
         <li>
-          Contact: <a href="mailto:paulwoisard@gmail.com">paulwoisard@gmail.com</a>
+          Contact: <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>
         </li>
         <li>Publication director: Paul Woisard</li>
       </ul>
@@ -277,7 +277,7 @@ function En() {
       <p>
         These terms are governed by French law. In the event of a dispute, and failing an
         amicable resolution after a complaint sent to{" "}
-        <a href="mailto:paulwoisard@gmail.com">paulwoisard@gmail.com</a>, the French courts
+        <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>, the French courts
         shall have jurisdiction.
       </p>
     </>

@@ -143,8 +143,8 @@ export default function EraseData() {
             <>
               {" "}
               {t.partial}{" "}
-              <a className="underline" href="mailto:paulwoisard@gmail.com">
-                paulwoisard@gmail.com
+              <a className="underline" href="mailto:paullux@social-hub.fr">
+                paullux@social-hub.fr
               </a>{" "}
               {t.partialTail}
             </>
