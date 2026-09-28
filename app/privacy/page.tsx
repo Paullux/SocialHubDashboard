@@ -39,7 +39,7 @@ function Fr() {
 
       <h2 id="responsable">1. Responsable du traitement</h2>
       <p>
-        Paul Woisard — 4, avenue Marc Chagall, 37100 Tours, France —{" "}
+        Paul Woisard —{" "}
         <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>. Aucun délégué à la
         protection des données (DPO) n’est désigné&nbsp;; vos demandes sont traitées
         directement à cette adresse.
@@ -371,7 +371,7 @@ function En() {
 
       <h2 id="controller">1. Data controller</h2>
       <p>
-        Paul Woisard — 4, avenue Marc Chagall, 37100 Tours, France —{" "}
+        Paul Woisard —{" "}
         <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>. No Data Protection
         Officer has been appointed; your requests are handled directly at this address.
       </p>
