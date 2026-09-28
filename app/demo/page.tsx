@@ -14,6 +14,7 @@ import type { Platform, VideoItem } from "@/lib/types";
 import { sortVideos, type SortKey, type SortDir } from "@/lib/videoSort";
 import { useUiLang } from "@/lib/uiLang";
 import LangToggle from "@/components/legal/LangToggle";
+import { RegisterLink } from "@kinde-oss/kinde-auth-nextjs/components";
 
 const T = {
   fr: {
@@ -25,6 +26,9 @@ const T = {
     empty: "Aucune vidéo pour cette plateforme.",
     showAll: "Tout afficher",
     langLabel: "Langue de la page",
+    ctaTitle: "Convaincu ?",
+    ctaBody: "Connecte tes propres comptes et retrouve ce même tableau de bord avec tes vraies statistiques.",
+    ctaButton: "Essaie avec tes propres comptes — Gratuit pendant la bêta",
   },
   en: {
     title: "Demo (9 videos)",
@@ -35,6 +39,9 @@ const T = {
     empty: "No videos for this platform.",
     showAll: "Show all",
     langLabel: "Page language",
+    ctaTitle: "Convinced?",
+    ctaBody: "Connect your own accounts and get this same dashboard with your real statistics.",
+    ctaButton: "Try it with your own accounts — Free during beta",
   },
 } as const;
 
@@ -187,6 +194,16 @@ export default function DemoPage() {
           </p>
         )}
       </div>
+
+      {videos && (
+        <div className="mt-6 rounded-2xl p-6 border border-neutral-800 bg-neutral-900/50 backdrop-blur text-center">
+          <h2 className="text-lg font-semibold text-neutral-100 mb-2">{t.ctaTitle}</h2>
+          <p className="text-sm text-neutral-400 mb-4">{t.ctaBody}</p>
+          <RegisterLink className="inline-flex items-center gap-2 rounded-md bg-brand px-5 py-2.5 text-sm font-medium text-white shadow-md transition-transform duration-150 hover:scale-105 hover:bg-brand-dark">
+            {t.ctaButton}
+          </RegisterLink>
+        </div>
+      )}
     </main>
   );
 }

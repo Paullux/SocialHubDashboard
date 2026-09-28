@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import { Check } from "lucide-react";
 import { useUiLang } from "@/lib/uiLang";
 import LangToggle from "@/components/legal/LangToggle";
 import { faq } from "@/lib/faq";
@@ -14,6 +15,13 @@ const copy = {
     demoCaption:
       "Aucune inscription requise : la démo montre exactement ce que les autorisations demandées permettent d'afficher.",
     hero: "Le tableau de bord unique pour suivre les statistiques de tes vidéos YouTube, TikTok et Instagram — vues, likes, commentaires, partages — sans jongler entre les apps.",
+    benefitsTitle: "Ce que tu peux faire",
+    benefits: [
+      "Trier toutes tes vidéos par vues, date, likes, commentaires ou partages",
+      "Comparer les performances entre YouTube, TikTok et Instagram",
+      "Suivre l'évolution de tes statistiques dans le temps grâce à l'historique automatique",
+      "Centraliser plusieurs comptes dans un seul tableau de bord",
+    ],
     howTitle: "Comment ça marche",
     howBody:
       "Un créateur qui publie sur plusieurs plateformes doit habituellement ouvrir chaque application pour connaître ses chiffres. Social Hub rassemble tout au même endroit : un seul tableau de bord listant toutes tes vidéos, triable par date, vues, likes, commentaires et partages, avec un historique conservé automatiquement.",
@@ -59,6 +67,13 @@ const copy = {
     demoCaption:
       "No sign-up needed: the demo shows exactly what the requested permissions let the app display.",
     hero: "The single dashboard to track your YouTube, TikTok and Instagram video stats — views, likes, comments, shares — without juggling between apps.",
+    benefitsTitle: "What you can do",
+    benefits: [
+      "Sort all your videos by views, date, likes, comments or shares",
+      "Compare performance across YouTube, TikTok and Instagram",
+      "Track how your stats evolve over time with automatic history",
+      "Centralize several accounts in a single dashboard",
+    ],
     howTitle: "How it works",
     howBody:
       "Creators who publish across several platforms usually have to open each app separately to check their numbers. Social Hub brings it all together in one place: a single dashboard listing all your videos, sortable by date, views, likes, comments and shares, with history kept automatically.",
@@ -137,6 +152,19 @@ export default function HomeContent({ canSeeDashboard }: { canSeeDashboard: bool
           )}
         </div>
         <p className="mt-3 text-xs text-neutral-400">{t.demoCaption}</p>
+      </div>
+
+      {/* Bénéfices concrets */}
+      <div className="rounded-2xl p-8 border border-neutral-800 bg-neutral-900/60 backdrop-blur">
+        <h2 className="text-lg font-semibold mb-4 text-neutral-100">{t.benefitsTitle}</h2>
+        <ul className="space-y-3">
+          {t.benefits.map((benefit) => (
+            <li key={benefit} className="flex items-start gap-3 text-neutral-300">
+              <Check className="mt-0.5 h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
+              <span>{benefit}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       {/* Fonctionnement */}
