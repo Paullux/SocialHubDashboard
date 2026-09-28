@@ -33,23 +33,17 @@ function Fr() {
       <h2 id="editeur">1. Éditeur du site</h2>
       <p>
         Le site <strong>Social Hub</strong>, accessible à l’adresse{" "}
-        <a href="https://social-hub.fr">https://social-hub.fr</a>, est édité par&nbsp;:
+        <a href="https://social-hub.fr">https://social-hub.fr</a>, est édité à titre non
+        professionnel par une personne physique.
       </p>
-      <ul>
-        <li>
-          <strong>Paul Woisard</strong>, personne physique agissant à titre non professionnel
-        </li>
-        <li>
-          Contact&nbsp;: <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>
-        </li>
-        <li>Directeur de la publication&nbsp;: Paul Woisard</li>
-      </ul>
       <p>
         Conformément à l’article 1<sup>er</sup>-1, II de la loi n°&nbsp;2004-575 du 21 juin
-        2004 pour la confiance dans l’économie numérique (LCEN), l’éditeur, personne
-        physique agissant à titre non professionnel, a choisi de préserver son anonymat&nbsp;:
-        ses éléments d’identification personnelle ont été communiqués à l’hébergeur (voir
-        §2), qui les conserve de manière confidentielle.
+        2004 pour la confiance dans l’économie numérique (LCEN), l’éditeur a choisi de
+        préserver son anonymat et a communiqué à son hébergeur (voir §2) les éléments
+        d’identification personnelle requis par la loi.
+      </p>
+      <p>
+        Contact&nbsp;: <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>
       </p>
       <p>
         Social Hub est un projet personnel proposé gratuitement&nbsp;; il ne donne lieu à
@@ -60,8 +54,8 @@ function Fr() {
       <h2 id="hebergement">2. Hébergement</h2>
       <ul>
         <li>
-          <strong>Application&nbsp;:</strong> Vercel Inc., 340 S Lemon Ave #4133, Walnut,
-          CA 91789, États-Unis — <a href="https://vercel.com">vercel.com</a>.
+          <strong>Application&nbsp;:</strong> Vercel Inc., 440 N Barranca Ave #4133,
+          Covina, CA 91723, États-Unis — <a href="https://vercel.com">vercel.com</a>.
         </li>
         <li>
           <strong>Base de données&nbsp;:</strong> Neon, Inc., base PostgreSQL managée,
@@ -172,23 +166,17 @@ function En() {
       <h2 id="publisher">1. Site publisher</h2>
       <p>
         The <strong>Social Hub</strong> website, available at{" "}
-        <a href="https://social-hub.fr">https://social-hub.fr</a>, is published by:
+        <a href="https://social-hub.fr">https://social-hub.fr</a>, is published, in a
+        non-professional capacity, by an individual.
       </p>
-      <ul>
-        <li>
-          <strong>Paul Woisard</strong>, an individual acting in a non-professional capacity
-        </li>
-        <li>
-          Contact: <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>
-        </li>
-        <li>Publication director: Paul Woisard</li>
-      </ul>
       <p>
         Under Article 1-1, II of French law n°&nbsp;2004-575 of 21 June 2004 on confidence
-        in the digital economy (LCEN), the publisher, an individual acting in a
-        non-professional capacity, has chosen to preserve their anonymity: their personal
-        identification details have been provided to the host (see §2), who keeps them
-        confidential.
+        in the digital economy (LCEN), the publisher has chosen to preserve their anonymity
+        and has provided the host (see §2) with the personal identification details
+        required by law.
+      </p>
+      <p>
+        Contact: <a href="mailto:paullux@social-hub.fr">paullux@social-hub.fr</a>
       </p>
       <p>
         Social Hub is a personal project offered free of charge; it involves no billing and
@@ -199,8 +187,8 @@ function En() {
       <h2 id="hosting">2. Hosting</h2>
       <ul>
         <li>
-          <strong>Application:</strong> Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA
-          91789, USA — <a href="https://vercel.com">vercel.com</a>.
+          <strong>Application:</strong> Vercel Inc., 440 N Barranca Ave #4133, Covina, CA
+          91723, USA — <a href="https://vercel.com">vercel.com</a>.
         </li>
         <li>
           <strong>Database:</strong> Neon, Inc., a managed PostgreSQL database, data hosted
