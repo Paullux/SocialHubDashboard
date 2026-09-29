@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "fr.socialhub.dashboard",
+      "sha256_cert_fingerprints": [
+        "F7:1B:6E:DA:4D:FC:E5:68:19:B5:FD:A9:D2:EC:BF:39:67:15:02:31:D3:94:83:48:46:C0:19:25:DF:28:DF:36"
+      ]
+    }
+  }
+]
