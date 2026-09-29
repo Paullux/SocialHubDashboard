@@ -1,5 +1,5 @@
 // app/layout.tsx
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "@/styles/globals.css";
 import { Suspense, type ReactNode } from "react";
 import Navbar from "@/components/Navbar";
@@ -44,6 +44,7 @@ export const metadata: Metadata = {
   title: PAGE_TITLE,
   description: SEO_DESCRIPTION,
   alternates: { canonical: "/" },
+  manifest: "/site.webmanifest",
   openGraph: {
     type: "website",
     locale: "fr_FR",
@@ -67,6 +68,10 @@ export const metadata: Metadata = {
     images: ["/og.jpg"],
   },
   ...(META_APP_ID ? { other: { "fb:app_id": META_APP_ID } } : {}),
+};
+
+export const viewport: Viewport = {
+  themeColor: "#111111",
 };
 
 // La CSP (proxy.ts) utilise un nonce + 'strict-dynamic' : Next doit poser ce
